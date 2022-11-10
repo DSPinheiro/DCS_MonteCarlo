@@ -2,6 +2,7 @@
 #define SIMULATIONMAIN_H
 
 #include <algorithm>
+#include <chrono>
 
 #include <QMainWindow>
 
@@ -30,6 +31,9 @@ public slots:
 
 private:
     Ui::SimulationMain *ui;
+
+    long int lastHistogramUpdate;
+
     static inline std::vector<std::string> split(std::string s, std::string delimiter)
     {
         size_t last = 0;
