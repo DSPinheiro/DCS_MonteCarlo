@@ -34,7 +34,7 @@ vector<int> Obtain_time::simuTime(int First_call, int process_remain, int int_ti
         int Sec    = localTime.tm_sec;
 
         if(Graph_options.MakeDislin)
-            w->changeTimes(0, Hour, Min, Sec);
+            emit w->changeTimes(0, Hour, Min, Sec);
 
         int_time_out = 60 * ((60 * Hour) + Min) + Sec;
         int_time_mili_out = chrono::duration_cast<chrono::milliseconds>(now.time_since_epoch()).count();
@@ -98,7 +98,7 @@ vector<int> Obtain_time::simuTime(int First_call, int process_remain, int int_ti
 
         if(First_call == 1){
             if(Graph_options.MakeDislin)
-                w->changeTimes(1, dif_time_a[0], dif_time_a[1], dif_time_a[2]);
+                emit w->changeTimes(1, dif_time_a[0], dif_time_a[1], dif_time_a[2]);
 
             cout << "remainder time estimate: " << dif_time_a[0] << " h " << dif_time_a[1] << " m " << dif_time_a[2] << " s" << endl;
             cout << endl;

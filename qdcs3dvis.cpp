@@ -1,16 +1,8 @@
 #include "qdcs3dvis.h"
 
-#include <QOpenGLFunctions>
-#include <QOpenGLShaderProgram>
-#include <QOpenGLTexture>
-
-#include <QTimer>
-#include <QDebug>
-#include <QKeyEvent>
-#include <QMouseEvent>
-#include <QWheelEvent>
-#include <iostream>
-#include <fstream>
+extern GeoParapathlengths GeoParapathlengths;
+extern Geolengthelements Geolengthelements;
+extern GeoParameters GeoParameters;
 
 extern char File_simu[200];
 
@@ -23,13 +15,39 @@ QDCS3Dvis::QDCS3Dvis(QWidget *parent)
     uScale = 0.2;
     xPan = 0.0f;
     yPan = 0.0f;
+
+    delrot = 0;
+    teta_crys1 = - GeoParameters.teta_table - GeoParameters.Exp_crys1 + GeoParameters.OffsetRotCry1;
+    tetaref = 90 - teta_crys1;
 }
 
 QDCS3Dvis::~QDCS3Dvis()
 {
-    glDeleteBuffers(1, &baseModelVertexBuffer);
-    glDeleteBuffers(1, &baseModelUVBuffer);
-    glDeleteTextures(1, &baseModelTexture);
+    glDeleteBuffers(1, &baseCubeModelVertexBuffer);
+    glDeleteBuffers(1, &baseCubeModelUVBuffer);
+    glDeleteTextures(1, &baseCubeModelTexture);
+
+    glDeleteBuffers(1, &baseCylinderModelVertexBuffer);
+    glDeleteBuffers(1, &baseCylinderModelUVBuffer);
+    glDeleteTextures(1, &baseCylinderModelTexture);
+
+    glDeleteTextures(1, &crystalCubeModelTexture);
+    glDeleteTextures(1, &tableCubeModelTexture);
+
+    glDeleteTextures(1, &sourceCylinderModelTexture);
+    glDeleteTextures(1, &appertureCylinderModelTexture);
+    glDeleteTextures(1, &pillarCylinderModelTexture);
+    glDeleteTextures(1, &detecCylinderModelTexture);
+
+    glDeleteTextures(1, &C1TextModelTexture);
+    glDeleteTextures(1, &C2TextModelTexture);
+    glDeleteTextures(1, &SourceTextModelTexture);
+    glDeleteTextures(1, &AppertureTextModelTexture);
+    glDeleteTextures(1, &TableTextModelTexture);
+    glDeleteTextures(1, &DetectorTextModelTexture);
+    glDeleteTextures(1, &ParaTextModelTexture);
+    glDeleteTextures(1, &AntiTextModelTexture);
+
     glDeleteProgram(programShader->programId());
 }
 
@@ -55,8 +73,8 @@ static void qNormalizeUScale(float &scale)
 {
     if (scale < 0.01)
         scale = 0.01;
-    else if (scale > 10)
-        scale = 10;
+    else if (scale > 50)
+        scale = 50;
 }
 
 void QDCS3Dvis::setXRotation(int angle)
@@ -109,6 +127,11 @@ void QDCS3Dvis::setYPan(float ypan)
         yPan = ypan;
         update();
     }
+}
+
+void QDCS3Dvis::setDelrot(float rot)
+{
+    delrot = rot;
 }
 
 bool QDCS3Dvis::loadOBJ(const char *path,
@@ -251,32 +274,317 @@ void QDCS3Dvis::initializeGL()
 
     programShader->setUniformValue("texture", 0);
 
-    //Load base model from disk into arrays
-    std::string baseModelPath = std::string(File_simu) + "\\DCSModels\\cube.obj";
+    //Load base cube model from disk into arrays
+    std::string baseCubeModelPath = std::string(File_simu) + "\\DCSModels\\cube.obj";
 
-    bool res = loadOBJ(baseModelPath.c_str(), baseVertices, baseUVs, baseNormals);
+    bool res = loadOBJ(baseCubeModelPath.c_str(), baseCubeVertices, baseCubeUVs, baseCubeNormals);
 
     if (res)
-        std::cout << "Base model loaded successfully." << std::endl;
+        std::cout << "Base cube model loaded successfully." << std::endl;
     else
-        std::cout << "Error loading base model." << std::endl;
+        std::cout << "Error loading base cube model." << std::endl;
+
+    //Load base cube model from disk into arrays
+    std::string baseCylinderModelPath = std::string(File_simu) + "\\DCSModels\\cylinder.obj";
+
+    res = loadOBJ(baseCylinderModelPath.c_str(), baseCylinderVertices, baseCylinderUVs, baseCylinderNormals);
+
+    if (res)
+        std::cout << "Base cylinder model loaded successfully." << std::endl;
+    else
+        std::cout << "Error loading base cylinder model." << std::endl;
+
+    //Load C1 text model from disk into arrays
+    std::string C1TextModelPath = std::string(File_simu) + "\\DCSModels\\C1text.obj";
+
+    res = loadOBJ(C1TextModelPath.c_str(), C1TextVertices, C1TextUVs, C1TextNormals);
+
+    if (res)
+        std::cout << "C1 Text model loaded successfully." << std::endl;
+    else
+        std::cout << "Error loading C1 Text model." << std::endl;
+
+    //Load C2 text model from disk into arrays
+    std::string C2TextModelPath = std::string(File_simu) + "\\DCSModels\\C2text.obj";
+
+    res = loadOBJ(C2TextModelPath.c_str(), C2TextVertices, C2TextUVs, C2TextNormals);
+
+    if (res)
+        std::cout << "C2 Text model loaded successfully." << std::endl;
+    else
+        std::cout << "Error loading C2 Text model." << std::endl;
+
+    //Load Source text model from disk into arrays
+    std::string SourceTextModelPath = std::string(File_simu) + "\\DCSModels\\Sourcetext.obj";
+
+    res = loadOBJ(SourceTextModelPath.c_str(), SourceTextVertices, SourceTextUVs, SourceTextNormals);
+
+    if (res)
+        std::cout << "Source Text model loaded successfully." << std::endl;
+    else
+        std::cout << "Error loading Source Text model." << std::endl;
+
+    //Load Apperture text model from disk into arrays
+    std::string AppertureTextModelPath = std::string(File_simu) + "\\DCSModels\\Apperturetext.obj";
+
+    res = loadOBJ(AppertureTextModelPath.c_str(), AppertureTextVertices, AppertureTextUVs, AppertureTextNormals);
+
+    if (res)
+        std::cout << "Apperture Text model loaded successfully." << std::endl;
+    else
+        std::cout << "Error loading Apperture Text model." << std::endl;
+
+    //Load Table text model from disk into arrays
+    std::string TableTextModelPath = std::string(File_simu) + "\\DCSModels\\Tabletext.obj";
+
+    res = loadOBJ(TableTextModelPath.c_str(), TableTextVertices, TableTextUVs, TableTextNormals);
+
+    if (res)
+        std::cout << "Table Text model loaded successfully." << std::endl;
+    else
+        std::cout << "Error loading Table Text model." << std::endl;
+
+    //Load Detector text model from disk into arrays
+    std::string DetectorTextModelPath = std::string(File_simu) + "\\DCSModels\\Detectortext.obj";
+
+    res = loadOBJ(DetectorTextModelPath.c_str(), DetectorTextVertices, DetectorTextUVs, DetectorTextNormals);
+
+    if (res)
+        std::cout << "Detector Text model loaded successfully." << std::endl;
+    else
+        std::cout << "Error loading Detector Text model." << std::endl;
+
+    //Load Para Configuration text model from disk into arrays
+    std::string ParaTextModelPath = std::string(File_simu) + "\\DCSModels\\ParaConfigtext.obj";
+
+    res = loadOBJ(ParaTextModelPath.c_str(), ParaTextVertices, ParaTextUVs, ParaTextNormals);
+
+    if (res)
+        std::cout << "Para Configuration Text model loaded successfully." << std::endl;
+    else
+        std::cout << "Error loading Para Configuration Text model." << std::endl;
+
+    //Load Anti Configuration text model from disk into arrays
+    std::string AntiTextModelPath = std::string(File_simu) + "\\DCSModels\\AntiConfigtext.obj";
+
+    res = loadOBJ(AntiTextModelPath.c_str(), AntiTextVertices, AntiTextUVs, AntiTextNormals);
+
+    if (res)
+        std::cout << "Para Configuration Text model loaded successfully." << std::endl;
+    else
+        std::cout << "Error loading Para Configuration Text model." << std::endl;
+
+    //Load base cube texture from disk
+    std::string baseCubeTexturePath = std::string(File_simu) + "\\DCSModels\\cubeTex.png";
+
+    baseCubeTexture = new QOpenGLTexture(QImage(baseCubeTexturePath.c_str()).mirrored());
+
+    //Load crystal cube texture from disk
+    std::string crystalCubeTexturePath = std::string(File_simu) + "\\DCSModels\\crystalTex.png";
+
+    crystalCubeTexture = new QOpenGLTexture(QImage(crystalCubeTexturePath.c_str()).mirrored());
+
+    //Load table cube texture from disk
+    std::string tableCubeTexturePath = std::string(File_simu) + "\\DCSModels\\tableTex.png";
+
+    tableCubeTexture = new QOpenGLTexture(QImage(tableCubeTexturePath.c_str()).mirrored());
+
+    //Load base cylinder texture from disk
+    std::string baseCylinderTexturePath = std::string(File_simu) + "\\DCSModels\\cylinderTex.png";
+
+    baseCylinderTexture = new QOpenGLTexture(QImage(baseCylinderTexturePath.c_str()).mirrored());
+
+    //Load source cylinder texture from disk
+    std::string sourceCylinderTexturePath = std::string(File_simu) + "\\DCSModels\\sourceTex.png";
+
+    sourceCylinderTexture = new QOpenGLTexture(QImage(sourceCylinderTexturePath.c_str()).mirrored());
+
+    //Load apperture cylinder texture from disk
+    std::string appertureCylinderTexturePath = std::string(File_simu) + "\\DCSModels\\apperTex.png";
+
+    appertureCylinderTexture = new QOpenGLTexture(QImage(appertureCylinderTexturePath.c_str()).mirrored());
+
+    //Load pillar cylinder texture from disk
+    std::string pillarCylinderTexturePath = std::string(File_simu) + "\\DCSModels\\steelTex.png";
+
+    pillarCylinderTexture = new QOpenGLTexture(QImage(pillarCylinderTexturePath.c_str()).mirrored());
+
+    //Load detector cylinder texture from disk
+    std::string detecCylinderTexturePath = std::string(File_simu) + "\\DCSModels\\detecTex.png";
+
+    detecCylinderTexture = new QOpenGLTexture(QImage(detecCylinderTexturePath.c_str()).mirrored());
+
+    //Load C1 text texture from disk
+    std::string C1TextTexturePath = std::string(File_simu) + "\\DCSModels\\C1Tex.png";
+
+    C1TextTexture = new QOpenGLTexture(QImage(C1TextTexturePath.c_str()).mirrored());
+
+    //Load C2 text texture from disk
+    std::string C2TextTexturePath = std::string(File_simu) + "\\DCSModels\\C2Tex.png";
+
+    C2TextTexture = new QOpenGLTexture(QImage(C2TextTexturePath.c_str()).mirrored());
+
+    //Load Source text texture from disk
+    std::string SourceTextTexturePath = std::string(File_simu) + "\\DCSModels\\SourceTex.png";
+
+    SourceTextTexture = new QOpenGLTexture(QImage(SourceTextTexturePath.c_str()).mirrored());
+
+    //Load Apperture text texture from disk
+    std::string AppertureTextTexturePath = std::string(File_simu) + "\\DCSModels\\AppertureTex.png";
+
+    AppertureTextTexture = new QOpenGLTexture(QImage(AppertureTextTexturePath.c_str()).mirrored());
+
+    //Load Table text texture from disk
+    std::string TableTextTexturePath = std::string(File_simu) + "\\DCSModels\\TableTextTex.png";
+
+    TableTextTexture = new QOpenGLTexture(QImage(TableTextTexturePath.c_str()).mirrored());
+
+    //Load Detector text texture from disk
+    std::string DetectorTextTexturePath = std::string(File_simu) + "\\DCSModels\\DetectorTex.png";
+
+    DetectorTextTexture = new QOpenGLTexture(QImage(DetectorTextTexturePath.c_str()).mirrored());
+
+    //Load Para Configuration texture from disk
+    std::string ParaTextTexturePath = std::string(File_simu) + "\\DCSModels\\ParaConfigTex.png";
+
+    ParaTextTexture = new QOpenGLTexture(QImage(ParaTextTexturePath.c_str()).mirrored());
+
+    //Load Anti Configuration texture from disk
+    std::string AntiTextTexturePath = std::string(File_simu) + "\\DCSModels\\AntiConfigTex.png";
+
+    AntiTextTexture = new QOpenGLTexture(QImage(AntiTextTexturePath.c_str()).mirrored());
+
+    //Load the base cube model into OpenGL buffer objects
+    glGenBuffers(1, &baseCubeModelVertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, baseCubeModelVertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, baseCubeVertices.size() * sizeof(QVector3D), &baseCubeVertices[0], GL_STATIC_DRAW);
+
+    glGenBuffers(1, &baseCubeModelUVBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, baseCubeModelUVBuffer);
+    glBufferData(GL_ARRAY_BUFFER, baseCubeUVs.size() * sizeof(QVector2D), &baseCubeUVs[0], GL_STATIC_DRAW);
+
+    //Load the base cylinder model into OpenGL buffer objects
+    glGenBuffers(1, &baseCylinderModelVertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, baseCylinderModelVertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, baseCylinderVertices.size() * sizeof(QVector3D), &baseCylinderVertices[0], GL_STATIC_DRAW);
+
+    glGenBuffers(1, &baseCylinderModelUVBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, baseCylinderModelUVBuffer);
+    glBufferData(GL_ARRAY_BUFFER, baseCylinderUVs.size() * sizeof(QVector2D), &baseCylinderUVs[0], GL_STATIC_DRAW);
+
+    //Load the C1 text model into OpenGL buffer objects
+    glGenBuffers(1, &C1TextModelVertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, C1TextModelVertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, C1TextVertices.size() * sizeof(QVector3D), &C1TextVertices[0], GL_STATIC_DRAW);
+
+    glGenBuffers(1, &C1TextModelUVBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, C1TextModelUVBuffer);
+    glBufferData(GL_ARRAY_BUFFER, C1TextUVs.size() * sizeof(QVector2D), &C1TextUVs[0], GL_STATIC_DRAW);
+
+    //Load the C2 text model into OpenGL buffer objects
+    glGenBuffers(1, &C2TextModelVertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, C2TextModelVertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, C2TextVertices.size() * sizeof(QVector3D), &C2TextVertices[0], GL_STATIC_DRAW);
+
+    glGenBuffers(1, &C2TextModelUVBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, C2TextModelUVBuffer);
+    glBufferData(GL_ARRAY_BUFFER, C2TextUVs.size() * sizeof(QVector2D), &C2TextUVs[0], GL_STATIC_DRAW);
+
+    //Load the Source text model into OpenGL buffer objects
+    glGenBuffers(1, &SourceTextModelVertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, SourceTextModelVertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, SourceTextVertices.size() * sizeof(QVector3D), &SourceTextVertices[0], GL_STATIC_DRAW);
+
+    glGenBuffers(1, &SourceTextModelUVBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, SourceTextModelUVBuffer);
+    glBufferData(GL_ARRAY_BUFFER, SourceTextUVs.size() * sizeof(QVector2D), &SourceTextUVs[0], GL_STATIC_DRAW);
+
+    //Load the Apperture text model into OpenGL buffer objects
+    glGenBuffers(1, &AppertureTextModelVertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, AppertureTextModelVertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, AppertureTextVertices.size() * sizeof(QVector3D), &AppertureTextVertices[0], GL_STATIC_DRAW);
+
+    glGenBuffers(1, &AppertureTextModelUVBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, AppertureTextModelUVBuffer);
+    glBufferData(GL_ARRAY_BUFFER, AppertureTextUVs.size() * sizeof(QVector2D), &AppertureTextUVs[0], GL_STATIC_DRAW);
+
+    //Load the Table text model into OpenGL buffer objects
+    glGenBuffers(1, &TableTextModelVertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, TableTextModelVertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, TableTextVertices.size() * sizeof(QVector3D), &TableTextVertices[0], GL_STATIC_DRAW);
+
+    glGenBuffers(1, &TableTextModelUVBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, TableTextModelUVBuffer);
+    glBufferData(GL_ARRAY_BUFFER, TableTextUVs.size() * sizeof(QVector2D), &TableTextUVs[0], GL_STATIC_DRAW);
+
+    //Load the Detector text model into OpenGL buffer objects
+    glGenBuffers(1, &DetectorTextModelVertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, DetectorTextModelVertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, DetectorTextVertices.size() * sizeof(QVector3D), &DetectorTextVertices[0], GL_STATIC_DRAW);
+
+    glGenBuffers(1, &DetectorTextModelUVBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, DetectorTextModelUVBuffer);
+    glBufferData(GL_ARRAY_BUFFER, DetectorTextUVs.size() * sizeof(QVector2D), &DetectorTextUVs[0], GL_STATIC_DRAW);
+
+    //Load the Para Configuration text model into OpenGL buffer objects
+    glGenBuffers(1, &ParaTextModelVertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, ParaTextModelVertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, ParaTextVertices.size() * sizeof(QVector3D), &ParaTextVertices[0], GL_STATIC_DRAW);
+
+    glGenBuffers(1, &ParaTextModelUVBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, ParaTextModelUVBuffer);
+    glBufferData(GL_ARRAY_BUFFER, ParaTextUVs.size() * sizeof(QVector2D), &ParaTextUVs[0], GL_STATIC_DRAW);
+
+    //Load the Anti Configuration text model into OpenGL buffer objects
+    glGenBuffers(1, &AntiTextModelVertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, AntiTextModelVertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, AntiTextVertices.size() * sizeof(QVector3D), &AntiTextVertices[0], GL_STATIC_DRAW);
+
+    glGenBuffers(1, &AntiTextModelUVBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, AntiTextModelUVBuffer);
+    glBufferData(GL_ARRAY_BUFFER, AntiTextUVs.size() * sizeof(QVector2D), &AntiTextUVs[0], GL_STATIC_DRAW);
 
 
-    std::string baseTexturePath = std::string(File_simu) + "\\DCSModels\\cubeTex.png";
 
-    QOpenGLTexture *baseTexture = new QOpenGLTexture(QImage(baseTexturePath.c_str()).mirrored());
+    baseCubeModelTexture = baseCubeTexture->textureId();
+    crystalCubeModelTexture = crystalCubeTexture->textureId();
+    tableCubeModelTexture = tableCubeTexture->textureId();
+    baseCylinderModelTexture = baseCylinderTexture->textureId();
+    sourceCylinderModelTexture = sourceCylinderTexture->textureId();
+    appertureCylinderModelTexture = appertureCylinderTexture->textureId();
+    pillarCylinderModelTexture = pillarCylinderTexture->textureId();
+    detecCylinderModelTexture = detecCylinderTexture->textureId();
 
-    //Load the base model into OpenGL buffer objects
-    glGenBuffers(1, &baseModelVertexBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, baseModelVertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, baseVertices.size() * sizeof(QVector3D), &baseVertices[0], GL_STATIC_DRAW);
+    C1TextModelTexture = C1TextTexture->textureId();
+    C2TextModelTexture = C2TextTexture->textureId();
+    SourceTextModelTexture = SourceTextTexture->textureId();
+    AppertureTextModelTexture = AppertureTextTexture->textureId();
+    TableTextModelTexture = TableTextTexture->textureId();
+    DetectorTextModelTexture = DetectorTextTexture->textureId();
+    ParaTextModelTexture = ParaTextTexture->textureId();
+    AntiTextModelTexture = AntiTextTexture->textureId();
 
-    glGenBuffers(1, &baseModelUVBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, baseModelUVBuffer);
-    glBufferData(GL_ARRAY_BUFFER, baseUVs.size() * sizeof(QVector2D), &baseUVs[0], GL_STATIC_DRAW);
 
-    baseTexture->bind();
-    baseModelTexture = baseTexture->textureId();
+
+    source_posx = 0.0f;
+    source_posy = - S_sour_y / 2 - GeoParapathlengths.LT_aper - GeoParapathlengths.dist_T_Cr1 - Geolengthelements.y_first_crys / 2;
+    source_posz = 0.0f;
+
+    ap_posx = 0.0f;
+    ap_posy = - GeoParapathlengths.LT_aper / 2 - GeoParapathlengths.dist_T_Cr1 - Geolengthelements.y_first_crys / 2;
+    ap_posz = 0.0f;
+
+    c2_posx = GeoParapathlengths.dist_Cr1_Cr2 + x_first_crys;
+    c2_posy = 0.0f;
+    c2_posz = 0.0f;
+
+    detec_posx = GeoParapathlengths.dist_Cr2_Det + Geolengthelements.zdetc / 2;
+    detec_posy = 0.0f;
+    detec_posz = Geolengthelements.shift_det_ver;
+
+    table_posx = 1.5 * (GeoParapathlengths.dist_Cr1_Cr2 + GeoParapathlengths.dist_Cr2_Det) / 3;
+    table_posy = 0.0f;
+    table_posz = -15.0f;
 }
 
 void QDCS3Dvis::paintGL()
@@ -284,7 +592,7 @@ void QDCS3Dvis::paintGL()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     QMatrix4x4 m;
-    m.ortho(-0.5f, 0.5f, 0.5f, -0.5f, 4.0f, 15.0f);
+    m.ortho(-0.5f, 0.5f, 0.5f, -0.5f, 50.0f, -50.0f);
     m.translate(xPan, yPan, -10.0);
     m.scale(uScale);
     m.rotate(xRot, 1.0, 0.0, 0.0);
@@ -297,7 +605,10 @@ void QDCS3Dvis::paintGL()
     programShader->setAttributeBuffer(0, GL_FLOAT, 0, 3, 5 * sizeof(GLfloat));
     programShader->setAttributeBuffer(1, GL_FLOAT, 3 * sizeof(GL_FLOAT), 2, 5 * sizeof(GLfloat));
 
-    draw();
+    drawParallel(m);
+    drawAntiParallel(m);
+    drawParallelText(m);
+    drawAntiParallelText(m);
 }
 
 void QDCS3Dvis::resizeGL(int width, int height)
@@ -310,7 +621,7 @@ void QDCS3Dvis::resizeGL(int width, int height)
 #ifdef QT_OPENGL_ES_1
     glOrthof(-2, +2, -2, +2, 1.0, 15.0);
 #else
-    glOrtho(-2, +2, -2, +2, 1.0, 15.0);
+    glOrtho(-0.5, +0.5, -0.5, +0.5, 4.0, 15.0);
 #endif
     glMatrixMode(GL_MODELVIEW);
 }
@@ -344,13 +655,563 @@ void QDCS3Dvis::wheelEvent(QWheelEvent *event)
     setUScale(uScale + event->angleDelta().y() / 12000.0);
 }
 
-void QDCS3Dvis::draw()
+void QDCS3Dvis::drawParallel(QMatrix4x4 &m)
 {
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, baseModelTexture);
+    //Source Representation (i.e. entry flange to the chamber)
+    m.translate(source_posx, source_posy, source_posz);
+    m.scale((Geolengthelements.S_sour + 1) / 2, S_sour_y / 2, (Geolengthelements.S_sour + 1) / 2);
 
+    programShader->setUniformValue("matrix", m);
+    sourceCylinderTexture->bind();
+    drawObject(baseCylinderVertices, baseCylinderModelVertexBuffer, baseCylinderModelUVBuffer);
+
+    m.scale(2 / (Geolengthelements.S_sour + 1), 2 / S_sour_y, 2 / (Geolengthelements.S_sour + 1));
+    m.translate(-source_posx, -source_posy, -source_posz);
+
+
+    //Apperture Representation (Originally a Cu tube)
+    m.translate(ap_posx, ap_posy, ap_posz);
+    m.scale(Geolengthelements.S_aper / 2, GeoParapathlengths.LT_aper / 2, Geolengthelements.S_aper / 2);
+
+    programShader->setUniformValue("matrix", m);
+    appertureCylinderTexture->bind();
+    drawObject(baseCylinderVertices, baseCylinderModelVertexBuffer, baseCylinderModelUVBuffer);
+
+    m.scale(2 / Geolengthelements.S_aper, 2 / GeoParapathlengths.LT_aper, 2 / Geolengthelements.S_aper);
+    m.translate(-ap_posx, -ap_posy, -ap_posz);
+
+
+    table_angle = GeoParameters.teta_table * convdeg + 90;
+    c1_angle = GeoParameters.Exp_crys1 - GeoParameters.OffsetRotCry1;
+    c2_angle_para = -90 - c1_angle + delrot * convdeg;
+    detec_angle_para = GeoParameters.teta_detec_para * convdeg;
+
+
+    //Crystal 1
+    m.rotate(table_angle + c1_angle, 0.0, 0.0, 1.0);
+    m.rotate(GeoParameters.tilt_C1 * convdeg, 0.0f, 1.0f, 0.0f);
+    m.scale(x_first_crys / 2, Geolengthelements.y_first_crys / 2, Geolengthelements.z_first_crys / 2);
+
+    programShader->setUniformValue("matrix", m);
+    crystalCubeTexture->bind();
+    drawObject(baseCubeVertices, baseCubeModelVertexBuffer, baseCubeModelUVBuffer);
+
+    m.scale(2 / x_first_crys, 2 / Geolengthelements.y_first_crys, 2 / Geolengthelements.z_first_crys);
+    m.rotate(-GeoParameters.tilt_C1 * convdeg, 0.0f, 1.0f, 0.0f);
+    m.rotate(-table_angle - c1_angle, 0.0, 0.0, 1.0);
+
+    //Crystal 1 Pillar
+    m.translate(0.0f, 0.0f, table_posz / 2 - Geolengthelements.z_first_crys / 2);
+    m.rotate(90, 1.0, 0.0, 0.0);
+    m.rotate(table_angle + c1_angle, 0.0, 1.0, 0.0);
+    m.scale(Geolengthelements.y_first_crys / 2, -table_posz / 2, Geolengthelements.y_first_crys / 2);
+
+    programShader->setUniformValue("matrix", m);
+    pillarCylinderTexture->bind();
+    drawObject(baseCylinderVertices, baseCylinderModelVertexBuffer, baseCylinderModelUVBuffer);
+
+    m.scale(2 / Geolengthelements.y_first_crys, 1 / (-table_posz / 2), 2 / Geolengthelements.y_first_crys);
+    m.rotate(-table_angle - c1_angle, 0.0, 1.0, 0.0);
+    m.rotate(-90, 1.0, 0.0, 0.0);
+    m.translate(0.0f, 0.0f, -table_posz / 2 + Geolengthelements.z_first_crys / 2);
+
+
+    //Crystal 2 Parallel
+    m.rotate(table_angle, 0.0, 0.0, 1.0);
+    m.translate(c2_posx, c2_posy, c2_posz);
+    m.rotate(c2_angle_para, 0.0, 0.0, 1.0);
+    m.rotate(GeoParameters.tilt_C2 * convdeg, 0.0f, 1.0f, 0.0f);
+    m.scale(x_first_crys / 2, Geolengthelements.y_first_crys / 2, Geolengthelements.z_first_crys / 2);
+
+    programShader->setUniformValue("matrix", m);
+    crystalCubeTexture->bind();
+    drawObject(baseCubeVertices, baseCubeModelVertexBuffer, baseCubeModelUVBuffer);
+
+    m.scale(2 / x_first_crys, 2 / Geolengthelements.y_first_crys, 2 / Geolengthelements.z_first_crys);
+    m.rotate(-GeoParameters.tilt_C2 * convdeg, 0.0f, 1.0f, 0.0f);
+    m.rotate(-c2_angle_para, 0.0, 0.0, 1.0);
+    m.translate(-c2_posx, -c2_posy, -c2_posz);
+    m.rotate(-table_angle, 0.0, 0.0, 1.0);
+
+    //Crystal 2 Parallel Pillar
+    m.rotate(table_angle, 0.0, 0.0, 1.0);
+    m.translate(c2_posx, c2_posy, c2_posz + table_posz / 2 - Geolengthelements.z_first_crys / 2);
+    m.rotate(c2_angle_para, 0.0, 0.0, 1.0);
+    m.rotate(90, 1.0, 0.0, 0.0);
+    m.rotate(table_angle + c1_angle, 0.0, 1.0, 0.0);
+    m.scale(Geolengthelements.y_first_crys / 2, -table_posz / 2, Geolengthelements.y_first_crys / 2);
+
+    programShader->setUniformValue("matrix", m);
+    pillarCylinderTexture->bind();
+    drawObject(baseCylinderVertices, baseCylinderModelVertexBuffer, baseCylinderModelUVBuffer);
+
+    m.scale(2 / Geolengthelements.y_first_crys, 1 / (-table_posz / 2), 2 / Geolengthelements.y_first_crys);
+    m.rotate(-table_angle - c1_angle, 0.0, 1.0, 0.0);
+    m.rotate(-90, 1.0, 0.0, 0.0);
+    m.rotate(-c2_angle_para, 0.0, 0.0, 1.0);
+    m.translate(-c2_posx, -c2_posy, -c2_posz - table_posz / 2 + Geolengthelements.z_first_crys / 2);
+    m.rotate(-table_angle, 0.0, 0.0, 1.0);
+
+
+    //Detector Parallel
+    m.rotate(table_angle, 0.0, 0.0, 1.0);
+    m.translate(c2_posx, c2_posy, c2_posz);
+    m.rotate(detec_angle_para, 0.0, 0.0, 1.0);
+    m.translate(detec_posx, detec_posy, detec_posz);
+    m.scale(Geolengthelements.zdetc / 2, Geolengthelements.ydetc / 2, Geolengthelements.zdetc / 2);
+
+    programShader->setUniformValue("matrix", m);
+    detecCylinderTexture->bind();
+    drawObject(baseCylinderVertices, baseCylinderModelVertexBuffer, baseCylinderModelUVBuffer);
+
+    m.scale(2 / Geolengthelements.zdetc, 2 / Geolengthelements.ydetc, 2 / Geolengthelements.zdetc);
+    m.translate(-detec_posx, -detec_posy, -detec_posz);
+    m.rotate(-detec_angle_para, 0.0, 0.0, 1.0);
+    m.translate(-c2_posx, -c2_posy, -c2_posz);
+    m.rotate(-table_angle, 0.0, 0.0, 1.0);
+
+    //Table
+    m.rotate(table_angle, 0.0, 0.0, 1.0);
+    m.translate(table_posx, table_posy, table_posz);
+    m.scale(2 * (GeoParapathlengths.dist_Cr1_Cr2 + GeoParapathlengths.dist_Cr2_Det) / 3, 3 * Geolengthelements.ydetc, Geolengthelements.z_first_crys);
+
+    programShader->setUniformValue("matrix", m);
+    tableCubeTexture->bind();
+    drawObject(baseCubeVertices, baseCubeModelVertexBuffer, baseCubeModelUVBuffer);
+
+    m.scale(3 / (2 * (GeoParapathlengths.dist_Cr1_Cr2 + GeoParapathlengths.dist_Cr2_Det)), 1 / (3 * Geolengthelements.ydetc), 1 / Geolengthelements.z_first_crys);
+    m.translate(-table_posx, -table_posy, -table_posz);
+    m.rotate(-table_angle, 0.0, 0.0, 1.0);
+}
+
+void QDCS3Dvis::drawAntiParallel(QMatrix4x4 &m)
+{
+    source_posz -= 30.0f;
+    ap_posz -= 30.0f;
+    float c1_posz = -30.0f;
+    c2_posz -= 30.0f;
+    table_posz -= 30.0f;
+
+    //Source Representation (i.e. entry flange to the chamber)
+    m.translate(source_posx, source_posy, source_posz);
+    m.scale((Geolengthelements.S_sour + 1) / 2, S_sour_y / 2, (Geolengthelements.S_sour + 1) / 2);
+
+    programShader->setUniformValue("matrix", m);
+    sourceCylinderTexture->bind();
+    drawObject(baseCylinderVertices, baseCylinderModelVertexBuffer, baseCylinderModelUVBuffer);
+
+    m.scale(2 / (Geolengthelements.S_sour + 1), 2 / S_sour_y, 2 / (Geolengthelements.S_sour + 1));
+    m.translate(-source_posx, -source_posy, -source_posz);
+
+
+    //Apperture Representation (Originally a Cu tube)
+    m.translate(ap_posx, ap_posy, ap_posz);
+    m.scale(Geolengthelements.S_aper / 2, GeoParapathlengths.LT_aper / 2, Geolengthelements.S_aper / 2);
+
+    programShader->setUniformValue("matrix", m);
+    appertureCylinderTexture->bind();
+    drawObject(baseCylinderVertices, baseCylinderModelVertexBuffer, baseCylinderModelUVBuffer);
+
+    m.scale(2 / Geolengthelements.S_aper, 2 / GeoParapathlengths.LT_aper, 2 / Geolengthelements.S_aper);
+    m.translate(-ap_posx, -ap_posy, -ap_posz);
+
+
+    table_angle = GeoParameters.teta_table * convdeg + 90;
+    c1_angle = GeoParameters.Exp_crys1 - GeoParameters.OffsetRotCry1;
+    c2_angle_anti =  2 * table_angle + c1_angle + delrot * convdeg - 90;
+    detec_angle_anti = GeoParameters.teta_detec_anti * convdeg;
+
+
+    //Crystal 1
+    m.translate(0.0f, 0.0f, c1_posz);
+    m.rotate(table_angle + c1_angle, 0.0, 0.0, 1.0);
+    m.rotate(GeoParameters.tilt_C1 * convdeg, 0.0f, 1.0f, 0.0f);
+    m.scale(x_first_crys / 2, Geolengthelements.y_first_crys / 2, Geolengthelements.z_first_crys / 2);
+
+    programShader->setUniformValue("matrix", m);
+    crystalCubeTexture->bind();
+    drawObject(baseCubeVertices, baseCubeModelVertexBuffer, baseCubeModelUVBuffer);
+
+    m.scale(2 / x_first_crys, 2 / Geolengthelements.y_first_crys, 2 / Geolengthelements.z_first_crys);
+    m.rotate(-GeoParameters.tilt_C1 * convdeg, 0.0f, 1.0f, 0.0f);
+    m.rotate(-table_angle - c1_angle, 0.0, 0.0, 1.0);
+    m.translate(0.0f, 0.0f, -c1_posz);
+
+    //Crystal 1 Pillar
+    m.translate(0.0f, 0.0f, (c1_posz + table_posz) / 2 - Geolengthelements.z_first_crys / 2);
+    m.rotate(90, 1.0, 0.0, 0.0);
+    m.rotate(table_angle + c1_angle, 0.0, 1.0, 0.0);
+    m.scale(Geolengthelements.y_first_crys / 2, -(table_posz - c1_posz) / 2, Geolengthelements.y_first_crys / 2);
+
+    programShader->setUniformValue("matrix", m);
+    pillarCylinderTexture->bind();
+    drawObject(baseCylinderVertices, baseCylinderModelVertexBuffer, baseCylinderModelUVBuffer);
+
+    m.scale(2 / Geolengthelements.y_first_crys, 1 / (-(table_posz - c1_posz) / 2), 2 / Geolengthelements.y_first_crys);
+    m.rotate(-table_angle - c1_angle, 0.0, 1.0, 0.0);
+    m.rotate(-90, 1.0, 0.0, 0.0);
+    m.translate(0.0f, 0.0f, -(c1_posz + table_posz) / 2 + Geolengthelements.z_first_crys / 2);
+
+
+    //Crystal 2 AntiParallel
+    m.rotate(table_angle, 0.0, 0.0, 1.0);
+    m.translate(c2_posx, c2_posy, c2_posz);
+    m.rotate(c2_angle_anti, 0.0, 0.0, 1.0);
+    m.rotate(GeoParameters.tilt_C2 * convdeg, 0.0f, 1.0f, 0.0f);
+    m.scale(x_first_crys / 2, Geolengthelements.y_first_crys / 2, Geolengthelements.z_first_crys / 2);
+
+    programShader->setUniformValue("matrix", m);
+    crystalCubeTexture->bind();
+    drawObject(baseCubeVertices, baseCubeModelVertexBuffer, baseCubeModelUVBuffer);
+
+    m.scale(2 / x_first_crys, 2 / Geolengthelements.y_first_crys, 2 / Geolengthelements.z_first_crys);
+    m.rotate(GeoParameters.tilt_C2 * convdeg, 0.0f, 1.0f, 0.0f);
+    m.rotate(-c2_angle_anti, 0.0, 0.0, 1.0);
+    m.translate(-c2_posx, -c2_posy, -c2_posz);
+    m.rotate(-table_angle, 0.0, 0.0, 1.0);
+
+    //Crystal 2 AntiParallel Pillar
+    m.rotate(table_angle, 0.0, 0.0, 1.0);
+    m.translate(c2_posx, c2_posy, (c2_posz + table_posz) / 2 - Geolengthelements.z_first_crys / 2);
+    m.rotate(c2_angle_anti, 0.0, 0.0, 1.0);
+    m.rotate(90, 1.0, 0.0, 0.0);
+    m.rotate(table_angle + c1_angle, 0.0, 1.0, 0.0);
+    m.scale(Geolengthelements.y_first_crys / 2, -(table_posz - c2_posz) / 2, Geolengthelements.y_first_crys / 2);
+
+    programShader->setUniformValue("matrix", m);
+    pillarCylinderTexture->bind();
+    drawObject(baseCylinderVertices, baseCylinderModelVertexBuffer, baseCylinderModelUVBuffer);
+
+    m.scale(2 / Geolengthelements.y_first_crys, 1 / (-(table_posz - c2_posz) / 2), 2 / Geolengthelements.y_first_crys);
+    m.rotate(-table_angle - c1_angle, 0.0, 1.0, 0.0);
+    m.rotate(-90, 1.0, 0.0, 0.0);
+    m.rotate(-c2_angle_anti, 0.0, 0.0, 1.0);
+    m.translate(-c2_posx, -c2_posy, -(c2_posz + table_posz) / 2 + Geolengthelements.z_first_crys / 2);
+    m.rotate(-table_angle, 0.0, 0.0, 1.0);
+
+
+    //Detector AntiParallel
+    m.rotate(table_angle, 0.0, 0.0, 1.0);
+    m.translate(c2_posx, c2_posy, c2_posz);
+    m.rotate(detec_angle_anti, 0.0, 0.0, 1.0);
+    m.translate(detec_posx, detec_posy, detec_posz);
+    m.scale(Geolengthelements.zdetc / 2, Geolengthelements.ydetc / 2, Geolengthelements.zdetc / 2);
+
+    programShader->setUniformValue("matrix", m);
+    detecCylinderTexture->bind();
+    drawObject(baseCylinderVertices, baseCylinderModelVertexBuffer, baseCylinderModelUVBuffer);
+
+    m.scale(2 / Geolengthelements.zdetc, 2 / Geolengthelements.ydetc, 2 / Geolengthelements.zdetc);
+    m.translate(-detec_posx, -detec_posy, -detec_posz);
+    m.rotate(-detec_angle_anti, 0.0, 0.0, 1.0);
+    m.translate(-c2_posx, -c2_posy, -c2_posz);
+    m.rotate(-table_angle, 0.0, 0.0, 1.0);
+
+    //Table
+    m.rotate(table_angle, 0.0, 0.0, 1.0);
+    m.translate(table_posx, table_posy, table_posz);
+    m.scale(2 * (GeoParapathlengths.dist_Cr1_Cr2 + GeoParapathlengths.dist_Cr2_Det) / 3, 3 * Geolengthelements.ydetc, Geolengthelements.z_first_crys);
+
+    programShader->setUniformValue("matrix", m);
+    tableCubeTexture->bind();
+    drawObject(baseCubeVertices, baseCubeModelVertexBuffer, baseCubeModelUVBuffer);
+
+    m.scale(3 / (2 * (GeoParapathlengths.dist_Cr1_Cr2 + GeoParapathlengths.dist_Cr2_Det)), 1 / (3 * Geolengthelements.ydetc), 1 / Geolengthelements.z_first_crys);
+    m.translate(-table_posx, -table_posy, -table_posz);
+    m.rotate(-table_angle, 0.0, 0.0, 1.0);
+
+    source_posz += 30.0f;
+    ap_posz += 30.0f;
+    c2_posz += 30.0f;
+    table_posz += 30.0f;
+}
+
+void QDCS3Dvis::drawParallelText(QMatrix4x4 &m)
+{
+    //Source Representation (i.e. entry flange to the chamber)
+    m.translate(source_posx, source_posy, source_posz);
+    m.translate(0.0f, 0.0f, (Geolengthelements.S_sour + 1) / 2 + text_voffset);
+    m.rotate(90, 0.0, 0.0, 1.0);
+    m.rotate(180, 1.0, 0.0, 0.0);
+    m.scale(text_scale);
+
+    programShader->setUniformValue("matrix", m);
+    SourceTextTexture->bind();
+    drawObject(SourceTextVertices, SourceTextModelVertexBuffer, SourceTextModelUVBuffer);
+
+    m.scale(1 / text_scale);
+    m.rotate(-180, 1.0, 0.0, 0.0);
+    m.rotate(-90, 0.0, 0.0, 1.0);
+    m.translate(0.0f, 0.0f, -(Geolengthelements.S_sour + 1) / 2 - text_voffset);
+    m.translate(-source_posx, -source_posy, -source_posz);
+
+
+    //Apperture Representation (Originally a Cu tube)
+    m.translate(ap_posx, ap_posy, ap_posz);
+    m.translate(0.0f, 0.0f, Geolengthelements.S_aper / 2 + text_voffset);
+    m.rotate(90, 0.0, 0.0, 1.0);
+    m.rotate(180, 1.0, 0.0, 0.0);
+    m.scale(text_scale);
+
+    programShader->setUniformValue("matrix", m);
+    AppertureTextTexture->bind();
+    drawObject(AppertureTextVertices, AppertureTextModelVertexBuffer, AppertureTextModelUVBuffer);
+
+    m.scale(1 / text_scale);
+    m.rotate(-180, 1.0, 0.0, 0.0);
+    m.rotate(-90, 0.0, 0.0, 1.0);
+    m.translate(0.0f, 0.0f, -Geolengthelements.S_aper / 2 - text_voffset);
+    m.translate(-ap_posx, -ap_posy, -ap_posz);
+
+
+    table_angle = GeoParameters.teta_table * convdeg + 90;
+    c1_angle = GeoParameters.Exp_crys1 - GeoParameters.OffsetRotCry1;
+    c2_angle_para = -90 - c1_angle + delrot * convdeg;
+    detec_angle_para = GeoParameters.teta_detec_para * convdeg;
+
+
+    //Crystal 1
+    m.translate(0.0f, 0.0f, Geolengthelements.z_first_crys / 2 + text_voffset);
+    m.rotate(90, 0.0, 0.0, 1.0);
+    m.rotate(180, 1.0, 0.0, 0.0);
+    m.scale(text_scale);
+
+    programShader->setUniformValue("matrix", m);
+    C1TextTexture->bind();
+    drawObject(C1TextVertices, C1TextModelVertexBuffer, C1TextModelUVBuffer);
+
+    m.scale(1 / text_scale);
+    m.rotate(-180, 1.0, 0.0, 0.0);
+    m.rotate(-90, 0.0, 0.0, 1.0);
+    m.translate(0.0f, 0.0f, -Geolengthelements.z_first_crys / 2 - text_voffset);
+
+
+    //Crystal 2 Parallel
+    m.rotate(table_angle, 0.0, 0.0, 1.0);
+    m.translate(c2_posx, c2_posy, c2_posz);
+    m.translate(0.0f, 0.0f, Geolengthelements.z_first_crys / 2 + text_voffset);
+    m.rotate(180, 1.0, 0.0, 0.0);
+    m.scale(text_scale);
+
+    programShader->setUniformValue("matrix", m);
+    C2TextTexture->bind();
+    drawObject(C2TextVertices, C2TextModelVertexBuffer, C2TextModelUVBuffer);
+
+    m.scale(1 / text_scale);
+    m.rotate(-180, 1.0, 0.0, 0.0);
+    m.translate(0.0f, 0.0f, -Geolengthelements.z_first_crys / 2 - text_voffset);
+    m.translate(-c2_posx, -c2_posy, -c2_posz);
+    m.rotate(-table_angle, 0.0, 0.0, 1.0);
+
+
+    //Detector Parallel
+    m.rotate(table_angle, 0.0, 0.0, 1.0);
+    m.translate(c2_posx, c2_posy, c2_posz);
+    m.rotate(detec_angle_para, 0.0, 0.0, 1.0);
+    m.translate(detec_posx, detec_posy, detec_posz);
+    m.translate(0.0f, 0.0f, Geolengthelements.zdetc / 2 + text_voffset);
+    m.rotate(180, 1.0, 0.0, 0.0);
+    m.scale(text_scale);
+
+    programShader->setUniformValue("matrix", m);
+    DetectorTextTexture->bind();
+    drawObject(DetectorTextVertices, DetectorTextModelVertexBuffer, DetectorTextModelUVBuffer);
+
+    m.scale(1 / text_scale);
+    m.rotate(-180, 1.0, 0.0, 0.0);
+    m.translate(0.0f, 0.0f, -Geolengthelements.zdetc / 2 - text_voffset);
+    m.translate(-detec_posx, -detec_posy, -detec_posz);
+    m.rotate(-detec_angle_para, 0.0, 0.0, 1.0);
+    m.translate(-c2_posx, -c2_posy, -c2_posz);
+    m.rotate(-table_angle, 0.0, 0.0, 1.0);
+
+    //Table
+    m.rotate(table_angle, 0.0, 0.0, 1.0);
+    m.translate(table_posx, table_posy, table_posz);
+    m.translate(0.0f, 0.0f, Geolengthelements.z_first_crys + text_voffset);
+    m.rotate(180, 1.0, 0.0, 0.0);
+    m.scale(text_scale);
+
+    programShader->setUniformValue("matrix", m);
+    TableTextTexture->bind();
+    drawObject(TableTextVertices, TableTextModelVertexBuffer, TableTextModelUVBuffer);
+
+    m.scale(1 / text_scale);
+    m.rotate(-180, 1.0, 0.0, 0.0);
+    m.translate(0.0f, 0.0f, -Geolengthelements.z_first_crys - text_voffset);
+    m.translate(-table_posx, -table_posy, -table_posz);
+    m.rotate(-table_angle, 0.0, 0.0, 1.0);
+
+    //Parallel Configuration Text
+    m.rotate(table_angle, 0.0, 0.0, 1.0);
+    m.translate(table_posx, table_posy, table_posz);
+    m.translate(-20 * text_voffset, 0.0f, -Geolengthelements.z_first_crys - 3 * text_voffset);
+    m.rotate(180, 1.0, 0.0, 0.0);
+    m.scale(text_scale);
+
+    programShader->setUniformValue("matrix", m);
+    ParaTextTexture->bind();
+    drawObject(ParaTextVertices, ParaTextModelVertexBuffer, ParaTextModelUVBuffer);
+
+    m.scale(1 / text_scale);
+    m.rotate(-180, 1.0, 0.0, 0.0);
+    m.translate(20 * text_voffset, 0.0f, Geolengthelements.z_first_crys + 3 * text_voffset);
+    m.translate(-table_posx, -table_posy, -table_posz);
+    m.rotate(-table_angle, 0.0, 0.0, 1.0);
+}
+
+void QDCS3Dvis::drawAntiParallelText(QMatrix4x4 &m)
+{
+    source_posz -= 30.0f;
+    ap_posz -= 30.0f;
+    float c1_posz = -30.0f;
+    c2_posz -= 30.0f;
+    table_posz -= 30.0f;
+
+    //Source Representation (i.e. entry flange to the chamber)
+    m.translate(source_posx, source_posy, source_posz);
+    m.translate(0.0f, 0.0f, (Geolengthelements.S_sour + 1) / 2 + text_voffset);
+    m.rotate(90, 0.0, 0.0, 1.0);
+    m.rotate(180, 1.0, 0.0, 0.0);
+    m.scale(text_scale);
+
+    programShader->setUniformValue("matrix", m);
+    SourceTextTexture->bind();
+    drawObject(SourceTextVertices, SourceTextModelVertexBuffer, SourceTextModelUVBuffer);
+
+    m.scale(1 / text_scale);
+    m.rotate(-180, 1.0, 0.0, 0.0);
+    m.rotate(-90, 0.0, 0.0, 1.0);
+    m.translate(0.0f, 0.0f, -(Geolengthelements.S_sour + 1) / 2 - text_voffset);
+    m.translate(-source_posx, -source_posy, -source_posz);
+
+
+    //Apperture Representation (Originally a Cu tube)
+    m.translate(ap_posx, ap_posy, ap_posz);
+    m.translate(0.0f, 0.0f, Geolengthelements.S_aper / 2 + text_voffset);
+    m.rotate(90, 0.0, 0.0, 1.0);
+    m.rotate(180, 1.0, 0.0, 0.0);
+    m.scale(text_scale);
+
+    programShader->setUniformValue("matrix", m);
+    AppertureTextTexture->bind();
+    drawObject(AppertureTextVertices, AppertureTextModelVertexBuffer, AppertureTextModelUVBuffer);
+
+    m.scale(1 / text_scale);
+    m.rotate(-180, 1.0, 0.0, 0.0);
+    m.rotate(-90, 0.0, 0.0, 1.0);
+    m.translate(0.0f, 0.0f, -Geolengthelements.S_aper / 2 - text_voffset);
+    m.translate(-ap_posx, -ap_posy, -ap_posz);
+
+
+    table_angle = GeoParameters.teta_table * convdeg + 90;
+    c1_angle = GeoParameters.Exp_crys1 - GeoParameters.OffsetRotCry1;
+    c2_angle_anti =  2 * table_angle + c1_angle + delrot * convdeg - 90;
+    detec_angle_anti = GeoParameters.teta_detec_anti * convdeg;
+
+
+    //Crystal 1
+    m.translate(0.0f, 0.0f, c1_posz);
+    m.translate(0.0f, 0.0f, Geolengthelements.z_first_crys / 2 + text_voffset);
+    m.rotate(90, 0.0, 0.0, 1.0);
+    m.rotate(180, 1.0, 0.0, 0.0);
+    m.scale(text_scale);
+
+    programShader->setUniformValue("matrix", m);
+    C1TextTexture->bind();
+    drawObject(C1TextVertices, C1TextModelVertexBuffer, C1TextModelUVBuffer);
+
+    m.scale(1 / text_scale);
+    m.rotate(-180, 1.0, 0.0, 0.0);
+    m.rotate(-90, 0.0, 0.0, 1.0);
+    m.translate(0.0f, 0.0f, -Geolengthelements.z_first_crys / 2 - text_voffset);
+    m.translate(0.0f, 0.0f, -c1_posz);
+
+
+    //Crystal 2 AntiParallel
+    m.rotate(table_angle, 0.0, 0.0, 1.0);
+    m.translate(c2_posx, c2_posy, c2_posz);
+    m.translate(0.0f, 0.0f, Geolengthelements.z_first_crys / 2 + text_voffset);
+    m.rotate(180, 1.0, 0.0, 0.0);
+    m.scale(text_scale);
+
+    programShader->setUniformValue("matrix", m);
+    C2TextTexture->bind();
+    drawObject(C2TextVertices, C2TextModelVertexBuffer, C2TextModelUVBuffer);
+
+    m.scale(1 / text_scale);
+    m.rotate(-180, 1.0, 0.0, 0.0);
+    m.translate(0.0f, 0.0f, -Geolengthelements.z_first_crys / 2 - text_voffset);
+    m.translate(-c2_posx, -c2_posy, -c2_posz);
+    m.rotate(-table_angle, 0.0, 0.0, 1.0);
+
+
+    //Detector AntiParallel
+    m.rotate(table_angle, 0.0, 0.0, 1.0);
+    m.translate(c2_posx, c2_posy, c2_posz);
+    m.rotate(detec_angle_anti, 0.0, 0.0, 1.0);
+    m.translate(detec_posx, detec_posy, detec_posz);
+    m.translate(0.0f, 0.0f, Geolengthelements.zdetc / 2 + text_voffset);
+    m.rotate(180, 1.0, 0.0, 0.0);
+    m.scale(text_scale);
+
+    programShader->setUniformValue("matrix", m);
+    DetectorTextTexture->bind();
+    drawObject(DetectorTextVertices, DetectorTextModelVertexBuffer, DetectorTextModelUVBuffer);
+
+    m.scale(1 / text_scale);
+    m.rotate(-180, 1.0, 0.0, 0.0);
+    m.translate(0.0f, 0.0f, -Geolengthelements.zdetc / 2 - text_voffset);
+    m.translate(-detec_posx, -detec_posy, -detec_posz);
+    m.rotate(-detec_angle_anti, 0.0, 0.0, 1.0);
+    m.translate(-c2_posx, -c2_posy, -c2_posz);
+    m.rotate(-table_angle, 0.0, 0.0, 1.0);
+
+    //Table
+    m.rotate(table_angle, 0.0, 0.0, 1.0);
+    m.translate(table_posx, table_posy, table_posz);
+    m.translate(0.0f, 0.0f, Geolengthelements.z_first_crys + text_voffset);
+    m.rotate(180, 1.0, 0.0, 0.0);
+    m.scale(text_scale);
+
+    programShader->setUniformValue("matrix", m);
+    TableTextTexture->bind();
+    drawObject(TableTextVertices, TableTextModelVertexBuffer, TableTextModelUVBuffer);
+
+    m.scale(1 / text_scale);
+    m.rotate(-180, 1.0, 0.0, 0.0);
+    m.translate(0.0f, 0.0f, -Geolengthelements.z_first_crys - text_voffset);
+    m.translate(-table_posx, -table_posy, -table_posz);
+    m.rotate(-table_angle, 0.0, 0.0, 1.0);
+
+    //AntiParallel Configuration Text
+    m.rotate(table_angle, 0.0, 0.0, 1.0);
+    m.translate(table_posx, table_posy, table_posz);
+    m.translate(-20 * text_voffset, 0.0f, -Geolengthelements.z_first_crys - 3 * text_voffset);
+    m.rotate(180, 1.0, 0.0, 0.0);
+    m.scale(text_scale);
+
+    programShader->setUniformValue("matrix", m);
+    AntiTextTexture->bind();
+    drawObject(AntiTextVertices, AntiTextModelVertexBuffer, AntiTextModelUVBuffer);
+
+    m.scale(1 / text_scale);
+    m.rotate(-180, 1.0, 0.0, 0.0);
+    m.translate(20 * text_voffset, 0.0f, Geolengthelements.z_first_crys + 3 * text_voffset);
+    m.translate(-table_posx, -table_posy, -table_posz);
+    m.rotate(-table_angle, 0.0, 0.0, 1.0);
+
+    source_posz += 30.0f;
+    ap_posz += 30.0f;
+    c2_posz += 30.0f;
+    table_posz += 30.0f;
+}
+
+void QDCS3Dvis::drawObject(std::vector<QVector3D> vertices, GLuint vbo, GLuint uvb)
+{
+    //Cube
     glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, baseModelVertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glVertexAttribPointer(
         0,                  // attribute
         3,                  // size
@@ -362,7 +1223,7 @@ void QDCS3Dvis::draw()
 
 
     glEnableVertexAttribArray(1);
-    glBindBuffer(GL_ARRAY_BUFFER, baseModelUVBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, uvb);
     glVertexAttribPointer(
         1,                                // attribute
         2,                                // size
@@ -373,7 +1234,7 @@ void QDCS3Dvis::draw()
     );
 
 
-    glDrawArrays(GL_TRIANGLES, 0, baseVertices.size() );
+    glDrawArrays(GL_TRIANGLES, 0, vertices.size() );
 
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);

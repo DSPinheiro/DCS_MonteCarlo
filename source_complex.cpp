@@ -875,7 +875,7 @@ void Source_complex::run_Source(SimulationMain *w){
 
 
             if(Graph_options.make_image_plates){
-                w->changeStats(counts_sour, counts_C1, counts_C2_para, counts_C2_anti, counts_detc_para, counts_detc_anti, delrot);
+                emit w->changeStats(counts_sour, counts_C1, counts_C2_para, counts_C2_anti, counts_detc_para, counts_detc_anti, delrot);
             }
 
 

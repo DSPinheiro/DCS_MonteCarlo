@@ -292,7 +292,9 @@ void SimulationMain::changeStats(double c_sour, double c_cr1, double c_cr2_para,
     ui->DPcnts_val->setText(QString(split(to_string(c_detc_para), ".")[0].c_str()));
     ui->C2Acnts_val->setText(QString(split(to_string(c_cr2_anti), ".")[0].c_str()));
     ui->DAcnts_val->setText(QString(split(to_string(c_detc_anti), ".")[0].c_str()));
-    ui->currRot_val->setText(QString(to_string(delrot).c_str()));
+    ui->currRot_val->setText(QString(to_string(delrot * convdeg).c_str()));
+    ui->GL3Dvis->setDelrot(delrot);
+    ui->GL3Dvis->update();
 }
 
 void SimulationMain::changePlots(vector<plot> para, vector<plot> anti){

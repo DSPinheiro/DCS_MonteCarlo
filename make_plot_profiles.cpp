@@ -88,7 +88,7 @@ void Make_plot_profiles::plotProfiles(double angle_para, int toint_para, double 
         if(not (n_plot == 1)){
 
             if(n_plot % 6 == 0){
-                w->changePlots(plot_para, plot_anti);
+                emit w->changePlots(plot_para, plot_anti);
             }
 
         }
@@ -159,7 +159,7 @@ void Make_plot_profiles::plotProfiles(double angle_para, int toint_para, double 
 
                 //TODO
                 //gui plotting
-                w->changePlates(hist_image, max_plot_z_temp, crystal);
+                emit w->changePlates(hist_image, max_plot_z_temp, crystal);
 
             }
 
