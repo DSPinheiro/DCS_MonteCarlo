@@ -683,7 +683,7 @@ void QDCS3Dvis::drawParallel(QMatrix4x4 &m)
 
     table_angle = GeoParameters.teta_table * convdeg + 90;
     c1_angle = GeoParameters.Exp_crys1 - GeoParameters.OffsetRotCry1;
-    c2_angle_para = -90 - c1_angle + delrot * convdeg;
+    c2_angle_para = - table_angle - c1_angle + delrot * convdeg + 90;
     detec_angle_para = GeoParameters.teta_detec_para * convdeg;
 
 
@@ -818,7 +818,7 @@ void QDCS3Dvis::drawAntiParallel(QMatrix4x4 &m)
 
     table_angle = GeoParameters.teta_table * convdeg + 90;
     c1_angle = GeoParameters.Exp_crys1 - GeoParameters.OffsetRotCry1;
-    c2_angle_anti =  2 * table_angle + c1_angle + delrot * convdeg - 90;
+    c2_angle_anti = table_angle + c1_angle + delrot * convdeg + 90;
     detec_angle_anti = GeoParameters.teta_detec_anti * convdeg;
 
 
