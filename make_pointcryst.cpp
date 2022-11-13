@@ -86,7 +86,7 @@ void Make_pointcryst::Make(int crystal, double y, double z){
     }else if(crystal == 6){
 
         if(not (nx > n_his_ima or ny > n_his_ima or nx <= 0 or ny <= 0)){
-            hist_image_plate_crystal2_anti[nx - 1][ny - 1]++;
+            hist_image_plate_detc_anti[nx - 1][ny - 1]++;
             counts_detc_anti++;
 
             if(max_hist[crystal - 1] < hist_image_plate_detc_anti[nx - 1][ny - 1])

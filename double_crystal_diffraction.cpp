@@ -8,7 +8,6 @@
 
 #include "double_crystal_diffraction.hh"
 
-
 using namespace std;
 
 extern char File_simu[200];
@@ -41,21 +40,14 @@ double theta_chk;
 
 double peak_posi_para, peak_posi_anti, max_plot[2][2] = {{0, 0}, {0, 0}}, min_plot[2][2] = {{0, 0}, {0, 0}};
 
+
 void Double_Crystal_diffraction::Make_Simu(SimulationMain *w){
 
     double linelamda, naturalwidth, center_2cry_at_temp, sin_t, theta_b, line_ener, termFW;
 
-    char paraPath[200];
-    char antiPath[200];
-    char generPath[200];
-
-    strcat(paraPath, File_simu);
-    strcat(antiPath, File_simu);
-    strcat(generPath, File_simu);
-
-    strcat(paraPath, "\\Histogram_parallel.txt");
-    strcat(antiPath, "\\Histogram_antiparallel.txt");
-    strcat(generPath, "\\general_output.txt");
+    string paraPath = string(File_simu) + "\\Histogram_parallel.txt";
+    string antiPath = string(File_simu) + "\\Histogram_antiparallel.txt";
+    string generPath = string(File_simu) + "\\general_output.txt";
 
     hist_para.open(paraPath, ofstream::out | ofstream::trunc);
     hist_anti.open(antiPath, ofstream::out | ofstream::trunc);
