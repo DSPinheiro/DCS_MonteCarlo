@@ -232,7 +232,7 @@ void Source_simple::run_Source(){
 
                 tetabra1 = asin(lamda / tw_d1);
 
-                first_crystal_reach = Gaussi_rockin::getReflection(angle, tetabra1, false, false);
+                first_crystal_reach = Gaussi_rockin::getReflection(angle, tetabra1, lamda, false, false);
 
 
                 if(first_crystal_reach){
@@ -247,7 +247,7 @@ void Source_simple::run_Source(){
                             r3y = angleRes[2];
                             r3z = angleRes[3];
 
-                            sec_crystal_Parallel_reach = Gaussi_rockin::getReflection(angle, tetabra2, true, false);
+                            sec_crystal_Parallel_reach = Gaussi_rockin::getReflection(angle, tetabra2, lamda, true, false);
                         }
 
                         if(UserSettings.see_anti){
@@ -258,7 +258,7 @@ void Source_simple::run_Source(){
                             r3y = angleRes[2];
                             r3z = angleRes[3];
 
-                            sec_crystal_Parallel_reach = Gaussi_rockin::getReflection(angle, tetabra2, true, false);
+                            sec_crystal_Parallel_reach = Gaussi_rockin::getReflection(angle, tetabra2, lamda, true, false);
                         }
 
                     }else if(UserSettings.angle_aprox == 1){
@@ -267,25 +267,25 @@ void Source_simple::run_Source(){
                         if(UserSettings.see_para){
                             angle = getFirstApproxAngle2(tetaref, tetadir, delrot, sin_fi, cos_fi, squa_tilt2, cosdel, cosdel_othe, cosdel_teta, cosdel_teta_othe, sin_teref_tedi, true);
 
-                            sec_crystal_Parallel_reach = Gaussi_rockin::getReflection(angle, tetabra2, true, false);
+                            sec_crystal_Parallel_reach = Gaussi_rockin::getReflection(angle, tetabra2, lamda, true, false);
                         }
 
                         if(UserSettings.see_anti){
                             angle = getFirstApproxAngle2(tetaref, tetadir, delrot, sin_fi, cos_fi, squa_tilt2, cosdel, cosdel_othe, cosdel_teta, cosdel_teta_othe, sin_teref_tedi, false);
 
-                            sec_crystal_Antiparallel_reach = Gaussi_rockin::getReflection(angle, tetabra2, true, false);
+                            sec_crystal_Antiparallel_reach = Gaussi_rockin::getReflection(angle, tetabra2, lamda, true, false);
                         }
                     }else if(UserSettings.angle_aprox == 2){
                         if(UserSettings.see_para){
                             angle = getFullApproximationAngle2(tetaref, tetadir, delrot, cos_e, tan_e, cos2_e, fidir, GeoParameters.tilt_C1, GeoParameters.tilt_C2, true);
 
-                            sec_crystal_Parallel_reach = Gaussi_rockin::getReflection(angle, tetabra2, true, false);
+                            sec_crystal_Parallel_reach = Gaussi_rockin::getReflection(angle, tetabra2, lamda, true, false);
                         }
 
                         if(UserSettings.see_anti){
                             angle = getFullApproximationAngle2(tetaref, tetadir, delrot, cos_e, tan_e, cos2_e, fidir, GeoParameters.tilt_C1, GeoParameters.tilt_C2, false);
 
-                            sec_crystal_Antiparallel_reach = Gaussi_rockin::getReflection(angle, tetabra2, true, false);
+                            sec_crystal_Antiparallel_reach = Gaussi_rockin::getReflection(angle, tetabra2, lamda, true, false);
                         }
 
                     }else

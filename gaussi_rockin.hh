@@ -14,7 +14,7 @@
 
 class Gaussi_rockin{
     public:
-        static bool getReflection(double angle, double tetabra1, bool type_crystal, bool poli_p);
+        static bool getReflection(double angle, double tetabra1, double lamda, bool type_crystal, bool poli_p);
 };
 
 

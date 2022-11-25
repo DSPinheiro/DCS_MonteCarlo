@@ -28,7 +28,7 @@ extern polarization_parameters polarization_parameters;
 extern pick picks[5];
 extern vector<energy_gen> Energy_spec;
 
-extern double teta_crys1, Mini_angl, Maxi_angl, d_lat, max_angle_resp, min_angle_resp;
+extern double teta_crys1, Mini_angl, Maxi_angl, d_lat;
 
 extern bool export_prof;
 
@@ -564,7 +564,7 @@ void Source_complex::run_Source(SimulationMain *w){
                             poliP = false;
 
 
-                        first_crystal_reach = Gaussi_rockin::getReflection(angle, tetabra1, false, poliP);
+                        first_crystal_reach = Gaussi_rockin::getReflection(angle, tetabra1, lamda, false, poliP);
 
 
                         if(first_crystal_reach){
@@ -670,7 +670,7 @@ void Source_complex::run_Source(SimulationMain *w){
                                     r3y = angleRes[2];
                                     r3z = angleRes[3];
 
-                                    sec_crystal_Parallel_reach = Gaussi_rockin::getReflection(angle, tetabra2, true, poliP);
+                                    sec_crystal_Parallel_reach = Gaussi_rockin::getReflection(angle, tetabra2, lamda, true, poliP);
 
                                     if(sec_crystal_Parallel_reach){
 
@@ -790,7 +790,7 @@ void Source_complex::run_Source(SimulationMain *w){
                                     r3z = angleRes[3];
 
 
-                                    sec_crystal_Antiparallel_reach = Gaussi_rockin::getReflection(angle, tetabra2, true, poliP);
+                                    sec_crystal_Antiparallel_reach = Gaussi_rockin::getReflection(angle, tetabra2, lamda, true, poliP);
 
                                     if(sec_crystal_Antiparallel_reach){
 

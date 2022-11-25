@@ -19,8 +19,6 @@ extern pick picks[5];
 
 extern vector<energy_gen> Energy_spec;
 
-extern double min_angle_resp, max_angle_resp;
-
 double IntensitySource::getEnergy(double a_lamds_uni, double db_lamds_uni, double tw_d){
 
     double p1, p2, natur_li, pm1, pm2, pm3, pm4, hit, rnd_inten, energy_t;

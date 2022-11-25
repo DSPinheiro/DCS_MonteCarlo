@@ -11,6 +11,8 @@
 
 #include "simuGlobals.hh"
 
+#include <algorithm>
+
 
 class Limits_horizontal_diverge{
     public:

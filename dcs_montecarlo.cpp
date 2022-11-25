@@ -136,7 +136,7 @@ int main(int argc, char *argv[]){
                                     Geometry.imh = stoi(split(split(elem, "=")[1], "/")[0]);
                                 else if(item == "imk")
                                     Geometry.imk = stoi(split(split(elem, "=")[1], "/")[0]);
-                                else if(item == "imh")
+                                else if(item == "iml")
                                     Geometry.iml = stoi(split(split(elem, "=")[1], "/")[0]);
                                 else if(item == "crystal_Si")
                                     Geometry.crystal_Si = (split(split(elem, "=")[1], "/")[0] == ".true.") ? true : false;
@@ -804,7 +804,7 @@ int main(int argc, char *argv[]){
                             }else if(items[0] == "imk"){
                                 trim(items[1]);
                                 Geometry.imk = stoi(items[1]);
-                            }else if(items[0] == "imh"){
+                            }else if(items[0] == "iml"){
                                 trim(items[1]);
                                 Geometry.iml = stoi(items[1]);
                             }else if(items[0] == "crystal_Si"){
