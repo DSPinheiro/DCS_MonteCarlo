@@ -93,8 +93,12 @@ void Make_plot_profiles::plotProfiles(
         if(! (n_plot == 1)){
 
             if(n_plot % 6 == 0){
+<<<<<<< HEAD
                 SimulationInterface::Plots plots = { plot_para, plot_anti };
                 emit w->changePlotsSignal(plots);
+=======
+                emit w->changePlots(plot_para, plot_anti);
+>>>>>>> cf0afa5 (Add project files.)
             }
 
         }
@@ -105,6 +109,12 @@ void Make_plot_profiles::plotProfiles(
     if(n_plot % 6 == 0){
 
         if(!UserSettingsInput.Simple_simu && GraphOptionsInput.make_image_plates){
+<<<<<<< HEAD
+=======
+            //TODO
+            //gui stuff
+
+>>>>>>> cf0afa5 (Add project files.)
             for(int crystal = 0; crystal < 6; crystal++){
                 max_plot_x_temp = max_plot_x[crystal];
                 max_plot_y_temp = max_plot_y[crystal];
@@ -155,6 +165,7 @@ void Make_plot_profiles::plotProfiles(
                 step_y_hist = max_plot_y_temp * 0.4;
                 step_z_hist = max_plot_z_temp / 5;
 
+<<<<<<< HEAD
                 SimulationInterface::Plates plates;
                 plates.crystal = crystal;
                 // Not ideal (but at least does not crash)
@@ -162,6 +173,11 @@ void Make_plot_profiles::plotProfiles(
                 memcpy(&plates.hist_image[0][0], &hist_image[0][0], 100 * 100 * sizeof(double));
                 plates.max_z = max_plot_z_temp;
                 emit w->changePlatesSignal(plates);
+=======
+                //TODO
+                //gui plotting
+                emit w->changePlates(hist_image, max_plot_z_temp, crystal);
+>>>>>>> cf0afa5 (Add project files.)
 
             }
         }

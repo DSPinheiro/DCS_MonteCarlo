@@ -23,11 +23,19 @@ void Mask_test_c2::test_c2(){
 
     if(UserSettingsInput.fitting){
         if(UserSettingsInput.see_para)
+<<<<<<< HEAD
             Util::fit(true);
         if(UserSettingsInput.see_anti)
             Util::fit(false);
         if(UserSettingsInput.see_para && UserSettingsInput.see_anti){}
             Util::analyse();
+=======
+            MakefitVoigt::fit(true);
+        if(UserSettingsInput.see_anti)
+            MakefitVoigt::fit(false);
+        if(UserSettingsInput.see_para && UserSettingsInput.see_anti){}
+            Analysie_Voigt::analyse();
+>>>>>>> cf0afa5 (Add project files.)
     }
 
     inte_mask_down_para = a_para_voig[1];
@@ -39,11 +47,19 @@ void Mask_test_c2::test_c2(){
 
     if(UserSettingsInput.fitting){
         if(UserSettingsInput.see_para)
+<<<<<<< HEAD
             Util::fit(true);
         if(UserSettingsInput.see_anti)
             Util::fit(false);
         if(UserSettingsInput.see_para && UserSettingsInput.see_anti){}
             Util::analyse();
+=======
+            MakefitVoigt::fit(true);
+        if(UserSettingsInput.see_anti)
+            MakefitVoigt::fit(false);
+        if(UserSettingsInput.see_para && UserSettingsInput.see_anti){}
+            Analysie_Voigt::analyse();
+>>>>>>> cf0afa5 (Add project files.)
     }
 
     inte_mask_up_para = a_para_voig[1];
