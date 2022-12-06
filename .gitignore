@@ -4,3 +4,5 @@
 # Ignore build
 [Bb]uild/
 
+# vscode stuff
+.vscode/
