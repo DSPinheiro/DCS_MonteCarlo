@@ -6,6 +6,7 @@
  */
 
 #include "mask_test_c2.hh"
+#include <Util.h>
 
 using namespace std;
 
@@ -22,11 +23,11 @@ void Mask_test_c2::test_c2(){
 
     if(UserSettingsInput.fitting){
         if(UserSettingsInput.see_para)
-            MakefitVoigt::fit(true);
+            Util::fit(true);
         if(UserSettingsInput.see_anti)
-            MakefitVoigt::fit(false);
+            Util::fit(false);
         if(UserSettingsInput.see_para && UserSettingsInput.see_anti){}
-            Analysie_Voigt::analyse();
+            Util::analyse();
     }
 
     inte_mask_down_para = a_para_voig[1];
@@ -38,11 +39,11 @@ void Mask_test_c2::test_c2(){
 
     if(UserSettingsInput.fitting){
         if(UserSettingsInput.see_para)
-            MakefitVoigt::fit(true);
+            Util::fit(true);
         if(UserSettingsInput.see_anti)
-            MakefitVoigt::fit(false);
+            Util::fit(false);
         if(UserSettingsInput.see_para && UserSettingsInput.see_anti){}
-            Analysie_Voigt::analyse();
+            Util::analyse();
     }
 
     inte_mask_up_para = a_para_voig[1];

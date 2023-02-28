@@ -6,6 +6,7 @@
  */
 
 #include "source_simple.hh"
+#include <Util.h>
 
 
 using namespace std;
@@ -85,14 +86,14 @@ void Source_simple::run_Source(){
     }
 
 
-    d_lat1 = Latice_temp(d_lat, TemperatureParametersInput.T_crystal_1_para);
-    d_lat2 = Latice_temp(d_lat, TemperatureParametersInput.T_crystal_2_para);
+    d_lat1 = Util::Latice_temp(d_lat, TemperatureParametersInput.T_crystal_1_para);
+    d_lat2 = Util::Latice_temp(d_lat, TemperatureParametersInput.T_crystal_2_para);
 
     tw_d1 = 2 * d_lat1;
     tw_d2 = 2 * d_lat2;
 
 
-    vector<double> res = Obtain_misalign::misalign(Dis_total);
+    vector<double> res = Util::misalign(Dis_total);
 
     fi_max = res[0];
     fi_min = res[1];
@@ -118,7 +119,7 @@ void Source_simple::run_Source(){
     b_lamds_uni -= a_lamds_uni;
 
 
-    vector<double> lims = Limits_horizontal_diverge::getLims(
+    vector<double> lims = Util::getLims(
         tetaref,
         delrot_min,
         delrot_max,
@@ -191,7 +192,7 @@ void Source_simple::run_Source(){
             }
 
 
-            reach = Reached(z, y, tetadir, fidir, Dis_total, z_max, z_min, y_max, y_min);
+            reach = Util::Reached(z, y, tetadir, fidir, Dis_total, z_max, z_min, y_max, y_min);
 
             if(reach){
                 if(UserSettingsInput.angle_aprox == 0){
@@ -204,7 +205,7 @@ void Source_simple::run_Source(){
                     rz = -sin_fi;
 
                     vector<double> angleRes;
-                    angleRes = getFullAngle(rx, ry, rz, n1x, n1y, n1z);
+                    angleRes = Util::getFullAngle(rx, ry, rz, n1x, n1y, n1z);
                     angle = angleRes[0];
                     r2x = angleRes[1];
                     r2y = angleRes[2];
@@ -213,16 +214,16 @@ void Source_simple::run_Source(){
                     sin_fi = sin(fidir);
                     cos_fi = cos(fidir);
 
-                    angle = getFirstApproxAngle(tetaref, tetadir, sin_fi, cos_fi, GeoParametersInput.tilt_C1, squa_tilt1);
+                    angle = Util::getFirstApproxAngle(tetaref, tetadir, sin_fi, cos_fi, GeoParametersInput.tilt_C1, squa_tilt1);
                 }else if(UserSettingsInput.angle_aprox == 2){
-                    angle = getFullApproximationAngle(tetaref, tetadir, cos_e, tan_e, fidir, GeoParametersInput.tilt_C1);
+                    angle = Util::getFullApproximationAngle(tetaref, tetadir, cos_e, tan_e, fidir, GeoParametersInput.tilt_C1);
                 }else{
                     throw runtime_error("Error in angle_aprox: must be 0, 1 or 2, given was " + to_string(UserSettingsInput.angle_aprox));
                 }
 
                 if (FullEnergySpectrumInput.make_more_lines < 2)
                 {
-                    lamda = IntensitySource::getEnergy(
+                    lamda = Util::getEnergy(
                         a_lamds_uni,
                         b_lamds_uni,
                         tw_d1);
@@ -234,7 +235,7 @@ void Source_simple::run_Source(){
 
                 tetabra1 = asin(lamda / tw_d1);
 
-                first_crystal_reach = Gaussi_rockin::getReflection(
+                first_crystal_reach = Util::getReflection(
                     angle,
                     tetabra1,
                     lamda,
@@ -248,13 +249,13 @@ void Source_simple::run_Source(){
                     if(UserSettingsInput.angle_aprox == 0){
                         if(UserSettingsInput.see_para){
                             vector<double> angleRes;
-                            angleRes = getFullAngle2(r2x, r2y, r2z, n2x_para, n2y_para, n2z);
+                            angleRes = Util::getFullAngle2(r2x, r2y, r2z, n2x_para, n2y_para, n2z);
                             angle = angleRes[0];
                             r3x = angleRes[1];
                             r3y = angleRes[2];
                             r3z = angleRes[3];
 
-                            sec_crystal_Parallel_reach = Gaussi_rockin::getReflection(
+                            sec_crystal_Parallel_reach = Util::getReflection(
                                 angle,
                                 tetabra2,
                                 lamda,
@@ -264,13 +265,13 @@ void Source_simple::run_Source(){
 
                         if(UserSettingsInput.see_anti){
                             vector<double> angleRes;
-                            angleRes = getFullAngle2(r2x, r2y, r2z, n2x_anti, n2y_anti, n2z);
+                            angleRes = Util::getFullAngle2(r2x, r2y, r2z, n2x_anti, n2y_anti, n2z);
                             angle = angleRes[0];
                             r3x = angleRes[1];
                             r3y = angleRes[2];
                             r3z = angleRes[3];
 
-                            sec_crystal_Parallel_reach = Gaussi_rockin::getReflection(
+                            sec_crystal_Parallel_reach = Util::getReflection(
                                 angle, 
                                 tetabra2, 
                                 lamda, 
@@ -282,9 +283,9 @@ void Source_simple::run_Source(){
                         sin_teref_tedi = sin(tetadir + tetaref);
 
                         if(UserSettingsInput.see_para){
-                            angle = getFirstApproxAngle2(tetaref, tetadir, delrot, sin_fi, cos_fi, squa_tilt2, cosdel, cosdel_othe, cosdel_teta, cosdel_teta_othe, sin_teref_tedi, true);
+                            angle = Util::getFirstApproxAngle2(tetaref, tetadir, delrot, sin_fi, cos_fi, squa_tilt2, cosdel, cosdel_othe, cosdel_teta, cosdel_teta_othe, sin_teref_tedi, true);
 
-                            sec_crystal_Parallel_reach = Gaussi_rockin::getReflection(
+                            sec_crystal_Parallel_reach = Util::getReflection(
                                 angle, 
                                 tetabra2, 
                                 lamda, 
@@ -293,9 +294,9 @@ void Source_simple::run_Source(){
                         }
 
                         if(UserSettingsInput.see_anti){
-                            angle = getFirstApproxAngle2(tetaref, tetadir, delrot, sin_fi, cos_fi, squa_tilt2, cosdel, cosdel_othe, cosdel_teta, cosdel_teta_othe, sin_teref_tedi, false);
+                            angle = Util::getFirstApproxAngle2(tetaref, tetadir, delrot, sin_fi, cos_fi, squa_tilt2, cosdel, cosdel_othe, cosdel_teta, cosdel_teta_othe, sin_teref_tedi, false);
 
-                            sec_crystal_Antiparallel_reach = Gaussi_rockin::getReflection(
+                            sec_crystal_Antiparallel_reach = Util::getReflection(
                                 angle, 
                                 tetabra2, 
                                 lamda, 
@@ -304,9 +305,9 @@ void Source_simple::run_Source(){
                         }
                     }else if(UserSettingsInput.angle_aprox == 2){
                         if(UserSettingsInput.see_para){
-                            angle = getFullApproximationAngle2(tetaref, tetadir, delrot, cos_e, tan_e, cos2_e, fidir, GeoParametersInput.tilt_C1, GeoParametersInput.tilt_C2, true);
+                            angle = Util::getFullApproximationAngle2(tetaref, tetadir, delrot, cos_e, tan_e, cos2_e, fidir, GeoParametersInput.tilt_C1, GeoParametersInput.tilt_C2, true);
 
-                            sec_crystal_Parallel_reach = Gaussi_rockin::getReflection(
+                            sec_crystal_Parallel_reach = Util::getReflection(
                                 angle, 
                                 tetabra2, 
                                 lamda, 
@@ -315,9 +316,9 @@ void Source_simple::run_Source(){
                         }
 
                         if(UserSettingsInput.see_anti){
-                            angle = getFullApproximationAngle2(tetaref, tetadir, delrot, cos_e, tan_e, cos2_e, fidir, GeoParametersInput.tilt_C1, GeoParametersInput.tilt_C2, false);
+                            angle = Util::getFullApproximationAngle2(tetaref, tetadir, delrot, cos_e, tan_e, cos2_e, fidir, GeoParametersInput.tilt_C1, GeoParametersInput.tilt_C2, false);
 
-                            sec_crystal_Antiparallel_reach = Gaussi_rockin::getReflection(
+                            sec_crystal_Antiparallel_reach = Util::getReflection(
                                 angle, 
                                 tetabra2, 
                                 lamda, 
@@ -366,7 +367,7 @@ void Source_simple::run_Source(){
 
 
         if(UserSettingsInput.fitting){
-            Obtain_data_fitting::FitData(
+            Util::FitData(
                 numbins,
                 angle_para,
                 toint_para,

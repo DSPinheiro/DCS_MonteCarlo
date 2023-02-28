@@ -5,9 +5,8 @@
 #include "simulationmain.h"
 #include "ui_simulationmain.h"
 
-#include "obtain_energyspectrum.hh"
-#include "CheckInputSpectrum.hh"
 #include "double_crystal_diffraction.hh"
+#include <Util.h>
 
 using namespace std;
 
@@ -69,7 +68,7 @@ void SimulationMain::guiSimu(){
     }else{
         cout << "Reading input energy spectrum..." << endl;
 
-        Obtain_EnergySpectrum::Read_EnergySpectrum();
+        Util::Read_EnergySpectrum();
 
         cout << "Input energy spectrum read." << endl;
     }
@@ -99,19 +98,19 @@ void SimulationMain::guiSimu(){
     }else{
         bool usable;
         if(PhysicalParametersInput.Unit_energy == "keV"){
-            usable = CheckInputSpectrum::CheckSpectrum("eV");
+            usable = Util::CheckSpectrum("eV");
 
             if(! usable){
                 throw runtime_error("bad input on the energies. requested energy spectrum will not be visible in output");
             }
         }else if(PhysicalParametersInput.Unit_energy == "eV"){
-            usable = CheckInputSpectrum::CheckSpectrum("eV");
+            usable = Util::CheckSpectrum("eV");
 
             if(! usable){
                 throw runtime_error("bad input on the energies. requested energy spectrum will not be visible in output");
             }
         }else if(PhysicalParametersInput.Unit_energy == "A"){
-            usable = CheckInputSpectrum::CheckSpectrum("A");
+            usable = Util::CheckSpectrum("A");
 
             if(! usable){
                 throw runtime_error("bad input on the energies. requested energy spectrum will not be visible in output");

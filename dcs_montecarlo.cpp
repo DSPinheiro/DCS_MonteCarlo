@@ -7,6 +7,7 @@
 //============================================================================
 
 #include "dcs_montecarlo.hh"
+#include <Util.h>
 
 
 
@@ -1425,7 +1426,7 @@ int main(int argc, char *argv[]){
     }else{
         cout << "Reading input energy spectrum..." << endl;
 
-        Obtain_EnergySpectrum::Read_EnergySpectrum();
+        Util::Read_EnergySpectrum();
 
         cout << "Input energy spectrum read." << endl;
     }
@@ -1462,7 +1463,7 @@ int main(int argc, char *argv[]){
         bool usable;
 
         if(PhysicalParametersInput.Unit_energy == "keV"){
-            usable = CheckInputSpectrum::CheckSpectrum("eV");
+            usable = Util::CheckSpectrum("eV");
 
             if(! usable){
                 cout << "bad input on the energies. requested energy spectrum will not be visible in output" << endl;
@@ -1470,7 +1471,7 @@ int main(int argc, char *argv[]){
                 return 0;
             }
         }else if(PhysicalParametersInput.Unit_energy == "eV"){
-            usable = CheckInputSpectrum::CheckSpectrum("eV");
+            usable = Util::CheckSpectrum("eV");
 
             if(! usable){
                 cout << "bad input on the energies. requested energy spectrum will not be visible in output" << endl;
@@ -1478,7 +1479,7 @@ int main(int argc, char *argv[]){
                 return 0;
             }
         }else if(PhysicalParametersInput.Unit_energy == "A"){
-            usable = CheckInputSpectrum::CheckSpectrum("A");
+            usable = Util::CheckSpectrum("A");
 
             if(! usable){
                 cout << "bad input on the energies. requested energy spectrum will not be visible in output" << endl;

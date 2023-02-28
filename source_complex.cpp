@@ -6,6 +6,7 @@
  */
 
 #include "source_complex.hh"
+#include <Util.h>
 
 
 using namespace std;
@@ -59,10 +60,10 @@ void Source_complex::run_Source(SimulationMain *w){
     pha_temp[3] = ((double)rand() / RAND_MAX) * 2 * M_PI;
 
 
-    d_lat1_para = Latice_temp(d_lat, TemperatureParametersInput.T_crystal_1_para);
-    d_lat1_anti = Latice_temp(d_lat, TemperatureParametersInput.T_crystal_1_anti);
-    d_lat2_para = Latice_temp(d_lat, TemperatureParametersInput.T_crystal_2_para);
-    d_lat2_anti = Latice_temp(d_lat, TemperatureParametersInput.T_crystal_2_anti);
+    d_lat1_para = Util::Latice_temp(d_lat, TemperatureParametersInput.T_crystal_1_para);
+    d_lat1_anti = Util::Latice_temp(d_lat, TemperatureParametersInput.T_crystal_1_anti);
+    d_lat2_para = Util::Latice_temp(d_lat, TemperatureParametersInput.T_crystal_2_para);
+    d_lat2_anti = Util::Latice_temp(d_lat, TemperatureParametersInput.T_crystal_2_anti);
 
 
     tw_d1_para = 2 * d_lat1_para;
@@ -104,7 +105,7 @@ void Source_complex::run_Source(SimulationMain *w){
 
 
     if(CurveVerticalTiltInput.make_CurveTilt)
-        tilt_C1_temp = ObtainVertical::ObtainVert(1, 0);
+        tilt_C1_temp = Util::ObtainVert(1, 0);
     else
         tilt_C1_temp = GeoParametersInput.tilt_C1 * convrad;
 
@@ -259,7 +260,7 @@ void Source_complex::run_Source(SimulationMain *w){
     }
 
     if(GraphOptionsInput.make_image_plates){
-        Make_graph_imageplate::initPlates();
+        Util::initPlates();
     }
 
     int_time_out.push_back(0);
@@ -292,21 +293,21 @@ void Source_complex::run_Source(SimulationMain *w){
 
 
             if(TemperatureParametersInput.mk_temp_bin){
-                inc_tem = Get_new_temp_for_bins::getNewTemp(
+                inc_tem = Util::getNewTemp(
                     bin_tem,
                     bin_fas,
                     pha_temp[2]);
 
                 cout << "inc_te: " << inc_tem << endl;
 
-                d_lat2_para = Latice_temp(d_lat, TemperatureParametersInput.T_crystal_2_para + inc_tem);
+                d_lat2_para = Util::Latice_temp(d_lat, TemperatureParametersInput.T_crystal_2_para + inc_tem);
 
-                inc_tem = Get_new_temp_for_bins::getNewTemp(
+                inc_tem = Util::getNewTemp(
                     bin_tem,
                     bin_fas,
                     pha_temp[3]);
 
-                d_lat2_anti = Latice_temp(d_lat, TemperatureParametersInput.T_crystal_2_anti + inc_tem);
+                d_lat2_anti = Util::Latice_temp(d_lat, TemperatureParametersInput.T_crystal_2_anti + inc_tem);
 
                 bin_tem++;
 
@@ -324,8 +325,8 @@ void Source_complex::run_Source(SimulationMain *w){
 
 
             if(CurveVerticalTiltInput.make_CurveTilt){
-                tilt_C2_para_temp = ObtainVertical::ObtainVert(2, angle_para);
-                tilt_C2_anti_temp = ObtainVertical::ObtainVert(2, angle_anti);
+                tilt_C2_para_temp = Util::ObtainVert(2, angle_para);
+                tilt_C2_anti_temp = Util::ObtainVert(2, angle_anti);
             }else{
                 tilt_C2_para_temp = GeoParametersInput.tilt_C2 * convrad;
                 tilt_C2_anti_temp = GeoParametersInput.tilt_C2 * convrad;
@@ -436,7 +437,7 @@ void Source_complex::run_Source(SimulationMain *w){
                     r = S_aper_R_2 + 1;
 
                     while(r > S_aper_R_2)
-                        r = BoxMuller::Box(S_aper_var_2, 0);
+                        r = Util::Box(S_aper_var_2, 0);
 
                     if(! (GeolengthelementsInput.S_shi_ver_B == 0 && GeolengthelementsInput.S_shi_hor_B == 0)){
                         z = r * sin_tetap + GeolengthelementsInput.S_shi_ver_B;
@@ -473,7 +474,7 @@ void Source_complex::run_Source(SimulationMain *w){
                     runtime_error("Bad input on the source type: type_source");
                 }
 
-                vector<double> yz = getYZ(r, sin_tetap, cos_tetap, tan_tetadir, tan_fidir, LT_aper_Db);
+                vector<double> yz = Util::getYZ(r, sin_tetap, cos_tetap, tan_tetadir, tan_fidir, LT_aper_Db);
 
                 y = yz[0];
                 z = yz[1];
@@ -483,13 +484,13 @@ void Source_complex::run_Source(SimulationMain *w){
                 if(var_temp < S_aper_sqr){
 
                     if(GraphOptionsInput.make_image_plates){
-                        Make_pointcryst::Make(1, y, z);
+                        Util::Make(1, y, z);
                     }
 
 
                     r = sqrt(pow(y, 2) + pow(z, 2));
 
-                    vector<double> yz = getYZ(r, sin_tetap, cos_tetap, tan_tetadir, tan_fidir, LT_aper_Db);
+                    vector<double> yz = Util::getYZ(r, sin_tetap, cos_tetap, tan_tetadir, tan_fidir, LT_aper_Db);
 
                     y = yz[0];
                     z = yz[1];
@@ -510,7 +511,7 @@ void Source_complex::run_Source(SimulationMain *w){
                     if(y_pro_C1 < y_max_C1 && y_pro_C1 > y_min_C1 && z_pro_C1 < z_max_C1 && z_pro_C1 > z_min_C1){
                         if(!GraphOptionsInput.make_imageC1_After_refle){
                             if(GraphOptionsInput.make_image_plates){
-                                Make_pointcryst::Make(2, y_pro_C1, z_pro_C1);
+                                Util::Make(2, y_pro_C1, z_pro_C1);
                             }
                         }
 
@@ -520,7 +521,7 @@ void Source_complex::run_Source(SimulationMain *w){
 
 
                         if(CurvedCrystalInput.Curve_crystall){
-                            vector<double> corrRes = Obtain_Curved_Hor_Corr::horCorr(
+                            vector<double> corrRes = Util::horCorr(
                                 y_pro_C1,
                                 y_max_C1,
                                 z_pro_C1,
@@ -534,14 +535,14 @@ void Source_complex::run_Source(SimulationMain *w){
                             n1y = n1y_temp * Costeta_CHC - n1x_temp * Sinteta_CHC;
                         }
 
-                        vector<double> angleRes = getFullAngle(rx, ry, rz, n1x, n1y, n1z);
+                        vector<double> angleRes = Util::getFullAngle(rx, ry, rz, n1x, n1y, n1z);
                         angle = angleRes[0];
                         r2x = angleRes[1];
                         r2y = angleRes[2];
                         r2z = angleRes[3];
 
 
-                        lamda = IntensitySource::getEnergy(a_lamds_uni, b_lamds_uni, tw_d1_para);
+                        lamda = Util::getEnergy(a_lamds_uni, b_lamds_uni, tw_d1_para);
 
                         tetabra1 = asin(lamda / tw_d1_para);
 
@@ -553,7 +554,7 @@ void Source_complex::run_Source(SimulationMain *w){
                             poliP = false;
 
 
-                        first_crystal_reach = Gaussi_rockin::getReflection(
+                        first_crystal_reach = Util::getReflection(
                             angle,
                             tetabra1,
                             lamda,
@@ -566,7 +567,7 @@ void Source_complex::run_Source(SimulationMain *w){
 
                             if(GraphOptionsInput.make_imageC1_After_refle){
                                 if(GraphOptionsInput.make_image_plates){
-                                    Make_pointcryst::Make(2, y_pro_C1, z_pro_C1);
+                                    Util::Make(2, y_pro_C1, z_pro_C1);
                                 }
                             }
 
@@ -618,7 +619,7 @@ void Source_complex::run_Source(SimulationMain *w){
 
                             //cout << cos_tetap << "\t" << tan_tetadir << "\t" << dist_Cr1_Cr2_Db << "\t" << corr_dis << endl;
 
-                            vector<double> yz = getYZ(r, sin_tetap, cos_tetap, tan_tetadir, tan_fidir, dist_Cr1_Cr2_Db - corr_dis);
+                            vector<double> yz = Util::getYZ(r, sin_tetap, cos_tetap, tan_tetadir, tan_fidir, dist_Cr1_Cr2_Db - corr_dis);
 
                             y = yz[0];
                             z = yz[1];
@@ -639,7 +640,7 @@ void Source_complex::run_Source(SimulationMain *w){
 
                                     if(GraphOptionsInput.make_image_plates){
                                         if(!GraphOptionsInput.make_imageC2_After_refle){
-                                            Make_pointcryst::Make(3, y_pro_C1, z_pro_C1);
+                                            Util::Make(3, y_pro_C1, z_pro_C1);
                                         }
                                     }
 
@@ -648,7 +649,7 @@ void Source_complex::run_Source(SimulationMain *w){
 
 
                                     if(CurvedCrystalInput.Curve_crystall){
-                                        vector<double> corrRes = Obtain_Curved_Hor_Corr::horCorr(
+                                        vector<double> corrRes = Util::horCorr(
                                             y_pro_C1,
                                             y_max_C2,
                                             z_pro_C1,
@@ -663,13 +664,13 @@ void Source_complex::run_Source(SimulationMain *w){
                                     }
 
 
-                                    vector<double> angleRes = getFullAngle2(r2x, r2y, r2z, n2x_para, n2y_para, n2z_para);
+                                    vector<double> angleRes = Util::getFullAngle2(r2x, r2y, r2z, n2x_para, n2y_para, n2z_para);
                                     angle = angleRes[0];
                                     r3x = angleRes[1];
                                     r3y = angleRes[2];
                                     r3z = angleRes[3];
 
-                                    sec_crystal_Parallel_reach = Gaussi_rockin::getReflection(
+                                    sec_crystal_Parallel_reach = Util::getReflection(
                                         angle,
                                         tetabra2,
                                         lamda,
@@ -680,7 +681,7 @@ void Source_complex::run_Source(SimulationMain *w){
 
                                         if(GraphOptionsInput.make_image_plates){
                                             if(GraphOptionsInput.make_imageC2_After_refle){
-                                                Make_pointcryst::Make(3, y_pro_C1, z_pro_C1);
+                                                Util::Make(3, y_pro_C1, z_pro_C1);
                                             }
                                         }
 
@@ -726,7 +727,7 @@ void Source_complex::run_Source(SimulationMain *w){
                                             }
                                         }
 
-                                        vector<double> yz = getYZ(r_det, sin_tetap_det, cos_tetap_det, tan_tetadir_det, tan_fidir_det, dist_Cr2_det_Db - corr_dis_d_pa);
+                                        vector<double> yz = Util::getYZ(r_det, sin_tetap_det, cos_tetap_det, tan_tetadir_det, tan_fidir_det, dist_Cr2_det_Db - corr_dis_d_pa);
 
                                         y_det = yz[0];
                                         z_det = yz[1];
@@ -734,7 +735,7 @@ void Source_complex::run_Source(SimulationMain *w){
                                         if(y_det < ydetc_2_max && y_det > ydetc_2_min && z_det < zdetc_2_max && z_det > zdetc_2_min){
 
                                             if(GraphOptionsInput.make_image_plates){
-                                                Make_pointcryst::Make(4, y_det, z_det);
+                                                Util::Make(4, y_det, z_det);
                                             }
 
                                             toint_para++;
@@ -769,7 +770,7 @@ void Source_complex::run_Source(SimulationMain *w){
 
                                     if(GraphOptionsInput.make_imageC2_After_refle){
                                         if(GraphOptionsInput.make_image_plates){
-                                            Make_pointcryst::Make(5, y_pro_C1, z_pro_C1);
+                                            Util::Make(5, y_pro_C1, z_pro_C1);
                                         }
                                     }
 
@@ -777,7 +778,7 @@ void Source_complex::run_Source(SimulationMain *w){
                                     tetabra2 = asin(lamda / tw_d2_anti);
 
                                     if(CurvedCrystalInput.Curve_crystall){
-                                        vector<double> corrRes = Obtain_Curved_Hor_Corr::horCorr(
+                                        vector<double> corrRes = Util::horCorr(
                                             -y_pro_C1,
                                             y_max_C2,
                                             z_pro_C1,
@@ -792,14 +793,14 @@ void Source_complex::run_Source(SimulationMain *w){
                                     }
 
 
-                                    vector<double> angleRes = getFullAngle2(r2x, r2y, r2z, n2x_anti, n2y_anti, n2z_anti);
+                                    vector<double> angleRes = Util::getFullAngle2(r2x, r2y, r2z, n2x_anti, n2y_anti, n2z_anti);
                                     angle = angleRes[0];
                                     r3x = angleRes[1];
                                     r3y = angleRes[2];
                                     r3z = angleRes[3];
 
 
-                                    sec_crystal_Antiparallel_reach = Gaussi_rockin::getReflection(
+                                    sec_crystal_Antiparallel_reach = Util::getReflection(
                                         angle,
                                         tetabra2,
                                         lamda,
@@ -810,7 +811,7 @@ void Source_complex::run_Source(SimulationMain *w){
 
                                         if(GraphOptionsInput.make_image_plates){
                                             if(GraphOptionsInput.make_imageC2_After_refle){
-                                                Make_pointcryst::Make(5, y_pro_C1, z_pro_C1);
+                                                Util::Make(5, y_pro_C1, z_pro_C1);
                                             }
                                         }
 
@@ -855,7 +856,7 @@ void Source_complex::run_Source(SimulationMain *w){
                                         }
 
 
-                                        vector<double> yz = getYZ(r_det, sin_tetap_det, cos_tetap_det, tan_tetadir_det, tan_fidir_det, dist_Cr2_det_Db - corr_dis_d_pa);
+                                        vector<double> yz = Util::getYZ(r_det, sin_tetap_det, cos_tetap_det, tan_tetadir_det, tan_fidir_det, dist_Cr2_det_Db - corr_dis_d_pa);
 
                                         y_det = yz[0];
                                         z_det = yz[1];
@@ -863,7 +864,7 @@ void Source_complex::run_Source(SimulationMain *w){
                                         if(y_det < ydetc_2_max && y_det > ydetc_2_min && z_det < zdetc_2_max && z_det > zdetc_2_min){
 
                                             if(GraphOptionsInput.make_image_plates){
-                                                Make_pointcryst::Make(6, y_det, z_det);
+                                                Util::Make(6, y_det, z_det);
                                             }
 
                                             toint_anti++;
@@ -923,7 +924,7 @@ void Source_complex::run_Source(SimulationMain *w){
 
             if(n_rota == NumberRaysInput.number_rotati){
                 if(UserSettingsInput.fitting){
-                    Obtain_data_fitting::FitData(
+                    Util::FitData(
                         numbins,
                         angle_para,
                         total_para,

@@ -22,8 +22,6 @@
 #include <QApplication>
 
 #include "simuGlobals.hh"
-#include "obtain_energyspectrum.hh"
-#include "CheckInputSpectrum.hh"
 #include "double_crystal_diffraction.hh"
 #include "dcs_gui.h"
 

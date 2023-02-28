@@ -1,0 +1,2177 @@
+#define _USE_MATH_DEFINES
+
+
+#include "Util.h"
+
+#include <cstdlib>
+#include <math.h>
+
+#include <complex>
+#include <cmath>
+
+#include <vector>
+#include <iostream>
+
+#include <stdexcept>
+
+#include "simuGlobals.hh"
+#include <stdio.h>
+#include <algorithm>
+
+#include <string>
+
+
+using namespace Util;
+
+
+double Util::Box(double sta_dev, double mean) {
+    double fac, rsq, v1, v2;
+
+    while (true) {
+        v1 = 2 * ((double)rand() / RAND_MAX) - 1;
+        v2 = 2 * ((double)rand() / RAND_MAX) - 1;
+        rsq = pow(v1, 2) + pow(v2, 2);
+
+        if (!(rsq >= 1 || rsq == 0))
+            break;
+
+    }
+
+    fac = sqrt(-2 * log(rsq) / rsq);
+
+    return mean + sta_dev * v2 * fac;
+
+}
+
+
+void Util::cov_srt(std::vector<std::vector<double>> covar, int npc, int ma, int* ia, int mfit) {
+
+    double swap;
+
+    int k;
+
+    for (int i = mfit - 1; i < ma; i++) {
+        for (int j = 0; j <= i; j++) {
+            covar.at(i).at(j) = 0;
+            covar.at(j).at(i) = 0;
+        }
+    }
+
+    k = mfit;
+
+    for (int j = ma - 1; j >= 0; j--) {
+        if (ia[j] != 0) {
+            k--;
+            for (int i = 0; i < ma; i++) {
+                swap = covar.at(i).at(k);
+                covar.at(i).at(k) = covar.at(i).at(j);
+                covar.at(i).at(j) = swap;
+            }
+
+            for (int i = 0; i < ma; i++) {
+                swap = covar.at(k).at(i);
+                covar.at(k).at(i) = covar.at(j).at(i);
+                covar.at(j).at(i) = swap;
+            }
+        }
+    }
+
+
+}
+
+
+void Util::cw(double xw, double yw, double& ak, double& al) {
+
+    const std::complex<double> C1(0.5641896, 0), C2(1.12837917, 0), CZ1(0.4613135, 0), CZ2(0.1901635, 0), CZ3(0.09999216, 0), CZ4(1.7844927, 0), CZ5(0.002883994, 0), CZ6(5.5253437, 0);
+    const std::complex<double> CZZ1(0.55124242, 0), CZZ2(2.752551, 0), CZZ3(0.05176536, 0), CZZ4(2.724745, 0), ZI(0, 1);
+
+    std::complex<double> CWZ;
+
+    const int ITMAX = 400, ITPOL = 40;
+
+    const double EPS = 1E-09;
+
+
+    std::complex<double> Z(xw, yw);
+
+    std::complex<double> Z2 = Z * Z;
+
+    if (std::abs(xw) > 3 || std::abs(yw) > 3.9) {
+        CWZ = Z * ZI * (CZ1 / (Z2 - CZ2) + CZ3 / (Z2 - CZ4) + CZ5 / (Z2 - CZ6));
+    }
+    else if (std::abs(yw) > 0.5) {
+        std::complex<double> Cgold(0, 0);
+        std::complex<double> Ca0(0, 0);
+        std::complex<double> Ca1(1, 0);
+        std::complex<double> Cb0 = Ca1;
+        std::complex<double> Cb1 = Z;
+
+        for (int n = 0; n < ITMAX; n++) {
+
+            std::complex<double> CN((double)-n / 2, 0);
+            std::complex<double> Ca2(0, 0);
+            std::complex<double> Cb2(0, 0);
+            Ca0 = Ca1;
+            Ca1 = Ca2;
+            Cb0 = Cb1;
+            Cb1 = Cb2;
+
+            if (Ca2 == std::complex<double>(0, 0))
+                continue;
+
+            CWZ = Ca2 / Cb2;
+
+            if (abs((CWZ - Cgold) / CWZ) < EPS)
+                break;
+
+            Cgold = CWZ;
+
+        }
+
+        CWZ = CWZ * C1 * ZI;
+
+    }
+    else {
+
+        Z = -Z * ZI;
+        std::complex<double> Z21 = Z * Z;
+        CWZ = 1 / (double)(2 * ITPOL + 1);
+
+        for (int i = ITPOL; i >= 2; i--)
+            CWZ = 1 / (double)(2 * i - 1) - Z21 * CWZ / (double)i;
+
+        CWZ = (std::complex<double>(1, 0) - Z21 * CWZ) * Z;
+        CWZ = exp(-Z2) * (std::complex<double>(1, 0) - C2 * CWZ);
+    }
+
+    ak = real(CWZ);
+    al = imag(CWZ);
+
+}
+
+
+int Util::FindLoc(std::vector<double> array, double value) {
+    for (unsigned int i = 0; i < array.size(); i++) {
+        if (array[i] == value) {
+            return i;
+        }
+    }
+
+    throw std::runtime_error("Value not found in array.");
+
+}
+
+
+double Util::getFirstApproxAngle(double tetaref, double tetadir, double sin_fi, double cos_fi, double tilt_C1, double squa_tilt1) {
+
+    double temp_sin, sinte;
+
+    temp_sin = sin(tetadir + tetaref) * cos_fi;
+    sinte = temp_sin * (1 - squa_tilt1) + sin_fi * tilt_C1;
+
+    return asin(sinte);
+}
+
+
+double Util::getFullApproximationAngle(double tetaref, double tetadir, double cos_e, double tan_e, double fidir, double tilt_C1) {
+    return tetaref + tetadir - (pow(fidir, 2) + pow(tilt_C1, 2)) * tan_e + fidir * tilt_C1 / cos_e;
+}
+
+
+std::vector<double> Util::getFullAngle(double r1x, double r1y, double r1z, double n1x, double n1y, double n1z) {
+    double inter_pro, angle, r2x, r2y, r2z;
+
+    inter_pro = r1x * n1x + r1y * n1y + r1z * n1z;
+
+    angle = asin(-inter_pro);
+    r2x = r1x - 2 * inter_pro * n1x;
+    r2y = r1y - 2 * inter_pro * n1y;
+    r2z = r1z - 2 * inter_pro * n1z;
+
+    std::vector<double> res;
+    res.push_back(angle);
+    res.push_back(r2x);
+    res.push_back(r2y);
+    res.push_back(r2z);
+
+    return res;
+}
+
+
+void Util::gauss_j(std::vector<std::vector<double>> a, int n, int np, std::vector<std::vector<double>> b, int m, int mp) {
+
+    const int NMAX = 50;
+
+    int ipiv[NMAX], indxr[NMAX], indxc[NMAX], irow, icol;
+
+    double big, dum, pivinv;
+
+    for (int j = 0; j < n; j++) {
+        ipiv[j] = 0;
+    }
+
+    for (int i = 0; i < n; i++) {
+        big = 0;
+        for (int j = 0; j < n; j++) {
+            if (ipiv[j] != 1) {
+                for (int k = 0; k < n; k++) {
+                    if (ipiv[k] == 0) {
+                        if (a.at(j).at(k) >= big) {
+                            big = std::abs(a.at(j).at(k));
+                            irow = j;
+                            icol = k;
+                        }
+                    }
+                    else if (ipiv[k] > 1) {
+                        system("pause");
+                    }
+                }
+            }
+        }
+
+        ipiv[icol]++;
+        if (irow != icol) {
+            for (int l = 0; l < n; l++) {
+                dum = a.at(irow).at(l);
+                a.at(irow).at(l) = a.at(icol).at(l);
+                a.at(icol).at(l) = dum;
+            }
+
+            for (int l = 0; l < m; l++) {
+                dum = b.at(irow).at(l);
+                b.at(irow).at(l) = b.at(icol).at(l);
+                b.at(icol).at(l) = dum;
+            }
+        }
+
+        indxr[i] = irow;
+        indxc[i] = icol;
+        if (a.at(icol).at(icol) == 0) {
+            system("pause");
+        }
+
+        pivinv = 1 / a.at(icol).at(icol);
+        a.at(icol).at(icol) = 1;
+
+        for (int l = 0; l < n; l++)
+            a.at(icol).at(l) *= pivinv;
+
+        for (int l = 0; l < m; l++)
+            b.at(icol).at(l) *= pivinv;
+
+        for (int ll = 0; ll < n; ll++) {
+            if (ll != icol) {
+                dum = a.at(ll).at(icol);
+                a.at(ll).at(icol) = 0;
+                for (int l = 0; l < n; l++)
+                    a.at(ll).at(l) -= a.at(icol).at(l) * dum;
+                for (int l = 0; l < n; l++)
+                    b.at(ll).at(l) -= b.at(icol).at(l) * dum;
+            }
+        }
+    }
+
+    for (int l = n - 1; l >= 0; l--) {
+        if (indxr[l] != indxc[l]) {
+            for (int k = 0; k < n; k++) {
+                dum = a.at(k).at(indxr[l]);
+                a.at(k).at(indxr[l]) = a.at(k).at(indxc[l]);
+                a.at(k).at(indxc[l]) = dum;
+            }
+        }
+    }
+
+}
+
+
+void Util::mrq_cof(std::vector<double> x, std::vector<double> y, std::vector<double> sig, int ndata, double* a, int* ia, int ma, std::vector<std::vector<double>> alpha, double* beta, int nalp, double& chisq, void(funcs(double&, double*, double&, double*, int))) {
+
+    const int MMAX = 20;
+
+    double ymod, dyda[MMAX], sig2i, dy, wt;
+
+    int mfit, j, k;
+
+    mfit = 0;
+
+    for (j = 0; j < ma; j++) {
+        if (ia[j] != 0)
+            mfit++;
+    }
+
+    for (j = 0; j < mfit; j++) {
+        for (k = 0; k <= j; k++) {
+            alpha[j][k] = 0;
+        }
+        beta[j] = 0;
+    }
+
+    chisq = 0;
+
+    for (int i = 0; i < ndata; i++) {
+        funcs(x.at(i), a, ymod, dyda, ma);
+
+        sig2i = 1 / (sig.at(i) * sig.at(i));
+        dy = y.at(i) - ymod;
+
+        j = 0;
+
+        for (int l = 0; l < ma; l++) {
+            if (ia[l] != 0) {
+                wt = dyda[l] * sig2i;
+                k = 0;
+
+                for (int m = 0; m <= l; m++) {
+                    if (ia[m] != 0) {
+                        alpha.at(j).at(k) += wt * dyda[m];
+                        k++;
+                    }
+                }
+                beta[j] += dy * wt;
+
+                j++;
+            }
+        }
+
+        chisq += dy * dy * sig2i;
+
+    }
+
+
+    for (j = 1; j < mfit; j++) {
+        for (k = 0; k < j; k++) {
+            alpha.at(k).at(j) = alpha.at(j).at(k);
+        }
+    }
+
+
+}
+
+
+void Util::mrq_min(std::vector<double> x, std::vector<double> y, std::vector<double> sig, int ndata, double* a, int* ia, int ma, std::vector<std::vector<double>> covar, std::vector<std::vector<double>> alpha, int nca, double& chisq, void(funcs(double&, double*, double&, double*, int)), double& alamda) {
+
+    int mfit, j, k;
+
+    const int MMAX = 20;
+
+    double ochisq, atry[MMAX], beta[MMAX], da[MMAX];
+
+    if (alamda < 0) {
+        mfit = 0;
+
+        for (j = 0; j < ma; j++) {
+            if (ia[j] != 0)
+                mfit++;
+        }
+
+        alamda = 0.001;
+
+        mrq_cof(x, y, sig, ndata, a, ia, ma, alpha, beta, nca, chisq, funcs);
+        ochisq = chisq;
+
+        for (j = 0; j < ma; j++) {
+            atry[j] = a[j];
+        }
+    }
+
+    j = 0;
+
+    for (int l = 0; l < ma; l++) {
+        if (ia[l] != 0) {
+            k = 0;
+
+            for (int m = 0; m < ma; m++) {
+                if (ia[m] != 0) {
+                    covar[j][k] = alpha[j][k];
+                    k++;
+                }
+            }
+
+            covar[j][j] = alpha[j][j] * (1 + alamda);
+            da[j] = beta[j];
+            j++;
+        }
+    }
+
+    //da is declared as 1d array, but gauss_j expects 2d array as the parameter... the original code is also like this i dont even know how it compiled....
+    //gauss_j(covar, mfit, nca, da, 1, 1);
+
+    if (alamda == 0) {
+        //this resets the covar to 0 in a wierdly complicated way....
+        mfit = ma;
+        cov_srt(covar, nca, ma, ia, mfit);
+        return;
+    }
+
+    j = 0;
+
+    for (int l = 0; l < ma; l++) {
+
+        if (ia[l] != 0) {
+            atry[l] = a[l] + da[j];
+            j++;
+        }
+    }
+
+    mrq_cof(x, y, sig, ndata, atry, ia, ma, covar, da, nca, chisq, funcs);
+
+    if (chisq < ochisq) {
+
+        alamda *= 0.1;
+        ochisq = chisq;
+        j = 0;
+
+        for (int l = 0; l < ma; l++) {
+            if (ia[l] != 0) {
+                k = 0;
+
+                for (int m = 0; m < ma; m++) {
+                    if (ia[m] != 0) {
+                        alpha[j][k] = covar[j][k];
+                        k++;
+                    }
+                }
+
+                beta[j] = da[j];
+                a[l] = atry[l];
+                j++;
+            }
+        }
+    }
+    else {
+        alamda *= 10;
+        chisq = ochisq;
+    }
+
+    return;
+
+}
+
+
+double Util::Latice_temp(double d_lat, double T_crystal) {
+    double C1, C2, C3, C4, t0, Temp, a;
+    const double a22 = 1.000054702395071;
+
+    t0 = 273.15;
+
+    C1 = 3.725E-6;
+    C2 = 5.88E-3;
+    C3 = C2 * 124.0;
+    C4 = 2.774E-10;
+
+    Temp = T_crystal + t0;
+
+    a = (1.0 + (Temp - t0) * C1 + (pow(Temp, 2) - pow(t0, 2)) * C4 + (exp(-C2 * Temp) - exp(-C2 * t0)) * exp(C3) * C1 / C2);
+
+    a /= a22;
+
+    double d_lat_t = d_lat * a;
+
+    d_lat_t = d_lat * (1 + (Temp - 295.65) * (2.56E-6));
+
+    return d_lat_t;
+}
+
+
+std::vector<double> Util::getYZ(double r_temp, double sin_tetap_temp, double cos_tetap_temp, double tan_tetadir_temp, double tan_fidir_temp, double L_temp) {
+    std::vector<double> res;
+
+    res.push_back(r_temp * cos_tetap_temp + tan_tetadir_temp * L_temp);
+    res.push_back(r_temp * sin_tetap_temp + tan_fidir_temp * L_temp);
+
+    return res;
+
+    //this was in the original code but isnt used (?)
+    /*if(yp_temp == 0){
+
+            cos_tetap_temp = 0;
+            if(zp_temp > 0)
+                    sin_tetap_temp = 1;
+            else
+                    sin_tetap_temp = -1;
+    }else{
+            temp = zp_temp / yp_temp;
+
+            if(yp_temp > 0){
+                    sin_tetap_temp = temp / sqrt(1 + pow(temp, 2));
+                    cos_tetap_temp = 1 / sqrt(1 + pow(temp, 2));
+            }else{
+                    sin_tetap_temp = -temp / sqrt(1 + pow(temp, 2));
+                    cos_tetap_temp = -1 / sqrt(1 + pow(temp, 2));
+            }
+    }*/
+
+
+}
+
+
+void Util::Pseud(double& x, double* a, double& y, double* dyda, int na) {
+
+    double Lorenterm, DerLorenterm, const1, const2, term1, term2, Gaussterm, DerGausserm;
+
+    const1 = sqrt(4 * log(2)) / (sqrt(M_PI) * a[0]);
+    const2 = 4 * log(2) / pow(a[0], 2);
+
+    Lorenterm = 2 * a[0] / (M_PI * (4 * pow((x - a[3]), 2) + pow(a[0], 2)));
+    Gaussterm = const1 * exp(-const2 * pow((x - a[3]), 2));
+
+    DerLorenterm = Lorenterm * 8 * (x - a[3]) / (4 * pow((x - a[3]), 2) + pow(a[0], 2));
+    DerGausserm = 2 * const2 * (x - a[3]) * Gaussterm;
+
+    term1 = (4 * pow((x - a[3]), 2) - a[0] * a[0]) / (pow((4 * pow((x - a[3]), 2) + pow(a[0], 2)), 2));
+    term2 = (1 - 2 * const2 * pow((x - a[3]), 2)) / a[0];
+
+    dyda[1] = a[2] * Lorenterm + (1 - a[2]) * Gaussterm;
+
+    dyda[4] = 1;
+    dyda[3] = a[1] * (a[2] * DerLorenterm + (1 - a[2]) * DerGausserm);
+
+    dyda[0] = a[1] * (a[2] * 2 * term1 / M_PI + (1 - a[2]) * term2 * Gaussterm);
+    dyda[2] = a[1] * (Lorenterm - Gaussterm);
+
+    y = a[4] + a[1] * (a[2] * Lorenterm + (1 - a[2]) * Gaussterm);
+
+}
+
+
+bool Util::Reached(double z, double y, double tetadir_temp, double fidir_temp, double L_temp, double z_max, double z_min, double y_max, double y_min) {
+    double z_temp, y_temp;
+
+    z_temp = z + tan(fidir_temp) * L_temp;
+    y_temp = y + tan(tetadir_temp) * L_temp;
+
+    if (z_temp < z_max && z_temp > z_min && y_temp < y_max && y_temp > y_min)
+        return true;
+    else
+        return false;
+}
+
+
+double Util::getFirstApproxAngle2(double tetaref, double tetadir, double delrot, double sin_fi, double cos_fi, double squa_tilt2, double cosdel, double cosdel_othe, double cosdel_teta, double cosdel_teta_othe, double sin_teref_tedi, bool Parallel) {
+
+    double temp_sin, sinte;
+
+    if (Parallel) {
+        temp_sin = sin(tetadir + tetaref - delrot) * cos_fi;
+        sinte = temp_sin * (1 - squa_tilt2) + cosdel * sin_fi - cosdel_othe * cos_fi * sin_teref_tedi;
+        return asin(sinte);
+    }
+    else {
+        temp_sin = sin(-tetadir + tetaref + delrot) * cos_fi;
+        sinte = temp_sin * (1 - squa_tilt2) + cosdel * sin_fi - cosdel_teta_othe * cos_fi * sin_teref_tedi;
+        return asin(sinte);
+    }
+
+}
+
+
+double Util::getFullApproximationAngle2(double tetaref, double tetadir, double delrot, double cos_e, double tan_e, double cos2_e, double fidir, double tilt_C1, double tilt_C2, bool Parallel) {
+
+    if (Parallel)
+        return tetaref + tetadir - delrot - tan_e * (pow(fidir, 2) + pow(tilt_C2, 2) + 4 * tilt_C1 * (tilt_C1 + tilt_C2)) + fidir * (tilt_C2 + 2 * tilt_C1) / cos_e;
+    else
+        return tetaref - tetadir + delrot - tan_e * (pow(fidir, 2) + pow(tilt_C2, 2) + 4 * tilt_C1 * tilt_C2 - 4 * cos2_e * pow(tilt_C1, 2)) + fidir * (tilt_C2 - 2 * cos2_e * tilt_C1) / cos_e;
+
+}
+
+
+std::vector<double> Util::getFullAngle2(double r2x, double r2y, double r2z, double n2x, double n2y, double n2z) {
+
+    double inter_pro, angle, r3x, r3y, r3z;
+
+    inter_pro = r2x * n2x + r2y * n2y + r2z * n2z;
+
+    angle = asin(-inter_pro);
+    r3x = r2x - 2 * inter_pro * n2x;
+    r3y = r2y - 2 * inter_pro * n2y;
+    r3z = r2z - 2 * inter_pro * n2z;
+
+    std::vector<double> res;
+    res.push_back(angle);
+    res.push_back(r3x);
+    res.push_back(r3y);
+    res.push_back(r3z);
+
+    return res;
+
+}
+
+
+std::vector<double> Util::spline(std::vector<double> x, std::vector<double> y, double yp1, double ypn) {
+
+    std::vector<double> y2, u;
+
+    double p, qn, sig, un;
+
+    int n = x.size();
+
+    if (yp1 > 0.99E30) {
+        y2.push_back(0);
+        u.push_back(0);
+    }
+    else {
+        y2.push_back(0.5);
+        u.push_back((3.0 / (x[1] - x[0])) * ((y[1] - y[0]) / (x[1] - x[0]) - yp1));
+    }
+
+    for (int i = 1; i < n - 1; i++) {
+        sig = (x[i] - x[i - 1]) / (x[i + 1] - x[i - 1]);
+        p = sig * y2[i - 1] + 2;
+
+        y2.push_back((sig - 1) / p);
+        u.push_back((6 * ((y[i + 1] - y[i]) / (x[i + 1] - x[i]) - (y[i] - y[i - 1]) / (x[i] - x[i - 1])) / (x[i + 1] - x[i - 1]) - sig * u[i - 1]) / p);
+    }
+
+    if (ypn > 0.99E30) {
+        qn = 0;
+        un = 0;
+    }
+    else {
+        qn = 0.5;
+        un = (3.0 / (x[n - 1] - x[n - 2])) * (ypn - (y[n - 1] - y[n - 2]) / (x[n - 1] - x[n - 2]));
+    }
+
+    y2.push_back((un - qn * u[n - 2]) / (qn * y2[n - 2] + 1));
+
+    for (int k = n - 2; k >= 0; k--) {
+        y2[k] = y2[k] * y2[k + 1] + u[k];
+    }
+
+    return y2;
+}
+
+
+double Util::splint_te(std::vector<double> xa, std::vector<double> ya, std::vector<double> y2a, double x) {
+    int k, khi, klo;
+    double a, b, h;
+
+    klo = 1;
+    khi = xa.size();
+
+    while (khi - klo > 1) {
+        k = (khi + klo) / 2;
+        if (xa[k - 1] > x)
+            khi = k;
+        else
+            klo = k;
+    }
+
+    h = xa[khi - 1] - xa[klo - 1];
+    if (h == 0)
+        throw std::runtime_error("bad xa input in splint");
+
+    a = (xa[khi - 1] - x) / h;
+    b = (x - xa[klo - 1]) / h;
+
+    return a * ya[klo - 1] + b * ya[khi - 1] + ((pow(a, 3) - a) * y2a[klo - 1] + (pow(b, 3) - b) * y2a[khi - 1]) * pow(h, 2) / 6.0;
+}
+
+
+void Util::Voig(double& x, double* a, double& y, double* dyda, int na) {
+
+    int nam;
+
+    double xw, yw, a0, aky, ak, al, DERKX, DERKY, DERI1, DY, DEKYY;
+
+    const double c1 = 1.665109222315395, c2 = c1 / 2, c3 = 1.128379167095513;
+
+    y = a[na - 1];
+    std::fill(&dyda[0], &dyda[0] + 20, -1);
+    nam = na - 1;
+
+    DERI1 = 0;
+
+    for (int j = 1; j < nam; j += 3) {
+        xw = (x - a[j + 2]) * c1 / a[0];
+        yw = a[j + 1] * c2 / a[0];
+
+        Util::cw(0, yw, aky, a0);
+
+        DEKYY = 2 * yw * aky - c3;
+
+        Util::cw(xw, yw, ak, al);
+
+        DERKX = 2 * (yw * al - xw * ak);
+        DERKY = 2 * (xw * al + yw * ak) - c3;
+        DY = (DERKY - DEKYY * ak / aky) / aky;
+        DERI1 += ((xw * DERKX / aky + yw * DY) * a[j]) / a[0];
+        dyda[j] = ak / aky;
+        dyda[j + 1] = c2 * a[j] * DY / a[0];
+        dyda[j + 2] = -c1 * a[j] * DERKX / (a[0] * aky);
+        y += a[j] * ak / aky;
+    }
+
+    dyda[0] = -DERI1;
+    dyda[na - 1] = 1;
+
+}
+
+
+void Util::analyse() {
+
+    double p_para, p_anti, dif, wave, energ_absorb, energy_exact, corre_30cel, energ, d_lat_2;
+    double energy_obtain;
+
+    p_para = a_para_voig[3];
+    p_anti = a_anti_voig[3];
+
+    if (GeometryInput.mode_bragg_geo)
+        dif = (p_anti - p_para) / 2 + 90 - vert_div_corr - refra_corr + shape_corr;
+    else
+        dif = (p_anti - p_para) / 2 - vert_div_corr;
+
+
+
+    dif *= M_PI / 180;
+
+    energ_absorb = 0;
+
+    corre_30cel = 0;
+
+    if (FullEnergySpectrumInput.make_more_lines == 1)
+        energy_exact = Convert_Ag_minusone_eV / picks[2].lamda;
+    else if (FullEnergySpectrumInput.make_more_lines == 0)
+        energy_exact = Convert_Ag_minusone_eV / picks[1].lamda;
+    else
+        energy_exact = middle_energy;
+
+
+    d_lat_2 = Util::Latice_temp(d_lat, TemperatureParametersInput.T_crystal_2_anti);
+
+    wave = 2 * d_lat_2 * sin(dif);
+
+    energ = Convert_Ag_minusone_eV / wave - energ_absorb;
+
+    energy_obtain = energ;
+
+
+    if (!AnalysiesCrystaltiltsInput.make_an_C1_ta) {
+        gener_out << std::endl;
+        gener_out << "-----------------------------------------" << std::endl;
+        gener_out << std::endl;
+        gener_out << " Vertical correction: " << vert_div_corr << std::endl;
+        gener_out << " Refraction correction: " << refra_corr << std::endl;
+        gener_out << std::endl;
+        gener_out << "Parameter analysies " << std::endl;
+        gener_out << std::endl;
+        gener_out << "ration widths anti/para: " << FWMH_V_anti / FWMH_V_para << std::endl;
+        gener_out << std::endl;
+        gener_out << "Angular difference: " << dif << std::endl;
+        gener_out << "wavelength: " << wave << " A" << std::endl;
+        gener_out << "Energy obtain: " << energ << " eV" << std::endl;
+
+        gener_out << "Energy input: " << energy_exact << " eV" << std::endl;
+        gener_out << "difference obtain and input: " << (energ - energy_exact) * 1000 << " MeV" << std::endl;
+
+
+        if (FullEnergySpectrumInput.make_more_lines <= 1) {
+            std::cout << std::endl;
+            std::cout << "-----------------------------------------" << std::endl;
+            std::cout << std::endl;
+            std::cout << "Parameter analysies " << std::endl;
+            std::cout << std::endl;
+            std::cout << "ration widths anti/para: " << FWMH_V_anti / FWMH_V_para << std::endl;
+            std::cout << std::endl;
+            std::cout << "Angular difference: " << dif << std::endl;
+            std::cout << "wavelength: " << wave << " A" << std::endl;
+            std::cout << "Energy obtain: " << energ << " eV" << std::endl;
+
+            std::cout << "Energy input: " << energy_exact << " eV" << std::endl;
+            std::cout << "difference obtain and input: " << (energ - energy_exact) * 1000 << " MeV" << std::endl;
+        }
+        else {
+            std::cout << std::endl;
+            std::cout << "-----------------------------------------" << std::endl;
+            std::cout << std::endl;
+            std::cout << "Parameter analysies (unreliable for an input energy spectrum)" << std::endl;
+            std::cout << std::endl;
+            std::cout << "ration widths anti/para: " << FWMH_V_anti / FWMH_V_para << std::endl;
+            std::cout << std::endl;
+            std::cout << "Angular difference: " << dif << std::endl;
+            std::cout << "wavelength: " << wave << " A" << std::endl;
+            std::cout << "Energy obtain: " << energ << " eV" << std::endl;
+
+            std::cout << "Energy input: " << energy_exact << " eV" << std::endl;
+            std::cout << "difference obtain and input: " << (energ - energy_exact) * 1000 << " MeV" << std::endl;
+        }
+
+        if (root_script) {
+            //old script writing
+        }
+
+    }
+
+}
+
+
+void Util::geo_corre() {
+
+    double Dis_total, teta_ref, tan_e, con_deg, con_rad;
+
+    con_deg = 180 / M_PI;
+    con_rad = M_PI / 180;
+
+    Dis_total = GeoParapathlengthsInput.LT_aper + GeoParapathlengthsInput.dist_T_Cr1 + GeoParapathlengthsInput.dist_Cr1_Cr2 + GeoParapathlengthsInput.dist_Cr2_Det;
+    teta_ref = M_PI / 2 - teta_crys1 * con_rad;
+    tan_e = tan(teta_ref);
+
+    if (UserSettingsInput.Make_Vertical) {
+        if (GeoParapathlengthsInput.type_source == "UC")
+            vert_div_corr = tan_e * (pow(GeolengthelementsInput.S_aper, 2) + pow(GeolengthelementsInput.zdetc, 2) / (24 * pow(Dis_total, 2)));
+        else if (UserSettingsInput.Make_Vertical)
+            vert_div_corr = tan_e * (pow(GeolengthelementsInput.z_aper, 2) + pow(GeolengthelementsInput.zdetc, 2) / (24 * pow(Dis_total, 2)));
+
+        vert_div_corr *= con_deg;
+
+    }
+    else
+        vert_div_corr = 0;
+
+}
+
+
+double Util::ObtainVert(int crystal, double angle) {
+
+    double angle_temp, temp, rad, offsettilt, phase_temp, consttilt;
+
+    rad = M_PI / 180.0;
+
+    if (crystal == 1) {
+        angle_temp = GeoParametersInput.Exp_crys1 * rad;
+        phase_temp = CurveVerticalTiltInput.phas_tilt1 * rad;
+        offsettilt = CurveVerticalTiltInput.offsettilt1 * rad;
+        consttilt = CurveVerticalTiltInput.consttilt1 * rad;
+    }
+    else {
+        angle_temp = angle * rad;
+        phase_temp = CurveVerticalTiltInput.phas_tilt2 * rad;
+        offsettilt = CurveVerticalTiltInput.offsettilt2 * rad;
+        consttilt = CurveVerticalTiltInput.consttilt2 * rad;
+    }
+
+    temp = cos(angle_temp + phase_temp);
+
+    double tilt;
+
+    if (temp > 0) {
+        tilt = -acos(cos(offsettilt) * pow(cos(angle_temp + phase_temp), 2) + pow(sin(angle_temp + phase_temp), 2));
+    }
+    else {
+        tilt = acos(cos(offsettilt) * pow(cos(angle_temp + phase_temp), 2) + pow(sin(angle_temp + phase_temp), 2));
+    }
+
+    return tilt + consttilt;
+}
+
+
+bool Util::CheckSpectrum(std::string unit) {
+
+    double tetaref, tetabrag_ref, sin_e;
+    double tilt_C1_temp, cos_tilt_C1;
+    double n1x;
+    double delta_para, start1_para, tw_d1_para, d_lat1_para;
+
+    double min_angle_resp = -1E-3;
+    double max_angle_resp = 1E-3;
+
+    d_lat1_para = Util::Latice_temp(d_lat, TemperatureParametersInput.T_crystal_1_para);
+
+    tw_d1_para = 2 * d_lat1_para;
+
+    if (UserSettingsInput.Simple_simu) {
+        if (GeoParametersInput.Exp_crys1 < 0) {
+            throw std::runtime_error("Bad input ofr Exp_crys1. For a simple simulation it has to be greater than 0. Exp_crys1 = 90 - tetabragg, tetabragg is the physical glancing angle of the first crystal to the x axis.");
+        }
+
+        teta_crys1 = GeoParametersInput.Exp_crys1;
+    }
+    else {
+        if (GeoParametersInput.Exp_crys1 > 0) {
+            throw std::runtime_error("Bad input ofr Exp_crys1. For a simple simulation it has to be less than 0. Exp_crys1 = - 90 - teta, teta is the physical angle of the table.");
+        }
+
+        teta_crys1 = -GeoParametersInput.teta_table - GeoParametersInput.Exp_crys1 + GeoParametersInput.OffsetRotCry1;
+    }
+
+    tetaref = (90 - teta_crys1) * M_PI / 180.0;
+    sin_e = sin(tetaref);
+
+    if (CurveVerticalTiltInput.make_CurveTilt) {
+        tilt_C1_temp = Util::ObtainVert(1, 0);
+    }
+    else {
+        tilt_C1_temp = GeoParametersInput.tilt_C1 * M_PI / 180.0;
+    }
+
+    cos_tilt_C1 = cos(tilt_C1_temp);
+    n1x = -cos_tilt_C1 * sin_e;
+
+    tetabrag_ref = asin(-n1x);
+
+    if (unit == "eV") {
+        delta_para = (Convert_Ag_minusone_eV / (sin(tetabrag_ref + min_angle_resp) * tw_d1_para) - Convert_Ag_minusone_eV / (sin(tetabrag_ref + max_angle_resp) * tw_d1_para)) * 1.315;
+        start1_para = Convert_Ag_minusone_eV / (sin(tetabrag_ref + 0.6 * max_angle_resp) * tw_d1_para);
+
+        std::cout << "Energy start: " << start1_para << std::endl;
+        std::cout << "Energy delta: " << delta_para << std::endl;
+    }
+    else if (unit == "A") {
+        delta_para = ((sin(tetabrag_ref + min_angle_resp) * tw_d1_para) - (sin(tetabrag_ref + max_angle_resp) * tw_d1_para));
+        start1_para = (sin(tetabrag_ref + max_angle_resp) * tw_d1_para);
+
+        //cout << "Wavelength start: " << start1_para << endl;
+        //cout << "Wavelength delta: " << delta_para << endl;
+    }
+    else {
+        throw std::runtime_error("Error in CheckInputSpectrum: bad energy unit input");
+    }
+
+    std::cout << Energy_spec[0].lamda << "\t" << Energy_spec[Energy_spec.size() - 1].lamda << std::endl;
+
+    if (Energy_spec[0].lamda <= start1_para) {
+        if (Energy_spec[Energy_spec.size() - 1].lamda >= start1_para + delta_para) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
+bool Util::getReflection(double angle, double tetabra, double lamda, bool type_crystal, bool poli_p) {
+
+    double p, dif, inte, inte1, inte2;
+
+    dif = angle - tetabra;
+
+    double energy = Convert_Ag_minusone_eV / lamda;
+
+    int energy_resp_index;
+
+    int index = 0;
+    for (double energ : available_energies)
+    {
+        if (energ > energy)
+        {
+            energy_resp_index = index - 1;
+            break;
+        }
+        index++;
+    }
+
+
+    double energy_min_angle_resp, energy_max_angle_resp;
+    energy_min_angle_resp = std::max(min_angle_resp[energy_resp_index], min_angle_resp[energy_resp_index + 1]);
+    energy_max_angle_resp = std::min(max_angle_resp[energy_resp_index], max_angle_resp[energy_resp_index + 1]);
+
+    if (dif < energy_min_angle_resp) {
+        return false;
+    }
+    else {
+        if (dif < energy_max_angle_resp) {
+            if (type_crystal && PolarizationParametersInput.mka_poli) {
+                if (poli_p) {
+                    std::vector<double> x1, y1, y12;
+
+                    for (unsigned int i = 0; i < plotresponce_mide.size(); i++) {
+                        x1.push_back(plotresponce_mide[energy_resp_index][i].degree);
+                        y1.push_back(plotresponce_mide[energy_resp_index][i].reflecti_total_p);
+                        y12.push_back(plotresponce_mide[energy_resp_index][i].reflecti_two_deriv_p);
+                    }
+
+                    inte1 = Util::splint_te(x1, y1, y12, dif);
+
+                    std::vector<double> x2, y2, y22;
+
+                    for (unsigned int i = 0; i < plotresponce_mide.size(); i++) {
+                        x2.push_back(plotresponce_mide[energy_resp_index + 1][i].degree);
+                        y2.push_back(plotresponce_mide[energy_resp_index + 1][i].reflecti_total_p);
+                        y22.push_back(plotresponce_mide[energy_resp_index + 1][i].reflecti_two_deriv_p);
+                    }
+
+                    inte2 = Util::splint_te(x2, y2, y22, dif);
+
+                    inte = ((inte2 - inte1) / (available_energies[energy_resp_index + 1] - available_energies[energy_resp_index])) * (energy - available_energies[energy_resp_index]) + inte1;
+                }
+                else {
+                    std::vector<double> x1, y1, y12;
+
+                    for (unsigned int i = 0; i < plotresponce_mide.size(); i++) {
+                        x1.push_back(plotresponce_mide[energy_resp_index][i].degree);
+                        y1.push_back(plotresponce_mide[energy_resp_index][i].reflecti_total_s);
+                        y12.push_back(plotresponce_mide[energy_resp_index][i].reflecti_two_deriv_s);
+                    }
+
+                    inte1 = Util::splint_te(x1, y1, y12, dif);
+
+                    std::vector<double> x2, y2, y22;
+
+                    for (unsigned int i = 0; i < plotresponce_mide.size(); i++) {
+                        x2.push_back(plotresponce_mide[energy_resp_index + 1][i].degree);
+                        y2.push_back(plotresponce_mide[energy_resp_index + 1][i].reflecti_total_s);
+                        y22.push_back(plotresponce_mide[energy_resp_index + 1][i].reflecti_two_deriv_s);
+                    }
+
+                    inte2 = Util::splint_te(x2, y2, y22, dif);
+
+                    inte = ((inte2 - inte1) / (available_energies[energy_resp_index + 1] - available_energies[energy_resp_index])) * (energy - available_energies[energy_resp_index]) + inte1;
+                }
+            }
+            else {
+                std::vector<double> x1, y1, y12;
+
+                for (unsigned int i = 0; i < plotresponce_mide[energy_resp_index].size(); i++) {
+                    x1.push_back(plotresponce_mide[energy_resp_index][i].degree);
+                    y1.push_back(plotresponce_mide[energy_resp_index][i].reflecti_total);
+                    y12.push_back(plotresponce_mide[energy_resp_index][i].reflecti_two_deriv);
+                }
+
+                inte1 = Util::splint_te(x1, y1, y12, dif);
+
+                std::vector<double> x2, y2, y22;
+
+                for (unsigned int i = 0; i < plotresponce_mide[energy_resp_index + 1].size(); i++) {
+                    x2.push_back(plotresponce_mide[energy_resp_index + 1][i].degree);
+                    y2.push_back(plotresponce_mide[energy_resp_index + 1][i].reflecti_total);
+                    y22.push_back(plotresponce_mide[energy_resp_index + 1][i].reflecti_two_deriv);
+                }
+
+                inte2 = Util::splint_te(x2, y2, y22, dif);
+
+                inte = ((inte2 - inte1) / (available_energies[energy_resp_index + 1] - available_energies[energy_resp_index])) * (energy - available_energies[energy_resp_index]) + inte1;
+            }
+
+            p = ((double)rand() / RAND_MAX);
+
+            if (p < inte)
+                return true;
+            else
+                return false;
+
+        }
+        else {
+            return false;
+        }
+    }
+
+}
+
+
+double Util::getNewTemp(int bin_tem, int bin_fas, double pha_tem) {
+
+    if (bin_fas > TemperatureParametersInput.TT_tempera) {
+        pha_tem = 2 * M_PI * ((double)rand() / RAND_MAX);
+        bin_fas = 0;
+    }
+    else
+        bin_fas++;
+
+
+    if (TemperatureParametersInput.TT_tempera == 0)
+        std::cout << "Warning: Value for TT:tempera is 0" << std::endl;
+
+
+    return TemperatureParametersInput.AA_tempera * cos(2 * M_PI * bin_tem / TemperatureParametersInput.TT_tempera + pha_tem);
+
+}
+
+
+double Util::getEnergy(double a_lamds_uni, double db_lamds_uni, double tw_d) {
+
+    double p1, p2, natur_li, pm1, pm2, pm3, pm4, hit, rnd_inten, energy_t;
+    int I_picks;
+
+    if (FullEnergySpectrumInput.make_more_lines == 0)
+        I_picks = 2;
+    else if (FullEnergySpectrumInput.make_more_lines == 1) {
+        if (FullEnergySpectrumInput.Do_background) {
+            pm1 = 0.1875;
+            pm2 = 0.34375;
+            pm3 = 0.421875;
+            pm4 = 0.5;
+        }
+        else {
+            pm1 = FullEnergySpectrumInput.p1_ener;
+            pm2 = pm1 + FullEnergySpectrumInput.p2_ener;
+            pm3 = pm2 + FullEnergySpectrumInput.p3_ener;
+            pm4 = 1;
+        }
+
+
+        p1 = ((double)rand() / RAND_MAX);
+
+
+        if (p1 < pm1)
+            I_picks = 1;
+        else {
+            if (p1 < pm2)
+                I_picks = 2;
+            else {
+                if (p1 < pm3)
+                    I_picks = 3;
+                else {
+                    if (p1 < pm4)
+                        I_picks = 4;
+                    else
+                        I_picks = 5;
+                }
+            }
+        }
+    }
+    else {
+        rnd_inten = (double)rand() / RAND_MAX;
+        std::vector<double> x, y, x2;
+
+        for (unsigned int i = 0; i < Energy_spec.size(); i++) {
+            x.push_back(Energy_spec[i].lamda);
+            y.push_back(Energy_spec[i].cum_int);
+            x2.push_back(Energy_spec[i].lambda_two_deriv);
+        }
+
+        energy_t = Util::splint_te(y, x, x2, rnd_inten);
+
+        return Convert_Ag_minusone_eV / energy_t;
+
+    }
+
+    if (FullEnergySpectrumInput.make_more_lines == 0 || FullEnergySpectrumInput.make_more_lines == 1) {
+        if (I_picks == 5) {
+            p2 = ((double)rand() / RAND_MAX);
+            return a_lamds_uni + db_lamds_uni * p2;
+        }
+        else {
+            hit = -1;
+
+            while (hit < 0 || hit > tw_d) {
+                p1 = ((double)rand() / RAND_MAX) * M_PI;
+
+                natur_li = picks[I_picks - 1].natural_varia;
+
+                hit = picks[I_picks - 1].lamda + natur_li * tan(p1);
+            }
+        }
+
+        hit = Util::Box(PhysicalParametersInput.gauss_Doop, hit);
+        return hit;
+
+    }
+    else {
+        throw std::runtime_error("Error in intensity_source: energy could not be generated from input");
+    }
+
+}
+
+
+std::vector<double> Util::getLims(double tetaref, double delrot_min, double delrot_max, double fi_max, double teta_max, double teta_min) {
+
+    double tan_e, cos_e, teta_min_temp, corre_term1, corre_term2, teta_max_temp;
+
+    double teta_max_out, teta_min_out;
+
+    tan_e = tan(tetaref) / 2;
+    cos_e = cos(tetaref);
+
+    corre_term1 = tan_e * (pow(fi_max, 2) + pow(GeoParametersInput.tilt_C1, 2));
+    corre_term2 = fi_max * abs(GeoParametersInput.tilt_C1) / cos_e;
+
+    teta_min_temp = *max_element(min_angle_resp.begin(), min_angle_resp.end()) + delrot_min + corre_term1 - corre_term2;
+
+    if (teta_min_temp > teta_min)
+        teta_min_out = teta_min_temp;
+
+    teta_max_temp = *min_element(max_angle_resp.begin(), max_angle_resp.end()) + delrot_max + corre_term1 + corre_term2;
+
+    if (teta_max_temp < teta_max)
+        teta_max_out = teta_max_temp;
+
+    std::vector<double> res;
+    res.push_back(teta_min_out);
+    res.push_back(teta_max_out);
+
+    return res;
+}
+
+
+void Util::initPlates() {
+
+    int int_plot[6];
+
+    double ratio_xy[6];
+
+    double y_detc_2, z_detc_2;
+
+    y_detc_2 = GeolengthelementsInput.ydetc / 2;
+    z_detc_2 = GeolengthelementsInput.zdetc / 2;
+
+
+    int_plot[0] = NumberRaysInput.nbeams - 1;
+    int_plot[1] = NumberRaysInput.nbeams + 1;
+    int_plot[2] = (int)(NumberRaysInput.nbeams / 100) + 1;
+    int_plot[3] = 10;
+    int_plot[4] = (int)(NumberRaysInput.nbeams / 100) + 1;
+    int_plot[5] = 10;
+
+    if (GraphOptionsInput.make_imageC1_After_refle) {
+        int_plot[1] = 500;
+        int_plot[2] = 1;
+        int_plot[3] = 10;
+        int_plot[4] = 1;
+        int_plot[5] = 10;
+    }
+
+    if (GeoParapathlengthsInput.type_source == "UR") {
+        max_plot_x[0] = GeolengthelementsInput.y_aper;
+        max_plot_x[1] = GeolengthelementsInput.y_first_crys / 2;
+        max_plot_x[2] = GeolengthelementsInput.y_first_crys / 2;
+        max_plot_x[3] = y_detc_2;
+        max_plot_x[4] = GeolengthelementsInput.y_first_crys / 2;
+        max_plot_x[5] = y_detc_2;
+
+        max_plot_y[0] = 3 * GeolengthelementsInput.z_aper;
+        max_plot_y[1] = GeolengthelementsInput.z_first_crys / 2;
+        max_plot_y[2] = GeolengthelementsInput.z_first_crys / 2;
+        max_plot_y[3] = z_detc_2;
+        max_plot_y[4] = GeolengthelementsInput.z_first_crys / 2;
+        max_plot_y[5] = z_detc_2;
+    }
+    else if (GeoParapathlengthsInput.type_source == "UC") {
+        max_plot_x[0] = GeolengthelementsInput.S_aper;
+        max_plot_x[1] = GeolengthelementsInput.y_first_crys / 2;
+        max_plot_x[2] = GeolengthelementsInput.y_first_crys / 2;
+        max_plot_x[3] = y_detc_2;
+        max_plot_x[4] = GeolengthelementsInput.y_first_crys / 2;
+        max_plot_x[5] = y_detc_2;
+
+        max_plot_y[0] = GeolengthelementsInput.S_aper;
+        max_plot_y[1] = GeolengthelementsInput.z_first_crys / 2;
+        max_plot_y[2] = GeolengthelementsInput.z_first_crys / 2;
+        max_plot_y[3] = z_detc_2;
+        max_plot_y[4] = GeolengthelementsInput.z_first_crys / 2;
+        max_plot_y[5] = z_detc_2;
+    }
+
+
+    ratio_xy[0] = max_plot_x[0] / max_plot_y[0];
+    ratio_xy[1] = max_plot_x[1] / max_plot_y[1];
+    ratio_xy[2] = max_plot_x[2] / max_plot_y[2];
+    ratio_xy[3] = max_plot_x[3] / max_plot_y[3];
+    ratio_xy[4] = max_plot_x[4] / max_plot_y[4];
+    ratio_xy[5] = max_plot_x[5] / max_plot_y[5];
+
+
+    //TODO
+    //more gui stuff
+
+
+}
+
+
+void Util::Make(int crystal, double y, double z) {
+
+    double step_z_hist, step_y_hist, max_plot_x_temp, max_plot_y_temp;
+    int col2_x = 1400, nx, ny, counts;
+
+
+    max_plot_x_temp = max_plot_x[crystal - 1];
+    max_plot_y_temp = max_plot_y[crystal - 1];
+
+    nx = (int)(nm2 * y / max_plot_x_temp + np2);
+    ny = (int)(nm2 * z / max_plot_y_temp + np2);
+
+
+    if (crystal == 1) {
+
+        if (!(nx > n_his_ima || ny > n_his_ima || nx <= 0 || ny <= 0)) {
+            if (ny == 0) {
+                //TODO
+                //implement report on gui
+            }
+
+            hist_image_plate_source[nx - 1][ny - 1]++;
+            counts_sour++;
+
+            if (max_hist[crystal - 1] < hist_image_plate_source[nx - 1][ny - 1])
+                max_hist[crystal - 1] = hist_image_plate_source[nx - 1][ny - 1];
+        }
+    }
+    else if (crystal == 2) {
+
+        if (!(nx > n_his_ima || ny > n_his_ima || nx <= 0 || ny <= 0)) {
+            hist_image_plate_crystal1[nx - 1][ny - 1]++;
+            counts_C1++;
+
+            if (max_hist[crystal - 1] < hist_image_plate_crystal1[nx - 1][ny - 1])
+                max_hist[crystal - 1] = hist_image_plate_crystal1[nx - 1][ny - 1];
+        }
+    }
+    else if (crystal == 3) {
+
+        if (!(nx > n_his_ima || ny > n_his_ima || nx <= 0 || ny <= 0)) {
+            hist_image_plate_crystal2_para[nx - 1][ny - 1]++;
+            counts_C2_para++;
+
+            if (max_hist[crystal - 1] < hist_image_plate_crystal2_para[nx - 1][ny - 1])
+                max_hist[crystal - 1] = hist_image_plate_crystal2_para[nx - 1][ny - 1];
+        }
+    }
+    else if (crystal == 4) {
+
+        if (!(nx > n_his_ima || ny > n_his_ima || nx <= 0 || ny <= 0)) {
+            hist_image_plate_detc_para[nx - 1][ny - 1]++;
+            counts_detc_para++;
+
+            if (max_hist[crystal - 1] < hist_image_plate_detc_para[nx - 1][ny - 1])
+                max_hist[crystal - 1] = hist_image_plate_detc_para[nx - 1][ny - 1];
+        }
+    }
+    else if (crystal == 5) {
+
+        if (!(nx > n_his_ima || ny > n_his_ima || nx <= 0 || ny <= 0)) {
+            hist_image_plate_crystal2_anti[nx - 1][ny - 1]++;
+            counts_C2_anti++;
+
+            if (max_hist[crystal - 1] < hist_image_plate_crystal2_anti[nx - 1][ny - 1])
+                max_hist[crystal - 1] = hist_image_plate_crystal2_anti[nx - 1][ny - 1];
+        }
+    }
+    else if (crystal == 6) {
+
+        if (!(nx > n_his_ima || ny > n_his_ima || nx <= 0 || ny <= 0)) {
+            hist_image_plate_detc_anti[nx - 1][ny - 1]++;
+            counts_detc_anti++;
+
+            if (max_hist[crystal - 1] < hist_image_plate_detc_anti[nx - 1][ny - 1])
+                max_hist[crystal - 1] = hist_image_plate_detc_anti[nx - 1][ny - 1];
+        }
+    }
+
+
+}
+
+
+void Util::fit(bool Parallel) {
+
+    std::vector<double> x, y, sig;
+
+    double gues[MA], a[MA], alamda, a_error_anti_voig[MA], FWMH_V, chisq, ochisq;
+
+    std::vector<std::vector<double>> covar(MA, std::vector<double>(MA)), alpha(MA, std::vector<double>(MA));
+
+    int NPT, ia[MA], npt_m_deg, k, itst;
+
+    std::string name_varia[MA];
+
+    NPT = PlotParametersInput.nubins;
+
+    UserSettingsInput.TrueVoigt = true;
+
+    if (!AnalysiesCrystaltiltsInput.make_an_C1_ta) {
+        gener_out << "------------------------------------" << std::endl;
+        gener_out << std::endl;
+        gener_out << " Fitting analysies" << std::endl;
+        gener_out << std::endl;
+
+        std::cout << "------------------------------------" << std::endl;
+        std::cout << std::endl;
+        std::cout << " Fitting analysies" << std::endl;
+        std::cout << std::endl;
+
+    }
+
+    if (Parallel) {
+        for (int i = 0; i < PlotParametersInput.nubins; i++) {
+            x.push_back(Data_Fit_para[i].degree);
+            y.push_back(Data_Fit_para[i].reflecti_total);
+            sig.push_back(Data_Fit_para[i].reflecti_two_deriv);
+        }
+
+        gues[1] = amplitu_con_para;
+        gues[4] = const_back_para;
+        gues[3] = peak_posi_para;
+        gues[0] = width_Gaus_para;
+        gues[2] = width_Lore_para;
+
+        ia[1] = do_amplitu_con_para;
+        ia[4] = do_const_back_para;
+        ia[3] = do_firstcryst;
+        ia[0] = do_Gwidth_para;
+        ia[2] = do_Lwidth_para;
+
+        name_varia[1] = "Amplitude of parallel-";
+        name_varia[4] = "Background of parallel-";
+        name_varia[3] = "position of peak parallel-";
+        name_varia[0] = "Gauss width of peak parallel-";
+        name_varia[2] = "Lorentz with of peak parallel-";
+    }
+    else {
+        for (int i = 0; i < PlotParametersInput.nubins; i++) {
+            x.push_back(Data_Fit_anti[i].degree);
+            y.push_back(Data_Fit_anti[i].reflecti_total);
+            sig.push_back(Data_Fit_anti[i].reflecti_two_deriv);
+        }
+
+        gues[1] = amplitu_con_anti;
+        gues[4] = const_back_anti;
+        gues[3] = peak_posi_anti;
+        gues[0] = width_Gaus_anti;
+        gues[2] = width_Lore_anti;
+
+        ia[1] = do_amplitu_con_anti;
+        ia[4] = do_const_back_anti;
+        ia[3] = do_firstcryst_anti;
+        ia[0] = do_Gwidth_anti;
+        ia[2] = do_Lwidth_anti;
+
+        name_varia[1] = "Amplitude of antiparallel-";
+        name_varia[4] = "Background of antiparallel-";
+        name_varia[3] = "position of peak antiparallel-";
+        name_varia[0] = "Gauss width of peak antiparallel-";
+        name_varia[2] = "Lorentz with of peak antiparallel-";
+    }
+
+    for (int i = 0; i < MA; i++) {
+        a[i] = gues[i];
+        npt_m_deg = NPT - ia[i];
+    }
+
+    k = 1;
+    alamda = -1;
+
+    if (UserSettingsInput.TrueVoigt) {
+        Util::mrq_min(x, y, sig, NPT, a, ia, MA, covar, alpha, MA, chisq, Util::Voig, alamda);
+    }
+    else {
+        Util::mrq_min(x, y, sig, NPT, a, ia, MA, covar, alpha, MA, chisq, Util::Pseud, alamda);
+    }
+
+    itst = 0;
+
+    while (itst < 6) {
+        k++;
+
+        ochisq = chisq;
+
+        if (UserSettingsInput.TrueVoigt) {
+            Util::mrq_min(x, y, sig, NPT, a, ia, MA, covar, alpha, MA, chisq, Util::Voig, alamda);
+        }
+        else {
+            Util::mrq_min(x, y, sig, NPT, a, ia, MA, covar, alpha, MA, chisq, Util::Pseud, alamda);
+        }
+
+        if (chisq > ochisq)
+            itst = 0;
+        else if (abs((ochisq - chisq) / chisq) < 10E-6)
+            itst++;
+
+        if (abs(ochisq - chisq) > 10)
+            itst = 0;
+    }
+
+    alamda = 0;
+
+    if (UserSettingsInput.TrueVoigt) {
+        Util::mrq_min(x, y, sig, NPT, a, ia, MA, covar, alpha, MA, chisq, Util::Voig, alamda);
+    }
+    else {
+        Util::mrq_min(x, y, sig, NPT, a, ia, MA, covar, alpha, MA, chisq, Util::Pseud, alamda);
+    }
+    
+    std::cout << "skgnkdbgnkdg" << std::endl;
+    for (int i = 0; i < MA; i++) {
+        gener_out << name_varia[i] << "\t" << a[i] << std::endl;
+        std::cout << name_varia[i] << "\t" << a[i] << std::endl;
+        a_error_anti_voig[i] = sqrt(covar[i][i] * npt_m_deg);
+    }
+
+    FWMH_V = c1 * a[2] + sqrt(c2 * pow(a[2], 2) + pow(a[0], 2));
+    if (UserSettingsInput.TrueVoigt) {
+        if (Parallel)
+            FWMH_V_para = FWMH_V;
+        else
+            FWMH_V_anti = FWMH_V;
+    }
+    else {
+        if (Parallel)
+            FWMH_V_para = a[0];
+        else
+            FWMH_V_anti = a[0];
+    }
+
+    gener_out << "FWMH-\t" << FWMH_V << std::endl;
+    gener_out << std::endl;
+
+
+    std::cout << "FWMH-\t" << FWMH_V << std::endl;
+    std::cout << std::endl;
+
+
+
+    gener_out << std::endl;
+    gener_out << "Reduced Chi-squared:\t" << chisq / npt_m_deg << std::endl;
+    gener_out << std::endl;
+    gener_out << "Uncertainties:" << std::endl;
+    gener_out << sqrt(covar[0][0]) << "\t" << MA << std::endl;
+
+
+    if (Parallel)
+        std::copy(std::begin(a), std::end(a), std::begin(a_para_voig));
+    else
+        std::copy(std::begin(a), std::end(a), std::begin(a_anti_voig));
+
+
+}
+
+
+void Util::Read_CurveResponce() {
+
+    std::vector<std::string> _available_energies;
+
+    bool exist_file;
+    double y1d, yud;// theta_dire;
+
+    std::ifstream pathEnergies;
+    std::ifstream pathFile;
+
+    if (GeometryInput.mode_bragg_geo) {
+
+        char inEnergies[1024] = "";
+        strcat(inEnergies, File_simu);
+        strcat(inEnergies, "\\Crystal_Profiles");
+        strcat(inEnergies, "\\sorted_ens.txt");
+
+        struct stat buffer;
+        exist_file = (stat(inEnergies, &buffer) == 0);
+
+        if (exist_file)
+            pathEnergies.open(inEnergies);
+        else {
+            std::cout << "File \"sorted_ens.txt\" does not exist" << std::endl;
+            throw std::runtime_error("A file with the available crystal profile energies is required.");
+        }
+
+
+        std::string ener;
+        if (pathEnergies.is_open()) {
+            while (pathEnergies >> ener) {
+                _available_energies.push_back(ener);
+                available_energies.push_back(stod(ener) * 1000);
+            }
+        }
+
+    }
+    else {
+
+        char inFile[223] = "";
+        strcat(inFile, File_simu);
+        strcat(inFile, "\\Plot_crystall_responce_transm.txt");
+
+
+        struct stat buffer;
+        exist_file = (stat(inFile, &buffer) == 0);
+
+        if (exist_file)
+            pathFile.open(inFile);
+        else {
+            std::cout << "File \"Plot_crystal_responce_transm.txt\" does not exist" << std::endl;
+            throw std::runtime_error("A file with crystall responce from XOP in Laue geometry is required");
+        }
+
+    }
+
+    double cel_re1, cel_re2;
+
+    int energyIndex = 0;
+
+    for (std::string ener : _available_energies) {
+        std::ifstream pathFile_p;
+
+        char inFile_p[1024] = "";
+        strcat(inFile_p, File_simu);
+        strcat(inFile_p, "\\Crystal_Profiles");
+        strcat(inFile_p, (std::string("\\") + ener + std::string("keV_p")).c_str());
+
+        struct stat buffer1;
+        exist_file = (stat(inFile_p, &buffer1) == 0);
+
+        if (exist_file) {
+            pathFile_p.open(inFile_p);
+            //cout << "Reading file: " << ener << "keV_p" << endl;
+        }
+        else {
+            std::cout << "File " << inFile_p << " does not exist" << std::endl;
+            throw std::runtime_error("Expected a crystall responce from XOP in bragg geometry for energy" + ener);
+        }
+
+        std::vector<plotresponc> responce;
+        if (pathFile_p.is_open()) {
+            while (pathFile_p >> cel_re1 >> cel_re2) {
+                plotresponc tmp;
+                tmp.degree = cel_re1 / one_micro;
+                tmp.reflecti_total = 0;
+                tmp.reflecti_two_deriv = 0;
+                tmp.reflecti_total_s = 0;
+                tmp.reflecti_two_deriv_s = 0;
+                tmp.reflecti_total_p = cel_re2;
+                tmp.reflecti_two_deriv_p = 0;
+                responce.push_back(tmp);
+            }
+
+            pathFile_p.close();
+        }
+
+        std::ifstream pathFile_s;
+
+        char inFile_s[1024] = "";
+        strcat(inFile_s, File_simu);
+        strcat(inFile_s, "\\Crystal_Profiles");
+        strcat(inFile_s, (std::string("\\") + ener + std::string("keV_s")).c_str());
+
+        struct stat buffer2;
+        exist_file = (stat(inFile_s, &buffer2) == 0);
+
+        if (exist_file) {
+            pathFile_s.open(inFile_s);
+            //cout << "Reading file: " << ener << "keV_p" << endl;
+        }
+        else {
+            std::cout << "File " << inFile_s << " does not exist" << std::endl;
+            throw std::runtime_error("Expected a crystall responce from XOP in bragg geometry for energy" + ener);
+        }
+
+        int index = 0;
+        if (pathFile_s.is_open()) {
+            while (pathFile_s >> cel_re1 >> cel_re2) {
+                responce[index].reflecti_total = responce[index].reflecti_total_p + cel_re2;
+                responce[index].reflecti_total_s = cel_re2;
+
+                index++;
+            }
+
+            pathFile_s.close();
+        }
+
+        plotresponce_mide.push_back(responce);
+
+        min_angle_resp.push_back(plotresponce_mide[energyIndex][0].degree);
+        max_angle_resp.push_back(plotresponce_mide[energyIndex][plotresponce_mide[energyIndex].size() - 1].degree);
+
+        y1d = (plotresponce_mide[energyIndex][1].reflecti_total - plotresponce_mide[energyIndex][0].reflecti_total) / (plotresponce_mide[energyIndex][1].degree - plotresponce_mide[energyIndex][0].degree);
+        yud = (plotresponce_mide[energyIndex][plotresponce_mide[energyIndex].size() - 1].reflecti_total - plotresponce_mide[energyIndex][plotresponce_mide[energyIndex].size() - 2].reflecti_total) / (plotresponce_mide[energyIndex][plotresponce_mide[energyIndex].size() - 1].degree - plotresponce_mide[energyIndex][plotresponce_mide[energyIndex].size() - 2].degree);
+
+        //Total
+        std::vector<double> x, y, y2;
+
+        for (unsigned int i = 0; i < plotresponce_mide[energyIndex].size(); i++) {
+            x.push_back(plotresponce_mide[energyIndex][i].degree);
+            y.push_back(plotresponce_mide[energyIndex][i].reflecti_total);
+        }
+
+        y2 = Util::spline(x, y, y1d, yud);
+
+        for (unsigned int i = 0; i < plotresponce_mide[energyIndex].size(); i++) {
+            plotresponce_mide[energyIndex][i].reflecti_two_deriv = y2[i];
+        }
+
+
+        y1d = (plotresponce_mide[energyIndex][1].reflecti_total_s - plotresponce_mide[energyIndex][0].reflecti_total_s) / (plotresponce_mide[energyIndex][1].degree - plotresponce_mide[energyIndex][0].degree);
+        yud = (plotresponce_mide[energyIndex][plotresponce_mide[energyIndex].size() - 1].reflecti_total_s - plotresponce_mide[energyIndex][plotresponce_mide[energyIndex].size() - 2].reflecti_total_s) / (plotresponce_mide[energyIndex][plotresponce_mide[energyIndex].size() - 1].degree - plotresponce_mide[energyIndex][plotresponce_mide[energyIndex].size() - 2].degree);
+
+        //S Polarization
+        std::vector<double> x_s, y_s, y2_s;
+
+        for (unsigned int i = 0; i < plotresponce_mide[energyIndex].size(); i++) {
+            x_s.push_back(plotresponce_mide[energyIndex][i].degree);
+            y_s.push_back(plotresponce_mide[energyIndex][i].reflecti_total_s);
+        }
+
+        y2_s = Util::spline(x_s, y_s, y1d, yud);
+
+        for (unsigned int i = 0; i < plotresponce_mide[energyIndex].size(); i++) {
+            plotresponce_mide[energyIndex][i].reflecti_two_deriv_s = y2_s[i];
+        }
+
+
+        y1d = (plotresponce_mide[energyIndex][1].reflecti_total_p - plotresponce_mide[energyIndex][0].reflecti_total_p) / (plotresponce_mide[energyIndex][1].degree - plotresponce_mide[energyIndex][0].degree);
+        yud = (plotresponce_mide[energyIndex][plotresponce_mide[energyIndex].size() - 1].reflecti_total_p - plotresponce_mide[energyIndex][plotresponce_mide[energyIndex].size() - 2].reflecti_total_p) / (plotresponce_mide[energyIndex][plotresponce_mide[energyIndex].size() - 1].degree - plotresponce_mide[energyIndex][plotresponce_mide[energyIndex].size() - 2].degree);
+
+        //P Polarization
+        std::vector<double> x_p, y_p, y2_p;
+
+        for (unsigned int i = 0; i < plotresponce_mide[energyIndex].size(); i++) {
+            x_p.push_back(plotresponce_mide[energyIndex][i].degree);
+            y_p.push_back(plotresponce_mide[energyIndex][i].reflecti_total_p);
+        }
+
+        y2_p = Util::spline(x_p, y_p, y1d, yud);
+
+        for (unsigned int i = 0; i < plotresponce_mide[energyIndex].size(); i++) {
+            plotresponce_mide[energyIndex][i].reflecti_two_deriv_p = y2_p[i];
+        }
+
+        energyIndex++;
+
+    }
+
+}
+
+
+std::vector<double> Util::horCorr(double y_pro_C1, double y_max_C1, double z_pro_C1, double z_max_C1, bool type_c) {
+
+    double R_cur_crys_t;
+
+    if (type_c)
+        R_cur_crys_t = CurvedCrystalInput.R_cur_crys_1;
+    else
+        R_cur_crys_t = CurvedCrystalInput.R_cur_crys_2;
+
+    std::vector<double> res;
+
+    res.push_back(cos(2 * R_cur_crys_t * y_pro_C1 * (1 - pow((z_pro_C1 / z_max_C1), 2)) / pow(y_max_C1, 2)));
+    res.push_back(sin(2 * R_cur_crys_t * y_pro_C1 * (1 - pow((z_pro_C1 / z_max_C1), 2)) / pow(y_max_C1, 2)));
+
+    return res;
+
+}
+
+
+void Util::FitData(int numbins, double angle_para, int toint_para, double angle_anti, int toint_anti) {
+
+    if (Data_Fit_anti.size() < (unsigned int)numbins)
+        Data_Fit_anti.resize(PlotParametersInput.nubins);
+    if (Data_Fit_para.size() < (unsigned int)numbins)
+        Data_Fit_para.resize(PlotParametersInput.nubins);
+
+    Data_Fit_para.at(numbins - 1).degree = angle_para;
+    Data_Fit_para.at(numbins - 1).reflecti_total = (double)(toint_para + 10);
+    Data_Fit_para.at(numbins - 1).reflecti_two_deriv = sqrt((double)(toint_para + 10));
+
+    Data_Fit_anti.at(numbins - 1).degree = angle_anti;
+    Data_Fit_anti.at(numbins - 1).reflecti_total = (double)(toint_anti + 10);
+    Data_Fit_anti.at(numbins - 1).reflecti_two_deriv = sqrt((double)(toint_anti + 10));
+}
+
+
+void Util::Read_EnergySpectrum() {
+
+    bool exist_file;
+    double y1d, yud;
+    double x1d, xud;
+    int mult;
+
+
+    std::ifstream pathFile;
+
+    char inFile[223] = "";
+    strcat(inFile, File_simu);
+    strcat(inFile, "\\Energy_spectrum_600.txt");
+
+
+    struct stat buffer;
+    exist_file = (stat(inFile, &buffer) == 0);
+
+    if (exist_file) {
+        pathFile.open(inFile);
+    }
+    else {
+        throw std::runtime_error("input energy spectrum file \"Energy_spectrum_600.txt\" not found");
+    }
+
+    if (Unit_energy == "keV")
+        mult = 1000;
+    else if (Unit_energy == "eV")
+        mult = 1;
+    else
+        mult = 1;
+
+    double cel_re1, cel_re2;
+    double cum = 0;
+
+    if (pathFile.is_open()) {
+        while (pathFile >> cel_re1 >> cel_re2) {
+            cum += cel_re2;
+
+            energy_gen tmp;
+            tmp.lamda = cel_re1 * mult;
+            tmp.intensity = cel_re2;
+            tmp.cum_int = cum;
+            tmp.intensity_two_deriv = 0;
+            tmp.lambda_two_deriv = 0;
+            Energy_spec.push_back(tmp);
+        }
+
+        pathFile.close();
+    }
+
+    y1d = (Energy_spec[1].intensity - Energy_spec[0].intensity) / (Energy_spec[1].lamda - Energy_spec[0].lamda);
+    yud = (Energy_spec[Energy_spec.size() - 1].intensity - Energy_spec[Energy_spec.size() - 2].intensity) / (Energy_spec[Energy_spec.size() - 1].lamda - Energy_spec[Energy_spec.size() - 2].lamda);
+
+    std::vector<double> x, y, yc, ycn, x2, y2;
+
+    for (unsigned int i = 0; i < Energy_spec.size(); i++) {
+        x.push_back(Energy_spec[i].lamda);
+        y.push_back(Energy_spec[i].intensity);
+        yc.push_back(Energy_spec[i].cum_int);
+    }
+
+    double min_cum = *min_element(yc.begin(), yc.end());
+    double max_cum = *max_element(yc.begin(), yc.end()) - min_cum;
+
+    for (unsigned int i = 0; i < Energy_spec.size(); i++) {
+        Energy_spec[i].cum_int -= min_cum;
+        Energy_spec[i].cum_int /= max_cum;
+        ycn.push_back(Energy_spec[i].cum_int);
+    }
+
+    x1d = (Energy_spec[1].lamda - Energy_spec[0].lamda) / (Energy_spec[1].cum_int - Energy_spec[0].cum_int);
+    xud = (Energy_spec[Energy_spec.size() - 1].lamda - Energy_spec[Energy_spec.size() - 2].lamda) / (Energy_spec[Energy_spec.size() - 1].cum_int - Energy_spec[Energy_spec.size() - 2].cum_int);
+
+    y2 = Util::spline(x, y, y1d, yud);
+    x2 = Util::spline(ycn, x, x1d, xud);
+
+    for (unsigned int i = 0; i < Energy_spec.size(); i++) {
+        Energy_spec[i].intensity_two_deriv = y2[i];
+        Energy_spec[i].lambda_two_deriv = x2[i];
+    }
+
+}
+
+
+std::vector<double> Util::misalign(double Dis_total) {
+
+    double dev, term_arc, Geo_para_matr[4][4], len, hei, tetaref, div, fi_temp, fi_max, fi_min, z_max, z_min;
+
+    fi_max = 10;
+    fi_min = -10;
+
+    z_max = GeolengthelementsInput.zdetc / 2;
+    z_min = -GeolengthelementsInput.zdetc / 2;
+    tetaref = M_PI / 2 - teta_crys1;
+
+    Geo_para_matr[0][0] = GeolengthelementsInput.S_aper / 2;
+    Geo_para_matr[0][1] = -GeolengthelementsInput.S_aper / 2;
+    Geo_para_matr[0][2] = GeoParapathlengthsInput.dist_T_Cr1;
+    Geo_para_matr[0][3] = GeoParametersInput.xsi;
+
+    Geo_para_matr[1][0] = GeolengthelementsInput.z_first_crys / 2;
+    Geo_para_matr[1][1] = -GeolengthelementsInput.z_first_crys / 2;
+    Geo_para_matr[1][2] = GeoParapathlengthsInput.dist_T_Cr1 / 2;
+    Geo_para_matr[1][3] = GeoParametersInput.xsi - 2 * GeoParametersInput.tilt_C1 * sin(tetaref) * GeoParapathlengthsInput.dist_Cr1_Cr2 / (GeoParapathlengthsInput.dist_T_Cr1 + GeoParapathlengthsInput.dist_Cr1_Cr2);
+
+    Geo_para_matr[2][0] = GeolengthelementsInput.z_first_crys / 2;
+    Geo_para_matr[2][1] = -GeolengthelementsInput.z_first_crys / 2;
+    Geo_para_matr[2][2] = GeoParapathlengthsInput.dist_Cr2_Det;
+    Geo_para_matr[2][3] = GeoParametersInput.xsi - 2 * GeoParametersInput.tilt_C1 * sin(tetaref) * (GeoParapathlengthsInput.dist_Cr1_Cr2 + GeoParapathlengthsInput.dist_Cr2_Det) /
+        (GeoParapathlengthsInput.dist_T_Cr1 + GeoParapathlengthsInput.dist_Cr1_Cr2 + GeoParapathlengthsInput.dist_Cr2_Det) - 2 * GeoParametersInput.tilt_C2 * sin(tetaref) *
+        GeoParapathlengthsInput.dist_Cr2_Det / (GeoParapathlengthsInput.dist_T_Cr1 + GeoParapathlengthsInput.dist_Cr1_Cr2 + GeoParapathlengthsInput.dist_Cr2_Det);
+
+    Geo_para_matr[3][0] = z_max;
+    Geo_para_matr[3][1] = -z_max;
+
+    if (GeoParapathlengthsInput.type_source == "P")
+        term_arc = z_max;
+    else
+        term_arc = (GeolengthelementsInput.S_aper + GeolengthelementsInput.zdetc) / 2;
+
+
+    fi_max = atan(term_arc / Dis_total) + GeoParametersInput.xsi;
+    fi_min = -atan(term_arc / Dis_total) + GeoParametersInput.xsi;
+
+    dev = term_arc + Dis_total * tan(GeoParametersInput.xsi - atan(term_arc / Dis_total));
+
+    z_max = GeolengthelementsInput.zdetc / 2 + dev;
+    z_min = -GeolengthelementsInput.zdetc / 2 + dev;
+
+    std::vector<double> res;
+    res.push_back(fi_max);
+    res.push_back(fi_min);
+    res.push_back(z_max);
+    res.push_back(z_min);
+
+    return res;
+}
+
+
+void Util::Set_angs() {
+
+    if (never_set_angle) {
+        //tetaref *= convrad;
+        GeoParametersInput.xsi *= convrad;
+        teta_crys1 *= convrad;
+        GeoParametersInput.tilt_C1 *= convrad;
+        GeoParametersInput.tilt_C2 *= convrad;
+
+        //Old vars
+        //stan_V_C1 *= convrad;
+        //stan_H_C1 *= convrad;
+        //stan_V_C2 *= convrad;
+        //stan_H_C2 *= convrad;
+
+        GeoParametersInput.OffsetRotCry1 *= convrad;
+
+        GeoParametersInput.teta_table *= convrad;
+        GeoParametersInput.teta_detec_para *= convrad;
+        GeoParametersInput.teta_detec_anti *= convrad;
+
+        //Old vars
+        //y_first_crys_2 /= 2;
+        //z_first_crys_2 /= 2;
+        //step_x_hist_y_crys /= 5;
+        //step_x_hist_z_crys /= 5;
+        //S_aper_D_2 *= 2;
+
+        never_set_angle = false;
+    }
+}
+
+
+void Util::test_In() {
+
+    double b_anti_pick;
+
+    b_anti_pick = -2 * (-teta_crys1 + theta_chk);
+
+    double tetaref, teta_table_rad, xsi_rad, c1, C2_para, C2_anti, tan_e2, cos_e2, cos_e, esti_para, esti_anti, angle_dif, energy_exact, wave, energ;
+    double low_bound_angl_para, high_bound_angl_para, low_bound_angl_anti, high_bound_angl_anti, Maxi_angl_para, Mini_angl_para, Maxi_angl_anti, Mini_angl_anti, var_temp;
+
+    tetaref = 90 - teta_crys1;
+    tetaref *= convrad;
+    teta_table_rad = GeoParametersInput.teta_table * convrad;
+    xsi_rad = GeoParametersInput.xsi * convrad;
+
+    if (!UserSettingsInput.Simple_simu) {
+        xsi_rad = -atan((GeolengthelementsInput.S_shi_ver_A - GeolengthelementsInput.S_shi_ver_B) / GeoParapathlengthsInput.LT_aper);
+        GeoParametersInput.xsi = xsi_rad * convdeg;
+    }
+
+    if (CurveVerticalTiltInput.make_CurveTilt) {
+        c1 = Util::ObtainVert(1, 0);
+
+        C2_para = Util::ObtainVert(2, teta_crys1);
+        C2_anti = Util::ObtainVert(2, -teta_crys1);
+    }
+    else {
+        c1 = GeoParametersInput.tilt_C1 * convrad;
+        C2_para = GeoParametersInput.tilt_C2 * convrad;
+        C2_anti = GeoParametersInput.tilt_C2 * convrad;
+    }
+
+
+    tan_e2 = tan(tetaref) / 2;
+    cos_e2 = 2 * cos(2 * tetaref);
+    cos_e = cos(tetaref);
+
+
+    esti_para = convdeg * tan_e2 * (pow(C2_para, 2) + 4 * C2_para * c1 + 3 * pow(c1, 2)) - convdeg * xsi_rad * (C2_para + c1) / cos_e;
+    esti_anti = convdeg * tan_e2 * (pow(C2_anti, 2) + 4 * C2_anti * c1 + pow(c1, 2) * (1 - 2 * cos_e2)) + convdeg * tan_e2 * (2 * pow(xsi_rad, 2)) - convdeg * xsi_rad * (C2_anti + c1 * (1 - cos_e2)) / cos_e;
+
+    if (!UserSettingsInput.Simple_simu) {
+        esti_para -= convdeg * (2 * tetaref - teta_table_rad);
+        esti_anti += convdeg * (2 * tetaref - teta_table_rad);
+    }
+
+    esti_anti += b_anti_pick + 2 * refra_corr + 2 * vert_div_corr;
+
+    if (UserSettingsInput.see_para) {
+        gener_out << "The estimated angle of peak" << std::endl;
+        gener_out << "taking into account crystal tilts and effective misalignement" << std::endl;
+
+        std::cout << "The estimated angle of peak" << std::endl;
+        std::cout << "taking into account crystal tilts and effective misalignement" << std::endl;
+
+        ang_para_pre = teta_crys1 - esti_para;
+
+        gener_out << " in parallel is:					" << ang_para_pre << " deg" << std::endl;
+        gener_out << " or, in turn of reference angle:	" << -esti_para << " deg" << std::endl;
+        gener_out << std::endl;
+
+        std::cout << " in parallel is:					" << ang_para_pre << " deg" << std::endl;
+        std::cout << " or, in turn of reference angle:	" << -esti_para << " deg" << std::endl;
+        std::cout << std::endl;
+
+    }
+
+    if (UserSettingsInput.see_anti) {
+        gener_out << "The estimated angle of peak" << std::endl;
+        gener_out << "taking into account crystal tilts and effective misalignement" << std::endl;
+
+        std::cout << "The estimated angle of peak" << std::endl;
+        std::cout << "taking into account crystal tilts and effective misalignement" << std::endl;
+
+        ang_anti_pre = esti_anti - teta_crys1;
+
+        gener_out << " in antiparallel is:				" << ang_anti_pre << " deg" << std::endl;
+        gener_out << " or, in turn of reference angle:	" << -esti_anti << " deg" << std::endl;
+        gener_out << std::endl;
+
+        std::cout << " in antiparallel is:				" << ang_anti_pre << " deg" << std::endl;
+        std::cout << " or, in turn of reference angle:	" << -esti_anti << " deg" << std::endl;
+        std::cout << std::endl;
+
+    }
+
+
+    if (UserSettingsInput.see_para && UserSettingsInput.see_anti) {
+        angle_dif = (ang_anti_pre - ang_para_pre) / 2 + 90 - refra_corr - vert_div_corr;
+
+        angle_dif *= convrad;
+        energy_exact = Convert_Ag_minusone_eV / picks[1].lamda;
+        wave = 2 * d_lat * sin(angle_dif);
+        energ = Convert_Ag_minusone_eV / wave;
+
+        gener_out << std::endl;
+        gener_out << " Estimated energy" << std::endl;
+        gener_out << " without crystal tilts and effective misalignement: " << energy_exact << std::endl;
+        gener_out << std::endl;
+        gener_out << " with crystal tilts and effective misalignement: " << energ << std::endl;
+        gener_out << std::endl;
+        gener_out << "difference: " << (energ - energy_exact) * 1000 << "MeV" << std::endl;
+    }
+
+
+    if (ang_para_pre > 0) {
+        low_bound_angl_para = ang_para_pre - PlotParametersInput.delta_angl;
+        high_bound_angl_para = ang_para_pre + PlotParametersInput.delta_angl;
+        low_bound_angl_anti = ang_anti_pre - PlotParametersInput.delta_angl;
+        high_bound_angl_anti = ang_anti_pre + PlotParametersInput.delta_angl;
+
+        std::cout << "With current setting, range to observe parallel peak: " << low_bound_angl_para << " deg; " << high_bound_angl_para << " deg" << std::endl;
+        std::cout << "With current setting, range to observe antiparallel peak: " << low_bound_angl_anti << " deg; " << high_bound_angl_anti << " deg" << std::endl;
+
+        std::cout << "Estimated antiparallel angle: " << esti_anti << " teta_crys1 = " << teta_crys1 << std::endl;
+        std::cout << "Estimated parallel angle: " << esti_para << std::endl;
+
+        Maxi_angl_anti = high_bound_angl_anti - teta_crys1;
+        Mini_angl_anti = low_bound_angl_anti - teta_crys1;
+
+        Maxi_angl_para = high_bound_angl_para - teta_crys1;
+        Mini_angl_para = low_bound_angl_para - teta_crys1;
+
+
+        Maxi_angl = Maxi_angl_para + PlotParametersInput.shift_disp_window;
+        Mini_angl = Mini_angl_para + PlotParametersInput.shift_disp_window;
+
+        std::cout << " Maxi_angl_anti: " << Maxi_angl_anti << std::endl;
+        std::cout << " Mini_angl_anti: " << Mini_angl_anti << std::endl;
+        std::cout << " Maxi_angl_para: " << Maxi_angl_para << std::endl;
+        std::cout << " Mini_angl_para: " << Mini_angl_para << std::endl;
+        std::cout << " *** Mini angl = " << Mini_angl << " Maxi_angl = " << Maxi_angl << std::endl;
+
+        low_bound_angl_para = teta_crys1 + Mini_angl;
+        high_bound_angl_para = teta_crys1 + Maxi_angl;
+        low_bound_angl_anti = -teta_crys1 - Mini_angl;
+        high_bound_angl_anti = -teta_crys1 - Maxi_angl;
+
+        std::cout << " Checking common range to observe parallel peak -> " << low_bound_angl_para << " deg; " << high_bound_angl_para << " deg; peak: " << ang_para_pre << " deg" << std::endl;
+        std::cout << " Checking common range to observe antiparallel peak -> " << low_bound_angl_anti << " deg; " << high_bound_angl_anti << " deg; peak: " << ang_anti_pre << " deg" << std::endl;
+    }
+    else
+        throw std::runtime_error(" Error in test_input: ang_para_pre <= 0");
+
+
+    gener_out << std::endl;
+    gener_out << "------------------------------" << std::endl;
+    gener_out << std::endl;
+    gener_out << " Estimated analysis based on analytical expressions" << std::endl;
+    gener_out << std::endl;
+
+
+    var_temp = Maxi_angl - Mini_angl;
+
+    if (var_temp < 0)
+        throw std::runtime_error("*** Error in test_input: min_angle grater than max_angle");
+    else if (var_temp > 4)
+        throw std::runtime_error("*** Error in test_input: maximum angle variation > 4 deg, too large");
+
+
+    if (UserSettingsInput.see_para) {
+        if (UserSettingsInput.see_anti) {
+            std::cout << "input range set up for observing both parallel and antiparallel" << std::endl;
+
+            std::cout << Mini_angl << "\t" << Maxi_angl << std::endl;
+
+            if (abs(Mini_angl) > 4 || abs(Maxi_angl) > 4)
+                throw std::runtime_error("*** Error in test_input: minimum or maximum range > 4 deg, too large");
+
+            if (FullEnergySpectrumInput.make_more_lines < 2) {
+                if (Maxi_angl < esti_anti || Mini_angl > esti_anti) {
+                    std::cout << "In this range the antiparallel peak will not be observed" << std::endl;
+                    std::cout << "Mini_angl = " << Mini_angl - teta_crys1 << " Maxi_angl = " << Maxi_angl - teta_crys1 << std::endl;
+                    std::cout << "Mini_angl(ref) = " << Mini_angl << " Maxi_angl(ref) = " << Maxi_angl << " estimated antiparallel angle " << esti_anti << std::endl;
+                    std::cout << "*** In test_input, warning: bad input for Mini_angl and Maxi_angl, peak may not be observed ***" << std::endl;
+                    std::cout << " setting maximum number of x rays in simulation to 2011 to check image" << std::endl;
+
+                    NumberRaysInput.nbeams = 2011;
+                }
+            }
+        }
+        else {
+            Mini_angl -= teta_crys1;
+            Maxi_angl -= teta_crys1;
+        }
+
+
+        if (Maxi_angl < -esti_para || Mini_angl > -esti_para) {
+            std::cout << "In this range the parallel peak will not be observed" << std::endl;
+            std::cout << "Mini_angl = " << Mini_angl - teta_crys1 << " Maxi_angl = " << Maxi_angl - teta_crys1 << std::endl;
+            std::cout << "Mini_angl(ref) = " << Mini_angl << " Maxi_angl(ref) = " << Maxi_angl << " estimated parallel angle " << esti_para << std::endl;
+            std::cout << "*** In test_input, warning: bad input for Mini_angl and Maxi_angl, peak may not be observed ***" << std::endl;
+            std::cout << " setting maximum number of x rays in simulation to 2011 to check image" << std::endl;
+
+            NumberRaysInput.nbeams = 2011;
+        }
+
+    }
+    else {
+        if (UserSettingsInput.see_anti) {
+            Mini_angl += teta_crys1;
+            Maxi_angl += teta_crys1;
+
+            if (Maxi_angl < esti_anti || Mini_angl > esti_anti) {
+                std::cout << "In this range the antiparallel peak will not be observed" << std::endl;
+                std::cout << "Mini_angl = " << Mini_angl - teta_crys1 << " Maxi_angl = " << Maxi_angl - teta_crys1 << std::endl;
+                std::cout << "Mini_angl(ref) = " << Mini_angl << " Maxi_angl(ref) = " << Maxi_angl << " estimated antiparallel angle " << esti_anti << std::endl;
+                std::cout << "*** In test_input, warning: bad input for Mini_angl and Maxi_angl, peak may not be observed ***" << std::endl;
+                std::cout << " setting maximum number of x rays in simulation to 2011 to check image" << std::endl;
+
+                NumberRaysInput.nbeams = 2011;
+            }
+        }
+        else {
+            std::cout << "No peak selected" << std::endl;
+            std::cout << "*** In test_input, warning: bad input for Mini_angl and Maxi_angl, peak may not be observed ***" << std::endl;
+            std::cout << " setting maximum number of x rays in simulation to 2011 to check image" << std::endl;
+
+            NumberRaysInput.nbeams = 2011;
+        }
+    }
+
+
+    if (GeoParapathlengthsInput.type_source == "P") {
+        std::cout << " Evaluation set for a point source" << std::endl;
+        std::cout << std::endl;
+    }
+    else if (GeoParapathlengthsInput.type_source == "UC") {
+        std::cout << " Evaluation set for an uniform circular source" << std::endl;
+        std::cout << std::endl;
+    }
+    else if (GeoParapathlengthsInput.type_source == "UR") {
+        std::cout << " Evaluation set for an uniform rectangular source" << std::endl;
+        std::cout << std::endl;
+    }
+    else if (GeoParapathlengthsInput.type_source == "G") {
+        std::cout << " Evaluation set for a gaussian source" << std::endl;
+        std::cout << std::endl;
+    }
+    else {
+        std::cout << "Bad input in the type_source" << std::endl;
+        std::cout << std::endl;
+    }
+
+    if (!UserSettingsInput.Make_Vertical) {
+        std::cout << "Evaluation with rays inside central plane" << std::endl;
+        std::cout << std::endl;
+    }
+
+    gener_out << "----------------------------------------" << std::endl;
+
+}

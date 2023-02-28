@@ -17,15 +17,8 @@
 #include <algorithm>
 
 #include "simuGlobals.hh"
-#include "FindLoc.hh"
-#include "calculate_geo_corr.hh"
-#include "test_input.hh"
-#include "set_ang_rad.hh"
-#include "obtain_curve_responce.hh"
 #include "source_simple.hh"
 #include "source_complex.hh"
-#include "makefitvoigt.hh"
-#include "analysie_voigt.hh"
 #include "mask_test_c2.hh"
 
 class Double_Crystal_diffraction{

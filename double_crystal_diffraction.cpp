@@ -7,6 +7,7 @@
 
 
 #include "double_crystal_diffraction.hh"
+#include <Util.h>
 
 using namespace std;
 
@@ -71,7 +72,7 @@ void Double_Crystal_diffraction::Make_Simu(SimulationMain* w){
             inten.push_back(Energy_spec[i].intensity);
         }
 
-        linelamda = Convert_Ag_minusone_eV / Energy_spec[FindLoc(inten, *max_element(inten.begin(), inten.end()))].lamda;
+        linelamda = Convert_Ag_minusone_eV / Energy_spec[Util::FindLoc(inten, *max_element(inten.begin(), inten.end()))].lamda;
         naturalwidth = 0.0;
     }
 
@@ -244,12 +245,12 @@ void Double_Crystal_diffraction::Make_Simu(SimulationMain* w){
     gener_out << endl;
 
 
-    calculate_geo_corre::geo_corre();
+    Util::geo_corre();
 
-    Test_input::test_In();
+    Util::test_In();
 
-    Set_ang_rad::Set_angs();
-    Obtain_curve_responce::Read_CurveResponce();
+    Util::Set_angs();
+    Util::Read_CurveResponce();
 
     cout << "Monte Carlo simulation of the double Crystal spectrometer" << endl;
     cout << "Parameters" << endl;
@@ -355,11 +356,11 @@ void Double_Crystal_diffraction::Make_Simu(SimulationMain* w){
 
     if(UserSettingsInput.fitting){
         if(UserSettingsInput.see_para)
-            MakefitVoigt::fit(true);
+            Util::fit(true);
         if(UserSettingsInput.see_anti)
-            MakefitVoigt::fit(false);
+            Util::fit(false);
         if(UserSettingsInput.see_para && UserSettingsInput.see_anti){}
-            Analysie_Voigt::analyse();
+            Util::analyse();
     }
 
     if(UserSettingsInput.make_mask_test)
