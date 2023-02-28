@@ -187,92 +187,38 @@
     </QtMoc>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="CheckInputSpectrum.cpp" />
-    <ClCompile Include="analysie_voigt.cpp" />
-    <ClCompile Include="calculate_geo_corr.cpp" />
     <ClCompile Include="dcs_gui.cpp" />
     <ClCompile Include="dcs_montecarlo.cpp" />
     <ClCompile Include="double_crystal_diffraction.cpp" />
-    <ClCompile Include="gaussi_rockin.cpp" />
-    <ClCompile Include="get_new_temp_for_bin.cpp" />
-    <ClCompile Include="intensitysource.cpp" />
-    <ClCompile Include="limits_horizontal_diverge.cpp" />
-    <ClCompile Include="make_graph_imageplates.cpp" />
     <ClCompile Include="make_plot_profiles.cpp" />
-    <ClCompile Include="make_pointcryst.cpp" />
-    <ClCompile Include="makefitvoigt.cpp" />
     <ClCompile Include="mask_test_c2.cpp" />
-    <ClCompile Include="obtain_curve_responce.cpp" />
-    <ClCompile Include="obtain_curved_hor_corr.cpp" />
-    <ClCompile Include="obtain_data_fitting.cpp" />
-    <ClCompile Include="obtain_energyspectrum.cpp" />
-    <ClCompile Include="obtain_misalign.cpp" />
     <ClCompile Include="obtain_time.cpp" />
-    <ClCompile Include="obtainvertical.cpp" />
     <ClCompile Include="qcustomplot.cpp" />
     <ClCompile Include="qdcs3dvis.cpp" />
-    <ClCompile Include="set_ang_rad.cpp" />
     <ClCompile Include="simuGlobals.cpp" />
     <ClCompile Include="simulationmain.cpp" />
     <ClCompile Include="source_complex.cpp" />
     <ClCompile Include="source_simple.cpp" />
-    <ClCompile Include="test_input.cpp" />
+    <ClCompile Include="Util.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Boxmuller.hh" />
-    <ClInclude Include="CheckInputSpectrum.hh" />
-    <ClInclude Include="FindLoc.hh" />
-    <ClInclude Include="First_crystal_angle.hh" />
-    <ClInclude Include="First_crystal_angle_1_Approximation.hh" />
-    <ClInclude Include="First_crystal_angle_Full.hh" />
-    <ClInclude Include="Obtain_d_Lattice_temp.hh" />
-    <ClInclude Include="Obtain_ypzp.hh" />
-    <ClInclude Include="PseuVoigt.hh" />
-    <ClInclude Include="Reach_detector.hh" />
-    <ClInclude Include="Second_crystal_angle.hh" />
-    <ClInclude Include="Second_crystal_angle_Full.hh" />
-    <ClInclude Include="Second_crystal_angle_aproximation.hh" />
     <ClInclude Include="simuConsts.h" />
-    <ClInclude Include="TrueVoig.hh" />
-    <ClInclude Include="analysie_voigt.hh" />
-    <ClInclude Include="calculate_geo_corr.hh" />
-    <ClInclude Include="covsrt.hh" />
-    <ClInclude Include="cw.hh" />
+    <ClInclude Include="Util.h" />
     <QtMoc Include="dcs_gui.h">
     </QtMoc>
     <ClInclude Include="dcs_montecarlo.hh" />
     <ClInclude Include="double_crystal_diffraction.hh" />
-    <ClInclude Include="gaussi_rockin.hh" />
-    <ClInclude Include="gaussj.hh" />
-    <ClInclude Include="get_new_temp_for_bin.hh" />
-    <ClInclude Include="intensitysource.hh" />
-    <ClInclude Include="limits_horizontal_diverge.hh" />
-    <ClInclude Include="make_graph_imageplates.hh" />
     <ClInclude Include="make_plot_profiles.hh" />
-    <ClInclude Include="make_pointcryst.hh" />
-    <ClInclude Include="makefitvoigt.hh" />
     <ClInclude Include="mask_test_c2.hh" />
-    <ClInclude Include="mrqcof.hh" />
-    <ClInclude Include="mrqmin.hh" />
-    <ClInclude Include="obtain_curve_responce.hh" />
-    <ClInclude Include="obtain_curved_hor_corr.hh" />
-    <ClInclude Include="obtain_data_fitting.hh" />
-    <ClInclude Include="obtain_energyspectrum.hh" />
-    <ClInclude Include="obtain_misalign.hh" />
     <ClInclude Include="obtain_time.hh" />
-    <ClInclude Include="obtainvertical.hh" />
     <QtMoc Include="qcustomplot.h">
     </QtMoc>
     <ClInclude Include="qdcs3dvis.h" />
-    <ClInclude Include="set_ang_rad.hh" />
     <ClInclude Include="simuGlobals.hh" />
     <QtMoc Include="simulationmain.h">
     </QtMoc>
     <ClInclude Include="source_complex.hh" />
     <ClInclude Include="source_simple.hh" />
-    <ClInclude Include="spline.hh" />
-    <ClInclude Include="splint.hh" />
-    <ClInclude Include="test_input.hh" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="debug\moc_predefs.h.cbt">

@@ -37,15 +37,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CheckInputSpectrum.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="analysie_voigt.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="calculate_geo_corr.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="dcs_gui.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -55,61 +46,19 @@
     <ClCompile Include="double_crystal_diffraction.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="gaussi_rockin.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="get_new_temp_for_bin.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="intensitysource.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="limits_horizontal_diverge.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="make_graph_imageplates.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="make_plot_profiles.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="make_pointcryst.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="makefitvoigt.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mask_test_c2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="obtain_curve_responce.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="obtain_curved_hor_corr.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="obtain_data_fitting.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="obtain_energyspectrum.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="obtain_misalign.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="obtain_time.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="obtainvertical.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="qcustomplot.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="qdcs3dvis.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="set_ang_rad.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="simulationmain.cpp">
@@ -121,68 +70,14 @@
     <ClCompile Include="source_simple.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="test_input.cpp">
+    <ClCompile Include="simuGlobals.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="simuGlobals.cpp">
+    <ClCompile Include="Util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Boxmuller.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CheckInputSpectrum.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="FindLoc.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="First_crystal_angle.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="First_crystal_angle_1_Approximation.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="First_crystal_angle_Full.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Obtain_d_Lattice_temp.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Obtain_ypzp.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PseuVoigt.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Reach_detector.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Second_crystal_angle.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Second_crystal_angle_Full.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Second_crystal_angle_aproximation.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TrueVoig.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="analysie_voigt.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="calculate_geo_corr.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="covsrt.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="cw.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <QtMoc Include="dcs_gui.h">
       <Filter>Header Files</Filter>
     </QtMoc>
@@ -192,70 +87,19 @@
     <ClInclude Include="double_crystal_diffraction.hh">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="gaussi_rockin.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="gaussj.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="get_new_temp_for_bin.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="intensitysource.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="limits_horizontal_diverge.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="make_graph_imageplates.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="make_plot_profiles.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="make_pointcryst.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="makefitvoigt.hh">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="mask_test_c2.hh">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="mrqcof.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="mrqmin.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="obtain_curve_responce.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="obtain_curved_hor_corr.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="obtain_data_fitting.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="obtain_energyspectrum.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="obtain_misalign.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="obtain_time.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="obtainvertical.hh">
       <Filter>Header Files</Filter>
     </ClInclude>
     <QtMoc Include="qcustomplot.h">
       <Filter>Header Files</Filter>
     </QtMoc>
     <ClInclude Include="qdcs3dvis.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="set_ang_rad.hh">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="simuGlobals.hh">
@@ -270,16 +114,10 @@
     <ClInclude Include="source_simple.hh">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="spline.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="splint.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="test_input.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="simuConsts.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
