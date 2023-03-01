@@ -888,7 +888,24 @@ bool Source_complex::run_Source(SimulationInterface *w){
                                             }
                                             #endif
                                         }
+                                        else {
+                                            if (GraphOptionsInput.make_image_plates) {
+                                                //If the event does not reach the detector then only add when we have less than maxEventNum
+                                                if (eventsToTrace_para.size() < NumberRaysInput.number_events && tmpEvent.size() >= 6) {
+                                                    eventsToTrace_para.push_back(tmpEvent);
+                                                }
+                                            }
 
+                                        }
+
+                                    }
+                                    else {
+                                        if (GraphOptionsInput.make_image_plates) {
+                                            //If the event does not reach the detector then only add when we have less than maxEventNum
+                                            if (eventsToTrace_para.size() < NumberRaysInput.number_events && tmpEvent.size() >= 6) {
+                                                eventsToTrace_para.push_back(tmpEvent);
+                                            }
+                                        }
                                     }
 
                                 }
@@ -905,6 +922,14 @@ bool Source_complex::run_Source(SimulationInterface *w){
                                         #ifdef OPENMP
                                         }
                                         #endif
+                                    }
+                                }
+                                else {
+                                    if (GraphOptionsInput.make_image_plates) {
+                                        //If the event does not reach the detector then only add when we have less than maxEventNum
+                                        if (eventsToTrace_para.size() < NumberRaysInput.number_events && tmpEvent.size() >= 6) {
+                                            eventsToTrace_para.push_back(tmpEvent);
+                                        }
                                     }
                                 }
 
@@ -1107,6 +1132,14 @@ bool Source_complex::run_Source(SimulationInterface *w){
                                             #ifdef OPENMP
                                             }
                                             #endif
+                                        }
+                                    }
+                                    else {
+                                        if (GraphOptionsInput.make_image_plates) {
+                                            //If the event does not reach the detector then only add when we have less than maxEventNum
+                                            if (eventsToTrace_anti.size() < NumberRaysInput.number_events && tmpEvent.size() >= 6) {
+                                                eventsToTrace_anti.push_back(tmpEvent);
+                                            }
                                         }
                                     }
 

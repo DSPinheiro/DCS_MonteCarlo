@@ -843,6 +843,7 @@ void QDCS3Dvis::drawAntiParallel(QMatrix4x4 &m)
     c2_posz -= 30.0f;
     table_posz -= 30.0f;
 
+
     //Source Representation (i.e. entry flange to the chamber)
     m.translate(source_posx, source_posy, source_posz);
     m.scale((GeolengthelementsInput.S_sour + 1) / 2, S_sour_y / 2, (GeolengthelementsInput.S_sour + 1) / 2);
