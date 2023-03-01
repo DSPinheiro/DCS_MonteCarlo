@@ -437,7 +437,7 @@ void Source_complex::run_Source(SimulationMain *w){
                     r = S_aper_R_2 + 1;
 
                     while(r > S_aper_R_2)
-                        r = Util::Box(S_aper_var_2, 0);
+                        r = Util::GaussianBox(S_aper_var_2, 0);
 
                     if(! (GeolengthelementsInput.S_shi_ver_B == 0 && GeolengthelementsInput.S_shi_hor_B == 0)){
                         z = r * sin_tetap + GeolengthelementsInput.S_shi_ver_B;

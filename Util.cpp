@@ -24,7 +24,20 @@
 using namespace Util;
 
 
-double Util::Box(double sta_dev, double mean) {
+/// <summary>
+/// Function to generate a random radius value according to a circular gaussian distribution.
+/// Looks ineficient, might be able to improve it.
+/// </summary>
+/// <param name="sta_dev">
+/// Standard deviation of the distribution.
+/// </param>
+/// <param name="mean">
+/// Mean value of the distribution
+/// </param>
+/// <returns>
+/// Randomized radius value from the circle center.
+/// </returns>
+double Util::GaussianBox(double sta_dev, double mean) {
     double fac, rsq, v1, v2;
 
     while (true) {
@@ -44,6 +57,15 @@ double Util::Box(double sta_dev, double mean) {
 }
 
 
+/// <summary>
+/// Function that makes a matrix operation on the covar matrix.
+/// I'm not sure what operation is being done here. It's something for the fitting algorithm.
+/// </summary>
+/// <param name="covar"></param>
+/// <param name="npc"></param>
+/// <param name="ma"></param>
+/// <param name="ia"></param>
+/// <param name="mfit"></param>
 void Util::cov_srt(std::vector<std::vector<double>> covar, int npc, int ma, int* ia, int mfit) {
 
     double swap;
@@ -80,6 +102,14 @@ void Util::cov_srt(std::vector<std::vector<double>> covar, int npc, int ma, int*
 }
 
 
+/// <summary>
+/// Helper function to calculate the Voigt profile.
+/// The implemented Voigt profile is a true Voigt so we need this complex function
+/// </summary>
+/// <param name="xw"></param>
+/// <param name="yw"></param>
+/// <param name="ak"></param>
+/// <param name="al"></param>
 void Util::cw(double xw, double yw, double& ak, double& al) {
 
     const std::complex<double> C1(0.5641896, 0), C2(1.12837917, 0), CZ1(0.4613135, 0), CZ2(0.1901635, 0), CZ3(0.09999216, 0), CZ4(1.7844927, 0), CZ5(0.002883994, 0), CZ6(5.5253437, 0);
@@ -150,6 +180,19 @@ void Util::cw(double xw, double yw, double& ak, double& al) {
 }
 
 
+/// <summary>
+/// Function to find the position of an element in the input array.
+/// </summary>
+/// <param name="array">
+/// Array to search.
+/// </param>
+/// <param name="value">
+/// Value to search for.
+/// </param>
+/// <returns>
+/// Position of value in the array.
+/// For now it throws an error if the value is not found but it should also return -1.
+/// </returns>
 int Util::FindLoc(std::vector<double> array, double value) {
     for (unsigned int i = 0; i < array.size(); i++) {
         if (array[i] == value) {
@@ -162,6 +205,36 @@ int Util::FindLoc(std::vector<double> array, double value) {
 }
 
 
+/*
+
+    FIRST CRYSTAL ANGLE FUNCTIONS
+
+*/
+
+
+/// <summary>
+/// Function to get the first approximation to the angle.
+/// Used in the simple simulation mode.
+/// </summary>
+/// <param name="tetaref">
+/// Angle of the radiation.
+/// </param>
+/// <param name="tetadir">
+/// Angle of the crystal.
+/// </param>
+/// <param name="sin_fi">
+/// Sin of the vertical angle
+/// </param>
+/// <param name="cos_fi">
+/// Cos of the vertical angle
+/// </param>
+/// <param name="tilt_C1">
+/// Angle of the crystal systematic tilt
+/// </param>
+/// <param name="squa_tilt1"></param>
+/// <returns>
+/// Exit angle of the radiation.
+/// </returns>
 double Util::getFirstApproxAngle(double tetaref, double tetadir, double sin_fi, double cos_fi, double tilt_C1, double squa_tilt1) {
 
     double temp_sin, sinte;
@@ -173,11 +246,59 @@ double Util::getFirstApproxAngle(double tetaref, double tetadir, double sin_fi, 
 }
 
 
+/// <summary>
+/// Function to get the full approximation to the angle.
+/// Used in the simple simulation mode.
+/// </summary>
+/// <param name="tetaref">
+/// Angle of the radiation.
+/// </param>
+/// <param name="tetadir">
+/// Angle of the crystal.
+/// </param>
+/// <param name="cos_e"></param>
+/// <param name="tan_e"></param>
+/// <param name="fidir"></param>
+/// <param name="tilt_C1">
+/// Angle of the crystal systematic tilt
+/// </param>
+/// <returns>
+/// Exit angle of the radiation.
+/// </returns>
 double Util::getFullApproximationAngle(double tetaref, double tetadir, double cos_e, double tan_e, double fidir, double tilt_C1) {
     return tetaref + tetadir - (pow(fidir, 2) + pow(tilt_C1, 2)) * tan_e + fidir * tilt_C1 / cos_e;
 }
 
 
+/// <summary>
+/// Function to get the full geometric angle.
+/// Used in the full simulation mode.
+/// </summary>
+/// <param name="r1x">
+/// x component of the director vector for the radiation.
+/// </param>
+/// <param name="r1y">
+/// y component of the director vector for the radiation.
+/// </param>
+/// <param name="r1z">
+/// z component of the director vector for the radiation.
+/// </param>
+/// <param name="n1x">
+/// x component of the director vector for the crystal.
+/// </param>
+/// <param name="n1y">
+/// y component of the director vector for the crystal.
+/// </param>
+/// <param name="n1z">
+/// z component of the director vector for the crystal.
+/// </param>
+/// <returns>
+/// Vector with 4 elements:
+/// Total spatial exit angle,
+/// x component of the director vector for the radiation.
+/// y component of the director vector for the radiation.
+/// z component of the director vector for the radiation.
+/// </returns>
 std::vector<double> Util::getFullAngle(double r1x, double r1y, double r1z, double n1x, double n1y, double n1z) {
     double inter_pro, angle, r2x, r2y, r2z;
 
@@ -198,6 +319,16 @@ std::vector<double> Util::getFullAngle(double r1x, double r1y, double r1z, doubl
 }
 
 
+/// <summary>
+/// Some sort of gauss numerical recipe.
+/// It's used in the minimization algorithm but I'm not sure what it is supposed to do.
+/// </summary>
+/// <param name="a"></param>
+/// <param name="n"></param>
+/// <param name="np"></param>
+/// <param name="b"></param>
+/// <param name="m"></param>
+/// <param name="mp"></param>
 void Util::gauss_j(std::vector<std::vector<double>> a, int n, int np, std::vector<std::vector<double>> b, int m, int mp) {
 
     const int NMAX = 50;
@@ -284,6 +415,22 @@ void Util::gauss_j(std::vector<std::vector<double>> a, int n, int np, std::vecto
 }
 
 
+/// <summary>
+/// Part of the fitting minimization algorithm.
+/// This calculates the reduced chi^2.
+/// </summary>
+/// <param name="x"></param>
+/// <param name="y"></param>
+/// <param name="sig"></param>
+/// <param name="ndata"></param>
+/// <param name="a"></param>
+/// <param name="ia"></param>
+/// <param name="ma"></param>
+/// <param name="alpha"></param>
+/// <param name="beta"></param>
+/// <param name="nalp"></param>
+/// <param name="chisq"></param>
+/// <param name="funcs"></param>
 void Util::mrq_cof(std::vector<double> x, std::vector<double> y, std::vector<double> sig, int ndata, double* a, int* ia, int ma, std::vector<std::vector<double>> alpha, double* beta, int nalp, double& chisq, void(funcs(double&, double*, double&, double*, int))) {
 
     const int MMAX = 20;
@@ -348,6 +495,22 @@ void Util::mrq_cof(std::vector<double> x, std::vector<double> y, std::vector<dou
 }
 
 
+/// <summary>
+/// Minimization algorithm for fitting.
+/// </summary>
+/// <param name="x"></param>
+/// <param name="y"></param>
+/// <param name="sig"></param>
+/// <param name="ndata"></param>
+/// <param name="a"></param>
+/// <param name="ia"></param>
+/// <param name="ma"></param>
+/// <param name="covar"></param>
+/// <param name="alpha"></param>
+/// <param name="nca"></param>
+/// <param name="chisq"></param>
+/// <param name="funcs"></param>
+/// <param name="alamda"></param>
 void Util::mrq_min(std::vector<double> x, std::vector<double> y, std::vector<double> sig, int ndata, double* a, int* ia, int ma, std::vector<std::vector<double>> covar, std::vector<std::vector<double>> alpha, int nca, double& chisq, void(funcs(double&, double*, double&, double*, int)), double& alamda) {
 
     int mfit, j, k;
@@ -448,6 +611,18 @@ void Util::mrq_min(std::vector<double> x, std::vector<double> y, std::vector<dou
 }
 
 
+/// <summary>
+/// Function to calculate the crystals' latice spacing given a temperature.
+/// </summary>
+/// <param name="d_lat">
+/// Reference latice spacing.
+/// </param>
+/// <param name="T_crystal">
+/// Crystal temperature.
+/// </param>
+/// <returns>
+/// Latice spacing for the temperature.
+/// </returns>
 double Util::Latice_temp(double d_lat, double T_crystal) {
     double C1, C2, C3, C4, t0, Temp, a;
     const double a22 = 1.000054702395071;
@@ -546,7 +721,35 @@ bool Util::Reached(double z, double y, double tetadir_temp, double fidir_temp, d
         return false;
 }
 
+/*
 
+    SECOND CRYSTAL ANGLE FUNCTIONS
+
+*/
+
+/// <summary>
+/// Function to get the first approximation to the angle.
+/// Used in the simple simulation mode.
+/// </summary>
+/// <param name="tetaref">
+/// Angle of the radiation.
+/// </param>
+/// <param name="tetadir">
+/// Angle of the crystal.
+/// </param>
+/// <param name="sin_fi">
+/// Sin of the vertical angle
+/// </param>
+/// <param name="cos_fi">
+/// Cos of the vertical angle
+/// </param>
+/// <param name="tilt_C1">
+/// Angle of the crystal systematic tilt
+/// </param>
+/// <param name="squa_tilt1"></param>
+/// <returns>
+/// Exit angle of the radiation.
+/// </returns>
 double Util::getFirstApproxAngle2(double tetaref, double tetadir, double delrot, double sin_fi, double cos_fi, double squa_tilt2, double cosdel, double cosdel_othe, double cosdel_teta, double cosdel_teta_othe, double sin_teref_tedi, bool Parallel) {
 
     double temp_sin, sinte;
@@ -565,6 +768,25 @@ double Util::getFirstApproxAngle2(double tetaref, double tetadir, double delrot,
 }
 
 
+/// <summary>
+/// Function to get the full approximation to the angle.
+/// Used in the simple simulation mode.
+/// </summary>
+/// <param name="tetaref">
+/// Angle of the radiation.
+/// </param>
+/// <param name="tetadir">
+/// Angle of the crystal.
+/// </param>
+/// <param name="cos_e"></param>
+/// <param name="tan_e"></param>
+/// <param name="fidir"></param>
+/// <param name="tilt_C1">
+/// Angle of the crystal systematic tilt
+/// </param>
+/// <returns>
+/// Exit angle of the radiation.
+/// </returns>
 double Util::getFullApproximationAngle2(double tetaref, double tetadir, double delrot, double cos_e, double tan_e, double cos2_e, double fidir, double tilt_C1, double tilt_C2, bool Parallel) {
 
     if (Parallel)
@@ -575,6 +797,35 @@ double Util::getFullApproximationAngle2(double tetaref, double tetadir, double d
 }
 
 
+/// <summary>
+/// Function to get the full geometric angle.
+/// Used in the full simulation mode.
+/// </summary>
+/// <param name="r1x">
+/// x component of the director vector for the radiation.
+/// </param>
+/// <param name="r1y">
+/// y component of the director vector for the radiation.
+/// </param>
+/// <param name="r1z">
+/// z component of the director vector for the radiation.
+/// </param>
+/// <param name="n1x">
+/// x component of the director vector for the crystal.
+/// </param>
+/// <param name="n1y">
+/// y component of the director vector for the crystal.
+/// </param>
+/// <param name="n1z">
+/// z component of the director vector for the crystal.
+/// </param>
+/// <returns>
+/// Vector with 4 elements:
+/// Total spatial exit angle,
+/// x component of the director vector for the radiation.
+/// y component of the director vector for the radiation.
+/// z component of the director vector for the radiation.
+/// </returns>
 std::vector<double> Util::getFullAngle2(double r2x, double r2y, double r2z, double n2x, double n2y, double n2z) {
 
     double inter_pro, angle, r3x, r3y, r3z;
@@ -597,6 +848,24 @@ std::vector<double> Util::getFullAngle2(double r2x, double r2y, double r2z, doub
 }
 
 
+/// <summary>
+/// Function to calculate spline interpolation.
+/// </summary>
+/// <param name="x">
+/// Vector of x values.
+/// </param>
+/// <param name="y">
+/// Vector of y values.
+/// </param>
+/// <param name="yp1">
+/// Value of the first derivative at the first point.
+/// </param>
+/// <param name="ypn">
+/// Value of the first derivative at the last point.
+/// </param>
+/// <returns>
+/// Vector with the values of the second derivative at each point.
+/// </returns>
 std::vector<double> Util::spline(std::vector<double> x, std::vector<double> y, double yp1, double ypn) {
 
     std::vector<double> y2, u;
@@ -641,6 +910,24 @@ std::vector<double> Util::spline(std::vector<double> x, std::vector<double> y, d
 }
 
 
+/// <summary>
+/// Function to calculate the value of the spline interpolation at an x value.
+/// </summary>
+/// <param name="xa">
+/// Interpolated x values.
+/// </param>
+/// <param name="ya">
+/// Interpolated y values.
+/// </param>
+/// <param name="y2a">
+/// Values of the second derivative for the interpolation at each point.
+/// </param>
+/// <param name="x">
+/// x value to interpolate.
+/// </param>
+/// <returns>
+/// y value given by the spline interpolation.
+/// </returns>
 double Util::splint_te(std::vector<double> xa, std::vector<double> ya, std::vector<double> y2a, double x) {
     int k, khi, klo;
     double a, b, h;
@@ -667,6 +954,18 @@ double Util::splint_te(std::vector<double> xa, std::vector<double> ya, std::vect
 }
 
 
+/// <summary>
+/// Function to calculate the Voigt profile.
+/// </summary>
+/// <param name="x">
+/// Mean value.
+/// </param>
+/// <param name="a"></param>
+/// <param name="y"></param>
+/// <param name="dyda"></param>
+/// <param name="na">
+/// Number of points to calculate the profile.
+/// </param>
 void Util::Voig(double& x, double* a, double& y, double* dyda, int na) {
 
     int nam;
@@ -707,6 +1006,10 @@ void Util::Voig(double& x, double* a, double& y, double* dyda, int na) {
 }
 
 
+/// <summary>
+/// Function to analyse the simulated spectra.
+/// The analysis is outputed to the console and the general output.
+/// </summary>
 void Util::analyse() {
 
     double p_para, p_anti, dif, wave, energ_absorb, energy_exact, corre_30cel, energ, d_lat_2;
@@ -804,6 +1107,9 @@ void Util::analyse() {
 }
 
 
+/// <summary>
+/// Function to correct the vertical angle due to the apperture.
+/// </summary>
 void Util::geo_corre() {
 
     double Dis_total, teta_ref, tan_e, con_deg, con_rad;
@@ -830,6 +1136,18 @@ void Util::geo_corre() {
 }
 
 
+/// <summary>
+/// Function to calculate the effective vertical tilt crystal angle.
+/// </summary>
+/// <param name="crystal">
+/// Index to identify the crystal to calculate.
+/// </param>
+/// <param name="angle">
+/// Current second crystal angle.
+/// </param>
+/// <returns>
+/// Effective vertical tilt.
+/// </returns>
 double Util::ObtainVert(int crystal, double angle) {
 
     double angle_temp, temp, rad, offsettilt, phase_temp, consttilt;
@@ -864,6 +1182,17 @@ double Util::ObtainVert(int crystal, double angle) {
 }
 
 
+/// <summary>
+/// Function to check if the source energy spectrum is going to be visible in the detector.
+/// It's not a full geometric calculation but is a good enough approximation where we
+/// know if the spectrum is going to appear in the output or not.
+/// </summary>
+/// <param name="unit">
+/// Energy unit for the source spectrum
+/// </param>
+/// <returns>
+/// True or False, if the spectrum will be visible or not.
+/// </returns>
 bool Util::CheckSpectrum(std::string unit) {
 
     double tetaref, tetabrag_ref, sin_e;
@@ -938,6 +1267,29 @@ bool Util::CheckSpectrum(std::string unit) {
 }
 
 
+/// <summary>
+/// Function to check if the radiation is going to be reflected.
+/// This is done using the crystal responce functions as probability and
+/// calculating a random value.
+/// </summary>
+/// <param name="angle">
+/// Radiation incident angle.
+/// </param>
+/// <param name="tetabra">
+/// Crystal angle.
+/// </param>
+/// <param name="lamda">
+/// Radiation energy
+/// </param>
+/// <param name="type_crystal">
+/// Curved or flat crystal (true, false).
+/// </param>
+/// <param name="poli_p">
+/// Use p-polarization or s-polarization (true, false).
+/// </param>
+/// <returns>
+/// True or False, if the radiation was reflected or not
+/// </returns>
 bool Util::getReflection(double angle, double tetabra, double lamda, bool type_crystal, bool poli_p) {
 
     double p, dif, inte, inte1, inte2;
@@ -1057,7 +1409,23 @@ bool Util::getReflection(double angle, double tetabra, double lamda, bool type_c
 }
 
 
-double Util::getNewTemp(int bin_tem, int bin_fas, double pha_tem) {
+/// <summary>
+/// Function to calculate the next bin's temperature shift due to random fluctuations.
+/// A bin corresponds to a rotation angle.
+/// </summary>
+/// <param name="bin_tem">
+/// Bin to calculate the new temperature shift.
+/// </param>
+/// <param name="bin_fas">
+/// How many bins since the temperature was updated.
+/// </param>
+/// <param name="pha_tem">
+/// Random temperature shift modifier.
+/// </param>
+/// <returns>
+/// New crystal temperature shift.
+/// </returns>
+double Util::getNewTemp(int bin_tem, int& bin_fas, double& pha_tem) {
 
     if (bin_fas > TemperatureParametersInput.TT_tempera) {
         pha_tem = 2 * M_PI * ((double)rand() / RAND_MAX);
@@ -1076,6 +1444,21 @@ double Util::getNewTemp(int bin_tem, int bin_fas, double pha_tem) {
 }
 
 
+/// <summary>
+/// Function to calculate the source energy for this event.
+/// </summary>
+/// <param name="a_lamds_uni">
+/// Effective latice spacing for the first crystal.
+/// </param>
+/// <param name="db_lamds_uni">
+/// Effective latice spacing for the second crystal.
+/// </param>
+/// <param name="tw_d">
+/// 2 * total latice spacing for the first crystal.
+/// </param>
+/// <returns>
+/// Wavelength of the generated event.
+/// </returns>
 double Util::getEnergy(double a_lamds_uni, double db_lamds_uni, double tw_d) {
 
     double p1, p2, natur_li, pm1, pm2, pm3, pm4, hit, rnd_inten, energy_t;
@@ -1151,7 +1534,7 @@ double Util::getEnergy(double a_lamds_uni, double db_lamds_uni, double tw_d) {
             }
         }
 
-        hit = Util::Box(PhysicalParametersInput.gauss_Doop, hit);
+        hit = Util::GaussianBox(PhysicalParametersInput.gauss_Doop, hit);
         return hit;
 
     }
@@ -1162,6 +1545,24 @@ double Util::getEnergy(double a_lamds_uni, double db_lamds_uni, double tw_d) {
 }
 
 
+/// <summary>
+/// Function to calculate the horizontal angular limits for the source radiation.
+/// </summary>
+/// <param name="tetaref">
+/// Radiation angle.
+/// </param>
+/// <param name="delrot_min">
+/// Minimum angle for the second crystal rotation.
+/// </param>
+/// <param name="delrot_max">
+/// Maximum angle for the second crystal rotation.
+/// </param>
+/// <param name="fi_max"></param>
+/// <param name="teta_max"></param>
+/// <param name="teta_min"></param>
+/// <returns>
+/// Vector with the minimum and maximum angles.
+/// </returns>
 std::vector<double> Util::getLims(double tetaref, double delrot_min, double delrot_max, double fi_max, double teta_max, double teta_min) {
 
     double tan_e, cos_e, teta_min_temp, corre_term1, corre_term2, teta_max_temp;
@@ -1192,6 +1593,9 @@ std::vector<double> Util::getLims(double tetaref, double delrot_min, double delr
 }
 
 
+/// <summary>
+/// Function to initialize the plot parameters.
+/// </summary>
 void Util::initPlates() {
 
     int int_plot[6];
@@ -1266,6 +1670,24 @@ void Util::initPlates() {
 }
 
 
+/// <summary>
+/// Function to calculate the position of the event in the image plates.
+/// </summary>
+/// <param name="crystal">
+/// Image plate number.
+/// 1 - Source
+/// 2 - First crystal
+/// 3 - Second crystal Parallel
+/// 4 - Detector Parallel
+/// 5 - Second crystal Antiparallel
+/// 6 - Detector Antiparallel
+/// </param>
+/// <param name="y">
+/// y value of the projected event position.
+/// </param>
+/// <param name="z">
+/// z value of the projected event position.
+/// </param>
 void Util::Make(int crystal, double y, double z) {
 
     double step_z_hist, step_y_hist, max_plot_x_temp, max_plot_y_temp;
@@ -1349,6 +1771,12 @@ void Util::Make(int crystal, double y, double z) {
 }
 
 
+/// <summary>
+/// Function to fit the simulated spectrum with Voigt profiles.
+/// </summary>
+/// <param name="Parallel">
+/// If we are fitting the Parallel or Antiparallel results.
+/// </param>
 void Util::fit(bool Parallel) {
 
     std::vector<double> x, y, sig;
@@ -1522,6 +1950,9 @@ void Util::fit(bool Parallel) {
 }
 
 
+/// <summary>
+/// Function to read the crystal curve responces.
+/// </summary>
 void Util::Read_CurveResponce() {
 
     std::vector<std::string> _available_energies;
@@ -1715,6 +2146,27 @@ void Util::Read_CurveResponce() {
 }
 
 
+/// <summary>
+/// Function to calculate the horizontal angular correction.
+/// </summary>
+/// <param name="y_pro_C1">
+/// Low limit for reflextion on the y axis.
+/// </param>
+/// <param name="y_max_C1">
+/// High limit for reflextion on the y axis.
+/// </param>
+/// <param name="z_pro_C1">
+/// Low limit for reflextion on the z axis.
+/// </param>
+/// <param name="z_max_C1">
+/// High limit for reflextion on the z axis.
+/// </param>
+/// <param name="type_c">
+/// If the correction is for the first or second crystal.
+/// </param>
+/// <returns>
+/// Vector with the correction for the y and z axis.
+/// </returns>
 std::vector<double> Util::horCorr(double y_pro_C1, double y_max_C1, double z_pro_C1, double z_max_C1, bool type_c) {
 
     double R_cur_crys_t;
@@ -1734,6 +2186,24 @@ std::vector<double> Util::horCorr(double y_pro_C1, double y_max_C1, double z_pro
 }
 
 
+/// <summary>
+/// Function to sort the results into variables to use in the fitting algorithm.
+/// </summary>
+/// <param name="numbins">
+/// Result bin to sort.
+/// </param>
+/// <param name="angle_para">
+/// Parallel second crystal angle.
+/// </param>
+/// <param name="toint_para">
+/// Total number of events for the results in the parallel bin.
+/// </param>
+/// <param name="angle_anti">
+/// Antiparallel second crystal angle.
+/// </param>
+/// <param name="toint_anti">
+/// Total number of events for the results in the antiparallel bin.
+/// </param>
 void Util::FitData(int numbins, double angle_para, int toint_para, double angle_anti, int toint_anti) {
 
     if (Data_Fit_anti.size() < (unsigned int)numbins)
@@ -1751,6 +2221,11 @@ void Util::FitData(int numbins, double angle_para, int toint_para, double angle_
 }
 
 
+/// <summary>
+/// Function to read the source energy spectrum.
+/// The cumulative distribution for the spectrum is also calculated
+/// to be used for the random energy generation.
+/// </summary>
 void Util::Read_EnergySpectrum() {
 
     bool exist_file;
@@ -1836,6 +2311,15 @@ void Util::Read_EnergySpectrum() {
 }
 
 
+/// <summary>
+/// Function to calculate the effective angular misalign from the source to the detector.
+/// </summary>
+/// <param name="Dis_total">
+/// Total distance the radiation travels between the source and detector.
+/// </param>
+/// <returns>
+/// Vector with the angular and z axis interaction limits.
+/// </returns>
 std::vector<double> Util::misalign(double Dis_total) {
 
     double dev, term_arc, Geo_para_matr[4][4], len, hei, tetaref, div, fi_temp, fi_max, fi_min, z_max, z_min;
@@ -1891,6 +2375,9 @@ std::vector<double> Util::misalign(double Dis_total) {
 }
 
 
+/// <summary>
+/// Function to convert angles from degree to radians.
+/// </summary>
 void Util::Set_angs() {
 
     if (never_set_angle) {
@@ -1924,6 +2411,9 @@ void Util::Set_angs() {
 }
 
 
+/// <summary>
+/// Function to test the input parameters for the energy of the source radiation.
+/// </summary>
 void Util::test_In() {
 
     double b_anti_pick;

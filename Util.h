@@ -17,7 +17,7 @@
 
 namespace Util {
 
-    double Box(double sta_dev, double mean);
+    double GaussianBox(double sta_dev, double mean);
     void cov_srt(std::vector<std::vector<double>> covar, int npc, int ma, int* ia, int mfit);
     void cw(double xw, double yw, double& ak, double& al);
     int FindLoc(std::vector<double> array, double value);
@@ -43,7 +43,7 @@ namespace Util {
     bool CheckSpectrum(std::string unit);
     double ObtainVert(int crystal, double angle);
     bool getReflection(double angle, double tetabra, double lamda, bool type_crystal, bool poli_p);
-    double getNewTemp(int bin_tem, int bin_fas, double pha_tem);
+    double getNewTemp(int bin_tem, int& bin_fas, double& pha_tem);
     double getEnergy(double a_lamds_uni, double db_lamds_uni, double tw_d);
     std::vector<double> getLims(double tetaref, double delrot_min, double delrot_max, double fi_max, double teta_max, double teta_min);
     void initPlates();
