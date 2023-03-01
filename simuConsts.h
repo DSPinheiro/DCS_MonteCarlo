@@ -142,6 +142,7 @@ struct plotparameters {
 struct numberrays {
     int nbeams;
     int number_rotati;
+    int number_events;
 };
 
 struct physical_parameters {

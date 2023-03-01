@@ -56,7 +56,7 @@ QSize QDCS3Dvis::sizeHint() const
     return QSize(400, 400);
 }
 
-static void qNormalizeAngle(int &angle)
+static void qNormalizeAngle(int& angle)
 {
     if (angle < 0)
         angle = 360;
@@ -64,7 +64,7 @@ static void qNormalizeAngle(int &angle)
         angle = 0;
 }
 
-static void qNormalizeUScale(float &scale)
+static void qNormalizeUScale(float& scale)
 {
     if (scale < 0.01)
         scale = 0.01;
@@ -127,6 +127,12 @@ void QDCS3Dvis::setYPan(float ypan)
 void QDCS3Dvis::setDelrot(float rot)
 {
     delrot = rot;
+}
+
+void QDCS3Dvis::setEventsToTrace(std::vector<std::vector<double>> events_para, std::vector<std::vector<double>> events_anti)
+{
+    eventsToTrace_para = events_para;
+    eventsToTrace_anti = events_anti;
 }
 
 bool QDCS3Dvis::loadOBJ(const char *path,
@@ -605,6 +611,9 @@ void QDCS3Dvis::paintGL()
     drawAntiParallel(m);
     drawParallelText(m);
     drawAntiParallelText(m);
+
+    drawParallelEvents(m);
+    drawAntiparallelEvents(m);
 }
 
 void QDCS3Dvis::resizeGL(int width, int height)
@@ -676,14 +685,14 @@ void QDCS3Dvis::drawParallel(QMatrix4x4 &m)
 
     m.scale(2 / GeolengthelementsInput.S_aper, 2 / GeoParapathlengthsInput.LT_aper, 2 / GeolengthelementsInput.S_aper);
     m.translate(-ap_posx, -ap_posy, -ap_posz);
-
+    
 
     table_angle = GeoParametersInput.teta_table + 90;
     c1_angle = GeoParametersInput.Exp_crys1 - GeoParametersInput.OffsetRotCry1;
     c2_angle_para = - table_angle - c1_angle + delrot * convdeg + 90;
     detec_angle_para = GeoParametersInput.teta_detec_para;
 
-
+    
     //Crystal 1
     m.rotate(table_angle + c1_angle, 0.0, 0.0, 1.0);
     m.rotate(GeoParametersInput.tilt_C1, 0.0f, 1.0f, 0.0f);
@@ -779,6 +788,7 @@ void QDCS3Dvis::drawParallel(QMatrix4x4 &m)
     m.scale(3 / (2 * (GeoParapathlengthsInput.dist_Cr1_Cr2 + GeoParapathlengthsInput.dist_Cr2_Det)), 1 / (3 * GeolengthelementsInput.ydetc), 1 / GeolengthelementsInput.z_first_crys);
     m.translate(-table_posx, -table_posy, -table_posz);
     m.rotate(-table_angle, 0.0, 0.0, 1.0);
+    
 }
 
 void QDCS3Dvis::drawAntiParallel(QMatrix4x4 &m)
@@ -788,6 +798,7 @@ void QDCS3Dvis::drawAntiParallel(QMatrix4x4 &m)
     float c1_posz = -30.0f;
     c2_posz -= 30.0f;
     table_posz -= 30.0f;
+
 
     //Source Representation (i.e. entry flange to the chamber)
     m.translate(source_posx, source_posy, source_posz);
@@ -1237,4 +1248,199 @@ void QDCS3Dvis::drawObject(std::vector<QVector3D> vertices, GLuint vbo, GLuint u
 
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
+}
+
+
+void QDCS3Dvis::drawParallelEvents(QMatrix4x4& m) {
+    table_angle = GeoParametersInput.teta_table + 90;
+    c1_angle = GeoParametersInput.Exp_crys1 - GeoParametersInput.OffsetRotCry1;
+    c2_angle_para = -table_angle - c1_angle + delrot * convdeg + 90;
+    detec_angle_para = GeoParametersInput.teta_detec_para;
+
+    
+    //Parallel events representation as yellow lines (similar to Geant4)
+    for (std::vector<double> event : eventsToTrace_para) {
+        
+        if (event.size() > 5) {
+            float sc1_HWDx = (event.at(4) + event.at(1)) / 4;
+            float sc1_HWDz = (event.at(5) + event.at(2)) / 4;
+
+            float sc1_anglex = atanf(2 * sc1_HWDx / abs(source_posy));
+            float sc1_anglez = atanf(2 * sc1_HWDz / abs(source_posy));
+
+            //Transform to the source reference frame
+            m.translate(source_posx / 2 + sc1_HWDx, source_posy / 2 - event.at(0), source_posz + sc1_HWDz);
+            m.rotate(sc1_anglex, 1.0, 0.0, 0.0);
+            m.rotate(sc1_anglez, 0.0, 0.0, 1.0);
+            m.scale(eventLineSize, source_posy / 2, eventLineSize);
+
+            programShader->setUniformValue("matrix", m);
+            sourceCylinderTexture->bind();
+            drawObject(baseCylinderVertices, baseCylinderModelVertexBuffer, baseCylinderModelUVBuffer);
+
+            m.scale(1 / eventLineSize, 2 / source_posy, 1 / eventLineSize);
+            m.rotate(-sc1_anglex, 1.0, 0.0, 0.0);
+            m.rotate(-sc1_anglez, 0.0, 0.0, 1.0);
+            m.translate(-source_posx / 2 - sc1_HWDx, -source_posy / 2 + event.at(0), -source_posz - sc1_HWDz);
+
+
+            if (event.size() > 6) {
+                float c1c2_HWDy = (event.at(7) + event.at(4)) / 4;
+                float c1c2_HWDz = (event.at(8) + event.at(5)) / 4;
+
+                float c1c2_angley = atanf(2 * c1c2_HWDy / abs(c2_posx));
+                float c1c2_anglez = atanf(2 * c1c2_HWDz / abs(c2_posx));
+
+                //Transform to the second crystal reference frame in parallel
+                m.rotate(table_angle, 0.0, 0.0, 1.0);
+                m.translate(c2_posx / 2, c2_posy + c1c2_HWDy, c2_posz + c1c2_HWDz);
+                m.rotate(90 + c1c2_anglez, 0.0, 0.0, 1.0);
+                m.rotate(c1c2_angley, 0.0, 1.0, 0.0);
+                m.scale(eventLineSize, c2_posx / 2, eventLineSize);
+
+                programShader->setUniformValue("matrix", m);
+                sourceCylinderTexture->bind();
+                drawObject(baseCylinderVertices, baseCylinderModelVertexBuffer, baseCylinderModelUVBuffer);
+
+                m.scale(1 / eventLineSize, 2 / c2_posx, 1 / eventLineSize);
+                m.rotate(-90 - c1c2_anglez, 0.0, 0.0, 1.0);
+                m.rotate(-c1c2_angley, 0.0, 1.0, 0.0);
+                m.translate(-c2_posx / 2, -c2_posy - c1c2_HWDy, -c2_posz - c1c2_HWDz);
+                m.rotate(-table_angle, 0.0, 0.0, 1.0);
+            }
+
+            if (event.size() > 9) {
+                float c2det_HWDy = (event.at(10) + event.at(7)) / 4;
+                float c2det_HWDz = (event.at(11) + event.at(8)) / 4;
+
+                float c2det_angley = atanf(2 * c2det_HWDy / abs(detec_posx));
+                float c2det_anglez = atanf(2 * c2det_HWDz / abs(detec_posx));
+
+                //Transform to the detector reference frame in antiparallel
+                m.rotate(table_angle, 0.0, 0.0, 1.0);
+                m.translate(c2_posx, c2_posy, c2_posz);
+                m.rotate(detec_angle_anti, 0.0, 0.0, 1.0);
+                m.translate(detec_posx / 2, detec_posy + c2det_HWDy, detec_posz + c2det_HWDz);
+                m.rotate(90 + c2det_anglez, 0.0, 0.0, 1.0);
+                m.rotate(c2det_angley, 0.0, 1.0, 0.0);
+                m.scale(eventLineSize, detec_posx / 2, eventLineSize);
+
+                programShader->setUniformValue("matrix", m);
+                sourceCylinderTexture->bind();
+                drawObject(baseCylinderVertices, baseCylinderModelVertexBuffer, baseCylinderModelUVBuffer);
+
+                m.scale(1 / eventLineSize, 2 / detec_posx, 1 / eventLineSize);
+                m.rotate(-90 - c2det_anglez, 0.0, 0.0, 1.0);
+                m.rotate(-c2det_angley, 0.0, 1.0, 0.0);
+                m.translate(-detec_posx / 2, -detec_posy - c2det_HWDy, -detec_posz - c2det_HWDz);
+                m.rotate(-detec_angle_anti, 0.0, 0.0, 1.0);
+                m.translate(-c2_posx, -c2_posy, -c2_posz);
+                m.rotate(-table_angle, 0.0, 0.0, 1.0);
+            }
+        }
+    }
+}
+
+void QDCS3Dvis::drawAntiparallelEvents(QMatrix4x4& m) {
+    source_posz -= 30.0f;
+    ap_posz -= 30.0f;
+    float c1_posz = -30.0f;
+    c2_posz -= 30.0f;
+    table_posz -= 30.0f;
+
+    
+    table_angle = GeoParametersInput.teta_table + 90;
+    c1_angle = GeoParametersInput.Exp_crys1 - GeoParametersInput.OffsetRotCry1;
+    c2_angle_anti = table_angle + c1_angle + delrot * convdeg + 90;
+    detec_angle_anti = GeoParametersInput.teta_detec_anti;
+
+    //Antiparallel events representation as yellow lines (similar to Geant4)
+    for (std::vector<double> event : eventsToTrace_anti) {
+
+        if (event.size() > 5) {
+            //if (event.at(1) > (GeolengthelementsInput.S_sour + 1) / 2) {
+            //    std::cout << "erettr" << std::endl;
+            //}
+            float sc1_HWDx = (event.at(4) + event.at(1)) / 4;
+            float sc1_HWDz = (event.at(5) + event.at(2)) / 4;
+
+            float sc1_anglex = atanf(2 * sc1_HWDx / abs(source_posy));
+            float sc1_anglez = atanf(2 * sc1_HWDz / abs(source_posy));
+
+            //Transform to the source reference frame
+            m.translate(source_posx / 2 + sc1_HWDx, source_posy / 2 + event.at(0), source_posz + sc1_HWDz);
+            m.rotate(sc1_anglex, 1.0, 0.0, 0.0);
+            m.rotate(sc1_anglez, 0.0, 0.0, 1.0);
+            m.scale(eventLineSize, source_posy / 2, eventLineSize);
+
+            programShader->setUniformValue("matrix", m);
+            sourceCylinderTexture->bind();
+            drawObject(baseCylinderVertices, baseCylinderModelVertexBuffer, baseCylinderModelUVBuffer);
+
+            m.scale(1 / eventLineSize, 2 / source_posy, 1 / eventLineSize);
+            m.rotate(-sc1_anglex, 1.0, 0.0, 0.0);
+            m.rotate(-sc1_anglez, 0.0, 0.0, 1.0);
+            m.translate(-source_posx / 2 - sc1_HWDx, -source_posy / 2 - event.at(0), -source_posz - sc1_HWDz);
+
+
+            if (event.size() > 6) {
+                float c1c2_HWDy = (event.at(7) + event.at(4)) / 4;
+                float c1c2_HWDz = (event.at(8) + event.at(5)) / 4;
+
+                float c1c2_angley = atanf(2 * c1c2_HWDy / abs(c2_posx));
+                float c1c2_anglez = atanf(2 * c1c2_HWDz / abs(c2_posx));
+
+                //Transform to the second crystal reference frame in parallel
+                m.rotate(table_angle, 0.0, 0.0, 1.0);
+                m.translate(c2_posx / 2, c2_posy + c1c2_HWDy, c2_posz + c1c2_HWDz);
+                m.rotate(90 + c1c2_anglez, 0.0, 0.0, 1.0);
+                m.rotate(c1c2_angley, 0.0, 1.0, 0.0);
+                m.scale(eventLineSize, c2_posx / 2, eventLineSize);
+
+                programShader->setUniformValue("matrix", m);
+                sourceCylinderTexture->bind();
+                drawObject(baseCylinderVertices, baseCylinderModelVertexBuffer, baseCylinderModelUVBuffer);
+
+                m.scale(1 / eventLineSize, 2 / c2_posx, 1 / eventLineSize);
+                m.rotate(-90 - c1c2_anglez, 0.0, 0.0, 1.0);
+                m.rotate(-c1c2_angley, 0.0, 1.0, 0.0);
+                m.translate(-c2_posx / 2, -c2_posy - c1c2_HWDy, -c2_posz - c1c2_HWDz);
+                m.rotate(-table_angle, 0.0, 0.0, 1.0);
+            }
+
+            if (event.size() > 9) {
+                float c2det_HWDy = (event.at(10) + event.at(7)) / 4;
+                float c2det_HWDz = (event.at(11) + event.at(8)) / 4;
+
+                float c2det_angley = atanf(2 * c2det_HWDy / abs(detec_posx));
+                float c2det_anglez = atanf(2 * c2det_HWDz / abs(detec_posx));
+
+                //Transform to the detector reference frame in antiparallel
+                m.rotate(table_angle, 0.0, 0.0, 1.0);
+                m.translate(c2_posx, c2_posy, c2_posz);
+                m.rotate(detec_angle_anti, 0.0, 0.0, 1.0);
+                m.translate(detec_posx / 2, detec_posy + c2det_HWDy, detec_posz + c2det_HWDz);
+                m.rotate(90 + c2det_anglez, 0.0, 0.0, 1.0);
+                m.rotate(c2det_angley, 0.0, 1.0, 0.0);
+                m.scale(eventLineSize, detec_posx / 2, eventLineSize);
+
+                programShader->setUniformValue("matrix", m);
+                sourceCylinderTexture->bind();
+                drawObject(baseCylinderVertices, baseCylinderModelVertexBuffer, baseCylinderModelUVBuffer);
+
+                m.scale(1 / eventLineSize, 2 / detec_posx, 1 / eventLineSize);
+                m.rotate(-90 - c2det_anglez, 0.0, 0.0, 1.0);
+                m.rotate(-c2det_angley, 0.0, 1.0, 0.0);
+                m.translate(-detec_posx / 2, -detec_posy - c2det_HWDy, -detec_posz - c2det_HWDz);
+                m.rotate(-detec_angle_anti, 0.0, 0.0, 1.0);
+                m.translate(-c2_posx, -c2_posy, -c2_posz);
+                m.rotate(-table_angle, 0.0, 0.0, 1.0);
+            }
+        }
+    }
+
+    source_posz += 30.0f;
+    ap_posz += 30.0f;
+    c2_posz += 30.0f;
+    table_posz += 30.0f;
 }

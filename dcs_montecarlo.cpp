@@ -507,6 +507,8 @@ int main(int argc, char *argv[]){
                                     NumberRaysInput.nbeams = stoi(split(split(elem, "=")[1], "/")[0]);
                                 else if(item == "number_rotati")
                                     NumberRaysInput.number_rotati = stoi(split(split(elem, "=")[1], "/")[0]);
+                                else if (item == "number_graph_events")
+                                    NumberRaysInput.number_events = stoi(split(split(elem, "=")[1], "/")[0]);
                             }
                         }else{
                             for(string elem : split(line, ", ")){
@@ -516,6 +518,8 @@ int main(int argc, char *argv[]){
                                     NumberRaysInput.nbeams = stoi(split(split(elem, "=")[1], "/")[0]);
                                 else if(item == "number_rotati")
                                     NumberRaysInput.number_rotati = stoi(split(split(elem, "=")[1], "/")[0]);
+                                else if (item == "number_graph_events")
+                                    NumberRaysInput.number_events = stoi(split(split(elem, "=")[1], "/")[0]);
                             }
                         }
 
@@ -1141,6 +1145,10 @@ int main(int argc, char *argv[]){
                                 else if (items[0] == "number_rotati") {
                                     trim(items[1]);
                                     NumberRaysInput.number_rotati = stoi(items[1]);
+                                }
+                                else if (items[0] == "number_graph_events") {
+                                    trim(items[1]);
+                                    NumberRaysInput.number_events = stoi(items[1]);
                                 }
 
                             }

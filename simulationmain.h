@@ -27,7 +27,17 @@ public:
     void guiSimu();
 
 public slots:
-    void changeStats(double c_sour, double c_cr1, double c_cr2_para, double c_cr2_anti, double c_detc_para, double c_detc_anti, double delrot);
+    void SimulationMain::changeStats(
+        double c_sour,
+        double c_cr1,
+        double c_cr2_para,
+        double c_cr2_anti,
+        double c_detc_para,
+        double c_detc_anti,
+        double delrot,
+        std::vector<std::vector<double>> events_para,
+        std::vector<std::vector<double>> events_anti);
+
     void changePlots(std::vector<plot> para, std::vector<plot> anti);
     void changePlates(double hist_image[n_his_ima][n_his_ima], double max_z, int crystal);
     void changeTimes(int timeSlot, int h, int m, int s);

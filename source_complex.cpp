@@ -353,7 +353,19 @@ void Source_complex::run_Source(SimulationMain *w){
 
             I = 1;
 
+
+            vector<vector<double>> eventsToTrace_para;
+            vector<vector<double>> eventsToTrace_anti;
+
+
             while(I <= NumberRaysInput.nbeams){
+                //Temporary event to show in the 3D view
+                //If we have less than maxEventNum we just append otherwise we see
+                //this temporary event stored reaches the exit before appending.
+                //Each triple of values is 1 point and each event will have 4 points.
+                //Source - Crystal1 - Crystal2 - Detector
+                vector<double> tmpEvent;
+
 
                 if(UserSettingsInput.Make_Horizontal){
                     p = del_teta_L * ((double)rand() / RAND_MAX) + teta_min_L;
@@ -485,6 +497,12 @@ void Source_complex::run_Source(SimulationMain *w){
 
                     if(GraphOptionsInput.make_image_plates){
                         Util::Make(1, y, z);
+
+                        //Event point at source
+                        tmpEvent.push_back(0); //X
+                        tmpEvent.push_back(y); //Y
+                        tmpEvent.push_back(z); //Z
+                        
                     }
 
 
@@ -512,6 +530,11 @@ void Source_complex::run_Source(SimulationMain *w){
                         if(!GraphOptionsInput.make_imageC1_After_refle){
                             if(GraphOptionsInput.make_image_plates){
                                 Util::Make(2, y_pro_C1, z_pro_C1);
+                                
+                                //Event point at the first crystal
+                                tmpEvent.push_back(0); //X
+                                tmpEvent.push_back(y_pro_C1); //Y
+                                tmpEvent.push_back(z_pro_C1); //Z
                             }
                         }
 
@@ -641,6 +664,11 @@ void Source_complex::run_Source(SimulationMain *w){
                                     if(GraphOptionsInput.make_image_plates){
                                         if(!GraphOptionsInput.make_imageC2_After_refle){
                                             Util::Make(3, y_pro_C1, z_pro_C1);
+
+                                            //Event point at second crystal in parallel
+                                            tmpEvent.push_back(0); //X
+                                            tmpEvent.push_back(y_pro_C1); //Y
+                                            tmpEvent.push_back(z_pro_C1); //Z
                                         }
                                     }
 
@@ -736,16 +764,54 @@ void Source_complex::run_Source(SimulationMain *w){
 
                                             if(GraphOptionsInput.make_image_plates){
                                                 Util::Make(4, y_det, z_det);
+
+                                                //Event point at detector in parallel
+                                                tmpEvent.push_back(0); //X
+                                                tmpEvent.push_back(y_det); //Y
+                                                tmpEvent.push_back(z_det); //Z
+
+                                                if (eventsToTrace_para.size() < NumberRaysInput.number_events) {
+                                                    eventsToTrace_para.push_back(tmpEvent);
+                                                }
+                                                else {
+                                                    eventsToTrace_para.erase(eventsToTrace_para.begin());
+                                                    eventsToTrace_para.push_back(tmpEvent);
+                                                }
                                             }
 
                                             toint_para++;
 
                                         }
+                                        else {
+                                            if (GraphOptionsInput.make_image_plates) {
+                                                //If the event does not reach the detector then only add when we have less than maxEventNum
+                                                if (eventsToTrace_para.size() < NumberRaysInput.number_events && tmpEvent.size() >= 6) {
+                                                    eventsToTrace_para.push_back(tmpEvent);
+                                                }
+                                            }
 
+                                        }
+
+                                    }
+                                    else {
+                                        if (GraphOptionsInput.make_image_plates) {
+                                            //If the event does not reach the detector then only add when we have less than maxEventNum
+                                            if (eventsToTrace_para.size() < NumberRaysInput.number_events && tmpEvent.size() >= 6) {
+                                                eventsToTrace_para.push_back(tmpEvent);
+                                            }
+                                        }
                                     }
 
 
 
+                                }
+                                else {
+                                    if (GraphOptionsInput.make_image_plates) {
+                                        //If the event does not reach the detector then only add when we have less than maxEventNum
+                                        if (eventsToTrace_para.size() < NumberRaysInput.number_events && tmpEvent.size() >= 6) {
+                                            eventsToTrace_para.push_back(tmpEvent);
+                                        }
+                                    }
                                 }
 
 
@@ -771,6 +837,11 @@ void Source_complex::run_Source(SimulationMain *w){
                                     if(GraphOptionsInput.make_imageC2_After_refle){
                                         if(GraphOptionsInput.make_image_plates){
                                             Util::Make(5, y_pro_C1, z_pro_C1);
+
+                                            //Event point at second crystal in antiparallel
+                                            tmpEvent.push_back(0); //X
+                                            tmpEvent.push_back(y_pro_C1); //Y
+                                            tmpEvent.push_back(z_pro_C1); //Z
                                         }
                                     }
 
@@ -863,16 +934,53 @@ void Source_complex::run_Source(SimulationMain *w){
 
                                         if(y_det < ydetc_2_max && y_det > ydetc_2_min && z_det < zdetc_2_max && z_det > zdetc_2_min){
 
-                                            if(GraphOptionsInput.make_image_plates){
+                                            if (GraphOptionsInput.make_image_plates) {
                                                 Util::Make(6, y_det, z_det);
+
+                                                //Event point at detector in antiparallel
+                                                tmpEvent.push_back(0); //X
+                                                tmpEvent.push_back(y_det); //Y
+                                                tmpEvent.push_back(z_det); //Z
+
+                                                if (eventsToTrace_anti.size() < NumberRaysInput.number_events) {
+                                                    eventsToTrace_anti.push_back(tmpEvent);
+                                                }
+                                                else {
+                                                    eventsToTrace_anti.erase(eventsToTrace_anti.begin());
+                                                    eventsToTrace_anti.push_back(tmpEvent);
+                                                }
                                             }
 
                                             toint_anti++;
 
                                         }
+                                        else {
+                                            if (GraphOptionsInput.make_image_plates) {
+                                                //If the event does not reach the detector then only add when we have less than maxEventNum
+                                                if (eventsToTrace_anti.size() < NumberRaysInput.number_events && tmpEvent.size() >= 6) {
+                                                    eventsToTrace_anti.push_back(tmpEvent);
+                                                }
+                                            }
+                                        }
 
                                     }
+                                    else {
+                                        if (GraphOptionsInput.make_image_plates) {
+                                            //If the event does not reach the detector then only add when we have less than maxEventNum
+                                            if (eventsToTrace_anti.size() < NumberRaysInput.number_events && tmpEvent.size() >= 6) {
+                                                eventsToTrace_anti.push_back(tmpEvent);
+                                            }
+                                        }
+                                    }
 
+                                }
+                                else {
+                                    if (GraphOptionsInput.make_image_plates) {
+                                        //If the event does not reach the detector then only add when we have less than maxEventNum
+                                        if (eventsToTrace_anti.size() < NumberRaysInput.number_events && tmpEvent.size() >= 6) {
+                                            eventsToTrace_anti.push_back(tmpEvent);
+                                        }
+                                    }
                                 }
 
                             }
@@ -887,10 +995,17 @@ void Source_complex::run_Source(SimulationMain *w){
 
             }
 
-
-
             if(GraphOptionsInput.make_image_plates){
-                emit w->changeStats(counts_sour, counts_C1, counts_C2_para, counts_C2_anti, counts_detc_para, counts_detc_anti, delrot);
+                emit w->changeStats(
+                    counts_sour,
+                    counts_C1,
+                    counts_C2_para,
+                    counts_C2_anti,
+                    counts_detc_para,
+                    counts_detc_anti,
+                    delrot,
+                    eventsToTrace_para,
+                    eventsToTrace_anti);
             }
 
 

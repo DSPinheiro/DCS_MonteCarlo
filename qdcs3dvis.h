@@ -28,6 +28,7 @@ public:
     ~QDCS3Dvis();
 
     void setDelrot(float rot);
+    void setEventsToTrace(std::vector<std::vector<double>> events_para, std::vector<std::vector<double>> events_anti);
 signals:
 
 public slots:
@@ -62,6 +63,9 @@ private:
     void drawParallelText(QMatrix4x4 &m);
     void drawAntiParallelText(QMatrix4x4 &m);
     void drawObject(std::vector<QVector3D> vertices, GLuint vbo, GLuint uvb);
+
+    void drawParallelEvents(QMatrix4x4& m);
+    void drawAntiparallelEvents(QMatrix4x4& m);
 
     int xRot;
     int yRot;
@@ -104,6 +108,11 @@ private:
     float table_posz;
 
     float delrot;
+
+    float eventLineSize = 0.05f;
+
+    std::vector<std::vector<double>> eventsToTrace_para;
+    std::vector<std::vector<double>> eventsToTrace_anti;
 
     QPoint lastPos;
 

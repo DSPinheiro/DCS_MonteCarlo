@@ -257,7 +257,16 @@ void SimulationMain::closeEvent(QCloseEvent *){
         throw runtime_error("Simulation ended by user input before finishing. Results are incomplete.");
 }
 
-void SimulationMain::changeStats(double c_sour, double c_cr1, double c_cr2_para, double c_cr2_anti, double c_detc_para, double c_detc_anti, double delrot){
+void SimulationMain::changeStats(
+    double c_sour,
+    double c_cr1,
+    double c_cr2_para,
+    double c_cr2_anti,
+    double c_detc_para,
+    double c_detc_anti,
+    double delrot,
+    std::vector<std::vector<double>> events_para,
+    std::vector<std::vector<double>> events_anti){
     ui->Ecnts_val->setText(QString(split(to_string(c_sour), ".")[0].c_str()));
     ui->C1cnts_val->setText(QString(split(to_string(c_cr1), ".")[0].c_str()));
     ui->C2Pcnts_val->setText(QString(split(to_string(c_cr2_para), ".")[0].c_str()));
@@ -266,6 +275,7 @@ void SimulationMain::changeStats(double c_sour, double c_cr1, double c_cr2_para,
     ui->DAcnts_val->setText(QString(split(to_string(c_detc_anti), ".")[0].c_str()));
     ui->currRot_val->setText(QString(to_string(delrot * convdeg).c_str()));
     ui->GL3Dvis->setDelrot(delrot);
+    ui->GL3Dvis->setEventsToTrace(events_para, events_anti);
     ui->GL3Dvis->update();
 }
 
