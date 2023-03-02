@@ -1,5 +1,7 @@
 #include "qdcs3dvis.h"
-
+#include <QtWidgets/qplaintextedit.h>
+#include <sstream>
+#include <QString>
 
 
 QDCS3Dvis::QDCS3Dvis(QWidget* parent)
@@ -11,7 +13,7 @@ QDCS3Dvis::QDCS3Dvis(QWidget* parent)
     uScale = 0.2f;
     xPan = 0.0f;
     yPan = 0.0f;
-
+    
     delrot = 0.0f;
     tetaref = 90 - teta_crys1;
 }
@@ -148,7 +150,11 @@ bool QDCS3Dvis::loadOBJ(const char *path,
 
     std::ifstream objPath(path);
     if(!objPath.is_open()){
-        std::cout << "Impossible to open the file at: " << path << std::endl;
+        std::stringstream logString;
+
+        logString << "Impossible to open the file at: " << path << std::endl;
+        logBox->appendPlainText(QString(logString.str().c_str()));
+        
         return false;
     }
 
@@ -282,39 +288,39 @@ void QDCS3Dvis::initializeGL()
     bool res = loadOBJ(baseCubeModelPath.c_str(), baseCubeVertices, baseCubeUVs, baseCubeNormals);
 
     if (res)
-        std::cout << "Base cube model loaded successfully." << std::endl;
+        logBox->appendPlainText("Base cube model loaded successfully.\n");
     else
-        std::cout << "Error loading base cube model." << std::endl;
-
+        logBox->appendPlainText("Error loading base cube model.\n");
+    
     //Load base cube model from disk into arrays
     std::string baseCylinderModelPath = std::string(File_simu) + "\\DCSModels\\cylinder.obj";
 
     res = loadOBJ(baseCylinderModelPath.c_str(), baseCylinderVertices, baseCylinderUVs, baseCylinderNormals);
 
     if (res)
-        std::cout << "Base cylinder model loaded successfully." << std::endl;
+        logBox->appendPlainText("Base cylinder model loaded successfully.\n");
     else
-        std::cout << "Error loading base cylinder model." << std::endl;
-
+        logBox->appendPlainText("Error loading base cylinder model.\n");
+        
     //Load C1 text model from disk into arrays
     std::string C1TextModelPath = std::string(File_simu) + "\\DCSModels\\C1text.obj";
 
     res = loadOBJ(C1TextModelPath.c_str(), C1TextVertices, C1TextUVs, C1TextNormals);
 
     if (res)
-        std::cout << "C1 Text model loaded successfully." << std::endl;
+        logBox->appendPlainText("C1 Text model loaded successfully.\n");
     else
-        std::cout << "Error loading C1 Text model." << std::endl;
-
+        logBox->appendPlainText("Error loading C1 Text model.\n");
+        
     //Load C2 text model from disk into arrays
     std::string C2TextModelPath = std::string(File_simu) + "\\DCSModels\\C2text.obj";
 
     res = loadOBJ(C2TextModelPath.c_str(), C2TextVertices, C2TextUVs, C2TextNormals);
 
     if (res)
-        std::cout << "C2 Text model loaded successfully." << std::endl;
+        logBox->appendPlainText("C2 Text model loaded successfully.\n");
     else
-        std::cout << "Error loading C2 Text model." << std::endl;
+        logBox->appendPlainText("Error loading C2 Text model.\n");
 
     //Load Source text model from disk into arrays
     std::string SourceTextModelPath = std::string(File_simu) + "\\DCSModels\\Sourcetext.obj";
@@ -322,29 +328,29 @@ void QDCS3Dvis::initializeGL()
     res = loadOBJ(SourceTextModelPath.c_str(), SourceTextVertices, SourceTextUVs, SourceTextNormals);
 
     if (res)
-        std::cout << "Source Text model loaded successfully." << std::endl;
+        logBox->appendPlainText("Source Text model loaded successfully.\n");
     else
-        std::cout << "Error loading Source Text model." << std::endl;
-
+        logBox->appendPlainText("Error loading Source Text model.\n");
+        
     //Load Apperture text model from disk into arrays
     std::string AppertureTextModelPath = std::string(File_simu) + "\\DCSModels\\Apperturetext.obj";
 
     res = loadOBJ(AppertureTextModelPath.c_str(), AppertureTextVertices, AppertureTextUVs, AppertureTextNormals);
 
     if (res)
-        std::cout << "Apperture Text model loaded successfully." << std::endl;
+        logBox->appendPlainText("Apperture Text model loaded successfully.\n");
     else
-        std::cout << "Error loading Apperture Text model." << std::endl;
-
+        logBox->appendPlainText("Error loading Apperture Text model.\n");
+    
     //Load Table text model from disk into arrays
     std::string TableTextModelPath = std::string(File_simu) + "\\DCSModels\\Tabletext.obj";
 
     res = loadOBJ(TableTextModelPath.c_str(), TableTextVertices, TableTextUVs, TableTextNormals);
 
     if (res)
-        std::cout << "Table Text model loaded successfully." << std::endl;
+        logBox->appendPlainText("Table Text model loaded successfully.\n");
     else
-        std::cout << "Error loading Table Text model." << std::endl;
+        logBox->appendPlainText("Error loading Table Text model.\n");
 
     //Load Detector text model from disk into arrays
     std::string DetectorTextModelPath = std::string(File_simu) + "\\DCSModels\\Detectortext.obj";
@@ -352,9 +358,9 @@ void QDCS3Dvis::initializeGL()
     res = loadOBJ(DetectorTextModelPath.c_str(), DetectorTextVertices, DetectorTextUVs, DetectorTextNormals);
 
     if (res)
-        std::cout << "Detector Text model loaded successfully." << std::endl;
+        logBox->appendPlainText("Detector Text model loaded successfully.\n");
     else
-        std::cout << "Error loading Detector Text model." << std::endl;
+        logBox->appendPlainText("Error loading Detector Text model.\n");
 
     //Load Para Configuration text model from disk into arrays
     std::string ParaTextModelPath = std::string(File_simu) + "\\DCSModels\\ParaConfigtext.obj";
@@ -362,9 +368,9 @@ void QDCS3Dvis::initializeGL()
     res = loadOBJ(ParaTextModelPath.c_str(), ParaTextVertices, ParaTextUVs, ParaTextNormals);
 
     if (res)
-        std::cout << "Para Configuration Text model loaded successfully." << std::endl;
+        logBox->appendPlainText("Para Configuration Text model loaded successfully.\n");
     else
-        std::cout << "Error loading Para Configuration Text model." << std::endl;
+        logBox->appendPlainText("Error loading Para Configuration Text model.\n");
 
     //Load Anti Configuration text model from disk into arrays
     std::string AntiTextModelPath = std::string(File_simu) + "\\DCSModels\\AntiConfigtext.obj";
@@ -372,9 +378,9 @@ void QDCS3Dvis::initializeGL()
     res = loadOBJ(AntiTextModelPath.c_str(), AntiTextVertices, AntiTextUVs, AntiTextNormals);
 
     if (res)
-        std::cout << "Para Configuration Text model loaded successfully." << std::endl;
+        logBox->appendPlainText("Para Configuration Text model loaded successfully.\n");
     else
-        std::cout << "Error loading Para Configuration Text model." << std::endl;
+        logBox->appendPlainText("Error loading Para Configuration Text model.\n");
 
     //Load base cube texture from disk
     std::string baseCubeTexturePath = std::string(File_simu) + "\\DCSModels\\cubeTex.png";

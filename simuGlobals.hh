@@ -11,6 +11,7 @@
 #define SIMUGLOBALS_HH_
 
 #include "simuConsts.h"
+#include <QtWidgets/qplaintextedit.h>
 
 
 extern Geometry GeometryInput;
@@ -40,6 +41,8 @@ extern double linelambda1, naturalwidth1, linelambda2, naturalwidth2, linelambda
 extern double request_width[4], request_energy[4];
 
 extern pick picks[5];
+
+extern QPlainTextEdit* logBox;
 
 extern std::ofstream gener_out;
 extern std::ofstream hist_para;

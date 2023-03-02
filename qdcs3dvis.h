@@ -58,6 +58,7 @@ protected:
     );
 
 private:
+
     void drawParallel(QMatrix4x4 &m);
     void drawAntiParallel(QMatrix4x4 &m);
     void drawParallelText(QMatrix4x4 &m);

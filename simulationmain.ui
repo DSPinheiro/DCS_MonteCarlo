@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>1042</width>
-    <height>604</height>
+    <height>644</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -815,6 +815,12 @@
               <height>264</height>
              </size>
             </property>
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="statusTip">
+             <string>3D Visualization of the geometry and events being simulated.</string>
+            </property>
            </widget>
           </item>
          </layout>
@@ -1304,6 +1310,28 @@
        </layout>
       </item>
      </layout>
+    </item>
+    <item row="1" column="0">
+     <widget class="QPlainTextEdit" name="logBox">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+        <horstretch>1</horstretch>
+        <verstretch>1</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>1024</width>
+        <height>50</height>
+       </size>
+      </property>
+      <property name="toolTip">
+       <string/>
+      </property>
+      <property name="statusTip">
+       <string>LogBox for the console output.</string>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>

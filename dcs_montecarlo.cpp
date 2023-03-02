@@ -1,13 +1,16 @@
+#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
+
 //============================================================================
 // Name        : dcs_montecarlo.cpp
 // Author      : Daniel Pinheiro, Pedro Amaro
-// Version     : 1.0
+// Version     : 1.5
 // Copyright   : Your copyright notice
 // Description : Entry point for the DCS simulation
 //============================================================================
 
 #include "dcs_montecarlo.hh"
 #include <Util.h>
+#include <QtWidgets/qmessagebox.h>
 
 
 
@@ -45,15 +48,20 @@ int main(int argc, char *argv[]){
             }
         }
     }else{
-        cout << "Could not open path file: " << pathName << endl;
+        QString message = "Could not open path file: ";
+        message.append(pathName);
+
+        QMessageBox msgBox;
+        msgBox.setText(message);
+        msgBox.setInformativeText("The simulation requires a file with the path to the working directory.\nThis file has to be in the same directory as the executable, with the name DCrystal_input.path.\nThe program will now exit.");
+        msgBox.setStandardButtons(QMessageBox::Close);
+        msgBox.setDefaultButton(QMessageBox::Close);
+        int ret = msgBox.exec();
+
+        return ret;
     }
 
     pathFile.close();
-
-    cout << "Path to simulation workspace: " << File_simu << endl;
-    cout << endl;
-    cout << endl;
-
 
     
     strcat(inFile, File_simu);
@@ -71,7 +79,20 @@ int main(int argc, char *argv[]){
             pathFile.seekg(0);
 
             if(strcmp(firstChar, "&") == 181){
-                cout << "Reading input configuration file as FORTRAN model..." << endl;
+                QString message = "Path to simulation workspace: ";
+                message.append(File_simu);
+
+                QMessageBox msgBox;
+                msgBox.setText(message);
+                msgBox.setInformativeText("An input file with the FORTRAN configuration model has been found.\nWould you like to continue?");
+                msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+                msgBox.setDefaultButton(QMessageBox::Yes);
+                int ret = msgBox.exec();
+
+
+                if (ret == QMessageBox::No) {
+                    return ret;
+                }
 
                 while (getline(pathFile, line)){
                     if(line.find("&Geometry") != string::npos)
@@ -752,7 +773,20 @@ int main(int argc, char *argv[]){
                     }
                 }
             }else{
-                cout << "Reading input configuration file as new model..." << endl;
+                QString message = "Path to simulation workspace: ";
+                message.append(File_simu);
+
+                QMessageBox msgBox;
+                msgBox.setText(message);
+                msgBox.setInformativeText("An input file with the C++ configuration model has been found.\nWould you like to continue?");
+                msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+                msgBox.setDefaultButton(QMessageBox::Yes);
+                int ret = msgBox.exec();
+
+
+                if (ret == QMessageBox::No) {
+                    return ret;
+                }
 
                 while (getline(pathFile, line)){
                     if (line.size() >= 2) {
@@ -1347,15 +1381,35 @@ int main(int argc, char *argv[]){
                 }
             }
         }else{
-            cout << "Could not open input file on path: " << inFile << endl;
+            QString message = "Could not open input file: ";
+            message.append(inFile);
 
-            return 0;
+            QMessageBox msgBox;
+            msgBox.setText(message);
+            msgBox.setInformativeText("Please check if the file still exists or has been corruped.");
+            msgBox.setStandardButtons(QMessageBox::Close);
+            msgBox.setDefaultButton(QMessageBox::Close);
+            int ret = msgBox.exec();
+
+            return ret;
         }
+    }else{
+        QString message = "Could not open input file: ";
+        message.append(inFile);
+
+        QMessageBox msgBox;
+        msgBox.setText(message);
+        msgBox.setInformativeText("The input file does not exist in the working directory.");
+        msgBox.setStandardButtons(QMessageBox::Close);
+        msgBox.setDefaultButton(QMessageBox::Close);
+        int ret = msgBox.exec();
+
+        return ret;
     }
 
     pathFile.close();
 
-    cout << "Input file read." << endl;
+    //cout << "Input file read." << endl;
 
     if(GeometryInput.imh == 2 && GeometryInput.imk == 2 && GeometryInput.iml == 2)
         refra_corr = refra_corrNIST;
@@ -1382,17 +1436,31 @@ int main(int argc, char *argv[]){
 
 
     if(UserSettingsInput.mask_C1 < 0 || UserSettingsInput.mask_C1 > 2){
-        cout << "bad input for first crystal mask: " << UserSettingsInput.mask_C1 << endl;
-        cout << "value of 0 for no mask, 1 for mask on the bottom and 2 for mask on the top" << endl;
+        QString message = "Bad input for first crystal mask: ";
+        message.append(UserSettingsInput.mask_C1);
 
-        return 0;
+        QMessageBox msgBox;
+        msgBox.setText(message);
+        msgBox.setInformativeText("The first crystal mask has to be 0, 1 or 2.\nValue of 0 for no mask, 1 for mask on the bottom and 2 for mask on the top.");
+        msgBox.setStandardButtons(QMessageBox::Close);
+        msgBox.setDefaultButton(QMessageBox::Close);
+        int ret = msgBox.exec();
+
+        return ret;
     }
 
     if(UserSettingsInput.mask_C2 < 0 || UserSettingsInput.mask_C2 > 2){
-            cout << "bad input for second crystal mask: " << UserSettingsInput.mask_C2 << endl;
-            cout << "value of 0 for no mask, 1 for mask on the bottom and 2 for mask on the top" << endl;
+        QString message = "Bad input for second crystal mask: ";
+        message.append(UserSettingsInput.mask_C2);
 
-            return 0;
+        QMessageBox msgBox;
+        msgBox.setText(message);
+        msgBox.setInformativeText("The second crystal mask has to be 0, 1 or 2.\nValue of 0 for no mask, 1 for mask on the bottom and 2 for mask on the top.");
+        msgBox.setStandardButtons(QMessageBox::Close);
+        msgBox.setDefaultButton(QMessageBox::Close);
+        int ret = msgBox.exec();
+
+        return ret;
     }
 
 
@@ -1405,9 +1473,22 @@ int main(int argc, char *argv[]){
     if(FullEnergySpectrumInput.make_more_lines == 1){
         if(!FullEnergySpectrumInput.Do_background){
             if(FullEnergySpectrumInput.p3_ener + FullEnergySpectrumInput.p2_ener + FullEnergySpectrumInput.p1_ener > 1.0){
-                cout << "bad input for lines proportion: " << FullEnergySpectrumInput.p1_ener << " + " << FullEnergySpectrumInput.p2_ener << " + " << FullEnergySpectrumInput.p3_ener << " is greater than 1" << endl;
+                QString message = "The sum of ratios: ";
+                message.append(to_string(FullEnergySpectrumInput.p1_ener).c_str());
+                message.append(" + ");
+                message.append(to_string(FullEnergySpectrumInput.p2_ener).c_str());
+                message.append(" + ");
+                message.append(to_string(FullEnergySpectrumInput.p3_ener).c_str());
+                message.append(" is greater than 1.");
 
-                return 0;
+                QMessageBox msgBox;
+                msgBox.setText("Bad input for lines proportion.");
+                msgBox.setInformativeText(message);
+                msgBox.setStandardButtons(QMessageBox::Close);
+                msgBox.setDefaultButton(QMessageBox::Close);
+                int ret = msgBox.exec();
+
+                return ret;
             }
         }
 
@@ -1432,11 +1513,11 @@ int main(int argc, char *argv[]){
         reques_width[2] = FullEnergySpectrumInput.naturalwidth3;
         reques_width[3] = FullEnergySpectrumInput.naturalwidth4;
     }else{
-        cout << "Reading input energy spectrum..." << endl;
+        //cout << "Reading input energy spectrum..." << endl;
 
         Util::Read_EnergySpectrum();
 
-        cout << "Input energy spectrum read." << endl;
+        //cout << "Input energy spectrum read." << endl;
     }
 
     if(GeometryInput.crystal_Si){
@@ -1449,23 +1530,47 @@ int main(int argc, char *argv[]){
         if(PhysicalParametersInput.Unit_energy == evv[0]){
             for(int i = 0; i < 4; i++){
                 if(reques_energ[i] < 10.0){
-                    cout << "bad input on the energies. requested energy less than 10 eV" << endl;
+                    QString message = "Bad input on the energies: ";
+                    message.append(to_string(reques_energ[i]).c_str());
 
-                    return 0;
+                    QMessageBox msgBox;
+                    msgBox.setText(message);
+                    msgBox.setInformativeText("Requested energy less than 10 eV.");
+                    msgBox.setStandardButtons(QMessageBox::Close);
+                    msgBox.setDefaultButton(QMessageBox::Close);
+                    int ret = msgBox.exec();
+
+                    return ret;
                 }
             }
         }else if(PhysicalParametersInput.Unit_energy == "A"){
             for(int i = 0; i < 4; i++){
                 if(reques_energ[i] > 10.0){
-                    cout << "bad input on the energies. requested energy more than 10 A" << endl;
+                    QString message = "Bad input on the energies: ";
+                    message.append(to_string(reques_energ[i]).c_str());
 
-                    return 0;
+                    QMessageBox msgBox;
+                    msgBox.setText(message);
+                    msgBox.setInformativeText("Requested energy more than 10 A.");
+                    msgBox.setStandardButtons(QMessageBox::Close);
+                    msgBox.setDefaultButton(QMessageBox::Close);
+                    int ret = msgBox.exec();
+
+                    return ret;
                 }
             }
         }else{
-            cout << "bad input on the energy unit: " << PhysicalParametersInput.Unit_energy << endl;
+            QString message = "Bad input on the energy unit: ";
+            message.append(PhysicalParametersInput.Unit_energy.c_str());
 
-            return 0;
+            QMessageBox msgBox;
+            msgBox.setText(message);
+            msgBox.setInformativeText("The accepted energy units are keV, eV and A.");
+            msgBox.setStandardButtons(QMessageBox::Close);
+            msgBox.setDefaultButton(QMessageBox::Close);
+            int ret = msgBox.exec();
+
+            return ret;
         }
     }else{
         bool usable;
@@ -1474,30 +1579,62 @@ int main(int argc, char *argv[]){
             usable = Util::CheckSpectrum("eV");
 
             if(! usable){
-                cout << "bad input on the energies. requested energy spectrum will not be visible in output" << endl;
+                QString message = "Bad input on the energies for energy unit: ";
+                message.append(PhysicalParametersInput.Unit_energy.c_str());
 
-                return 0;
+                QMessageBox msgBox;
+                msgBox.setText(message);
+                msgBox.setInformativeText("Requested energy spectrum will not be visible in output.");
+                msgBox.setStandardButtons(QMessageBox::Close);
+                msgBox.setDefaultButton(QMessageBox::Close);
+                int ret = msgBox.exec();
+
+                return ret;
             }
         }else if(PhysicalParametersInput.Unit_energy == "eV"){
             usable = Util::CheckSpectrum("eV");
 
             if(! usable){
-                cout << "bad input on the energies. requested energy spectrum will not be visible in output" << endl;
+                QString message = "Bad input on the energies for energy unit: ";
+                message.append(PhysicalParametersInput.Unit_energy.c_str());
 
-                return 0;
+                QMessageBox msgBox;
+                msgBox.setText(message);
+                msgBox.setInformativeText("Requested energy spectrum will not be visible in output.");
+                msgBox.setStandardButtons(QMessageBox::Close);
+                msgBox.setDefaultButton(QMessageBox::Close);
+                int ret = msgBox.exec();
+
+                return ret;
             }
         }else if(PhysicalParametersInput.Unit_energy == "A"){
             usable = Util::CheckSpectrum("A");
 
             if(! usable){
-                cout << "bad input on the energies. requested energy spectrum will not be visible in output" << endl;
+                QString message = "Bad input on the energies for energy unit: ";
+                message.append(PhysicalParametersInput.Unit_energy.c_str());
 
-                return 0;
+                QMessageBox msgBox;
+                msgBox.setText(message);
+                msgBox.setInformativeText("Requested energy spectrum will not be visible in output.");
+                msgBox.setStandardButtons(QMessageBox::Close);
+                msgBox.setDefaultButton(QMessageBox::Close);
+                int ret = msgBox.exec();
+
+                return ret;
             }
         }else{
-            cout << "bad input on the energy unit: " << PhysicalParametersInput.Unit_energy << endl;
+            QString message = "Bad input on the energy unit: ";
+            message.append(PhysicalParametersInput.Unit_energy.c_str());
 
-            return 0;
+            QMessageBox msgBox;
+            msgBox.setText(message);
+            msgBox.setInformativeText("The accepted energy units are keV, eV and A.");
+            msgBox.setStandardButtons(QMessageBox::Close);
+            msgBox.setDefaultButton(QMessageBox::Close);
+            int ret = msgBox.exec();
+
+            return ret;
         }
     }
 
@@ -1534,7 +1671,16 @@ int main(int argc, char *argv[]){
     if(GeometryInput.mode_bragg_geo){
         Double_Crystal_diffraction::Make_Simu(nullptr);
     }else{
-        cout << "unimplemented transmission mode" << endl;
+        QString message = "Unimplemented transmission mode.";
+        
+        QMessageBox msgBox;
+        msgBox.setText(message);
+        msgBox.setInformativeText("The transmition mode is currently unimplemented.\nCheck the wGeant branch to check if this mode has been implemented using the Geant4 libraries.");
+        msgBox.setStandardButtons(QMessageBox::Close);
+        msgBox.setDefaultButton(QMessageBox::Close);
+        int ret = msgBox.exec();
+
+        return ret;
     }
 
     return 0;

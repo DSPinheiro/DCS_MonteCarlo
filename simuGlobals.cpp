@@ -29,6 +29,8 @@ double request_width[4], request_energy[4];
 
 pick picks[5];
 
+QPlainTextEdit* logBox = nullptr;
+
 std::ofstream gener_out;
 std::ofstream hist_para;
 std::ofstream hist_anti;

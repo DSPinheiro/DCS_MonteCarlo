@@ -1012,6 +1012,8 @@ void Util::Voig(double& x, double* a, double& y, double* dyda, int na) {
 /// </summary>
 void Util::analyse() {
 
+    std::stringstream logString;
+
     double p_para, p_anti, dif, wave, energ_absorb, energy_exact, corre_30cel, energ, d_lat_2;
     double energy_obtain;
 
@@ -1068,35 +1070,38 @@ void Util::analyse() {
 
 
         if (FullEnergySpectrumInput.make_more_lines <= 1) {
-            std::cout << std::endl;
-            std::cout << "-----------------------------------------" << std::endl;
-            std::cout << std::endl;
-            std::cout << "Parameter analysies " << std::endl;
-            std::cout << std::endl;
-            std::cout << "ration widths anti/para: " << FWMH_V_anti / FWMH_V_para << std::endl;
-            std::cout << std::endl;
-            std::cout << "Angular difference: " << dif << std::endl;
-            std::cout << "wavelength: " << wave << " A" << std::endl;
-            std::cout << "Energy obtain: " << energ << " eV" << std::endl;
+            logString << std::endl;
+            logString << "-----------------------------------------" << std::endl;
+            logString << std::endl;
+            logString << "Parameter analysies " << std::endl;
+            logString << std::endl;
+            logString << "ration widths anti/para: " << FWMH_V_anti / FWMH_V_para << std::endl;
+            logString << std::endl;
+            logString << "Angular difference: " << dif << std::endl;
+            logString << "wavelength: " << wave << " A" << std::endl;
+            logString << "Energy obtain: " << energ << " eV" << std::endl;
 
-            std::cout << "Energy input: " << energy_exact << " eV" << std::endl;
-            std::cout << "difference obtain and input: " << (energ - energy_exact) * 1000 << " MeV" << std::endl;
+            logString << "Energy input: " << energy_exact << " eV" << std::endl;
+            logString << "difference obtain and input: " << (energ - energy_exact) * 1000 << " MeV" << std::endl;
         }
         else {
-            std::cout << std::endl;
-            std::cout << "-----------------------------------------" << std::endl;
-            std::cout << std::endl;
-            std::cout << "Parameter analysies (unreliable for an input energy spectrum)" << std::endl;
-            std::cout << std::endl;
-            std::cout << "ration widths anti/para: " << FWMH_V_anti / FWMH_V_para << std::endl;
-            std::cout << std::endl;
-            std::cout << "Angular difference: " << dif << std::endl;
-            std::cout << "wavelength: " << wave << " A" << std::endl;
-            std::cout << "Energy obtain: " << energ << " eV" << std::endl;
+            logString << std::endl;
+            logString << "-----------------------------------------" << std::endl;
+            logString << std::endl;
+            logString << "Parameter analysies (unreliable for an input energy spectrum)" << std::endl;
+            logString << std::endl;
+            logString << "ration widths anti/para: " << FWMH_V_anti / FWMH_V_para << std::endl;
+            logString << std::endl;
+            logString << "Angular difference: " << dif << std::endl;
+            logString << "wavelength: " << wave << " A" << std::endl;
+            logString << "Energy obtain: " << energ << " eV" << std::endl;
 
-            std::cout << "Energy input: " << energy_exact << " eV" << std::endl;
-            std::cout << "difference obtain and input: " << (energ - energy_exact) * 1000 << " MeV" << std::endl;
+            logString << "Energy input: " << energy_exact << " eV" << std::endl;
+            logString << "difference obtain and input: " << (energ - energy_exact) * 1000 << " MeV" << std::endl;
+            
         }
+        logBox->appendPlainText(logString.str().c_str());
+
 
         if (root_script) {
             //old script writing
@@ -1195,6 +1200,8 @@ double Util::ObtainVert(int crystal, double angle) {
 /// </returns>
 bool Util::CheckSpectrum(std::string unit) {
 
+    std::stringstream logString;
+
     double tetaref, tetabrag_ref, sin_e;
     double tilt_C1_temp, cos_tilt_C1;
     double n1x;
@@ -1241,21 +1248,22 @@ bool Util::CheckSpectrum(std::string unit) {
         delta_para = (Convert_Ag_minusone_eV / (sin(tetabrag_ref + min_angle_resp) * tw_d1_para) - Convert_Ag_minusone_eV / (sin(tetabrag_ref + max_angle_resp) * tw_d1_para)) * 1.315;
         start1_para = Convert_Ag_minusone_eV / (sin(tetabrag_ref + 0.6 * max_angle_resp) * tw_d1_para);
 
-        std::cout << "Energy start: " << start1_para << std::endl;
-        std::cout << "Energy delta: " << delta_para << std::endl;
+        logString << "Energy start: " << start1_para << std::endl;
+        logString << "Energy delta: " << delta_para << std::endl;
     }
     else if (unit == "A") {
         delta_para = ((sin(tetabrag_ref + min_angle_resp) * tw_d1_para) - (sin(tetabrag_ref + max_angle_resp) * tw_d1_para));
         start1_para = (sin(tetabrag_ref + max_angle_resp) * tw_d1_para);
 
-        //cout << "Wavelength start: " << start1_para << endl;
-        //cout << "Wavelength delta: " << delta_para << endl;
+        logString << "Wavelength start: " << start1_para << std::endl;
+        logString << "Wavelength delta: " << delta_para << std::endl;
     }
     else {
         throw std::runtime_error("Error in CheckInputSpectrum: bad energy unit input");
     }
 
-    std::cout << Energy_spec[0].lamda << "\t" << Energy_spec[Energy_spec.size() - 1].lamda << std::endl;
+    logString << Energy_spec[0].lamda << "\t" << Energy_spec[Energy_spec.size() - 1].lamda << std::endl;
+    logBox->appendPlainText(logString.str().c_str());
 
     if (Energy_spec[0].lamda <= start1_para) {
         if (Energy_spec[Energy_spec.size() - 1].lamda >= start1_para + delta_para) {
@@ -1427,6 +1435,8 @@ bool Util::getReflection(double angle, double tetabra, double lamda, bool type_c
 /// </returns>
 double Util::getNewTemp(int bin_tem, int& bin_fas, double& pha_tem) {
 
+    std::stringstream logString;
+
     if (bin_fas > TemperatureParametersInput.TT_tempera) {
         pha_tem = 2 * M_PI * ((double)rand() / RAND_MAX);
         bin_fas = 0;
@@ -1435,9 +1445,10 @@ double Util::getNewTemp(int bin_tem, int& bin_fas, double& pha_tem) {
         bin_fas++;
 
 
-    if (TemperatureParametersInput.TT_tempera == 0)
-        std::cout << "Warning: Value for TT:tempera is 0" << std::endl;
-
+    if (TemperatureParametersInput.TT_tempera == 0) {
+        logString << "Warning: Value for TT:tempera is 0" << std::endl;
+        logBox->appendPlainText(logString.str().c_str());
+    }
 
     return TemperatureParametersInput.AA_tempera * cos(2 * M_PI * bin_tem / TemperatureParametersInput.TT_tempera + pha_tem);
 
@@ -1783,6 +1794,8 @@ void Util::Make(int crystal, double y, double z) {
 /// </param>
 void Util::fit(bool Parallel) {
 
+    std::stringstream logString;
+
     std::vector<double> x, y, sig;
 
     double gues[MA], a[MA], alamda, a_error_anti_voig[MA], FWMH_V, chisq, ochisq;
@@ -1803,11 +1816,12 @@ void Util::fit(bool Parallel) {
         gener_out << " Fitting analysies" << std::endl;
         gener_out << std::endl;
 
-        std::cout << "------------------------------------" << std::endl;
-        std::cout << std::endl;
-        std::cout << " Fitting analysies" << std::endl;
-        std::cout << std::endl;
+        logString << "------------------------------------" << std::endl;
+        logString << std::endl;
+        logString << " Fitting analysies" << std::endl;
+        logString << std::endl;
 
+        logBox->appendPlainText(logString.str().c_str());
     }
 
     if (Parallel) {
@@ -1908,12 +1922,17 @@ void Util::fit(bool Parallel) {
         Util::mrq_min(x, y, sig, NPT, a, ia, MA, covar, alpha, MA, chisq, Util::Pseud, alamda);
     }
     
-    std::cout << "skgnkdbgnkdg" << std::endl;
+    
+    logString.clear();
     for (int i = 0; i < MA; i++) {
         gener_out << name_varia[i] << "\t" << a[i] << std::endl;
-        std::cout << name_varia[i] << "\t" << a[i] << std::endl;
+        
+        logString << name_varia[i] << "\t" << a[i] << std::endl;
+        
         a_error_anti_voig[i] = sqrt(covar[i][i] * npt_m_deg);
     }
+    logBox->appendPlainText(logString.str().c_str());
+
 
     FWMH_V = c1 * a[2] + sqrt(c2 * pow(a[2], 2) + pow(a[0], 2));
     if (UserSettingsInput.TrueVoigt) {
@@ -1932,10 +1951,10 @@ void Util::fit(bool Parallel) {
     gener_out << "FWMH-\t" << FWMH_V << std::endl;
     gener_out << std::endl;
 
-
-    std::cout << "FWMH-\t" << FWMH_V << std::endl;
-    std::cout << std::endl;
-
+    logString.clear();
+    logString << "FWMH-\t" << FWMH_V << std::endl;
+    logString << std::endl;
+    logBox->appendPlainText(logString.str().c_str());
 
 
     gener_out << std::endl;
@@ -1959,6 +1978,8 @@ void Util::fit(bool Parallel) {
 /// </summary>
 void Util::Read_CurveResponce() {
 
+    std::stringstream logString;
+
     std::vector<std::string> _available_energies;
 
     bool exist_file;
@@ -1980,7 +2001,8 @@ void Util::Read_CurveResponce() {
         if (exist_file)
             pathEnergies.open(inEnergies);
         else {
-            std::cout << "File \"sorted_ens.txt\" does not exist" << std::endl;
+            logString << "File \"sorted_ens.txt\" does not exist" << std::endl;
+
             throw std::runtime_error("A file with the available crystal profile energies is required.");
         }
 
@@ -2007,11 +2029,14 @@ void Util::Read_CurveResponce() {
         if (exist_file)
             pathFile.open(inFile);
         else {
-            std::cout << "File \"Plot_crystal_responce_transm.txt\" does not exist" << std::endl;
+            logString << "File \"Plot_crystal_responce_transm.txt\" does not exist" << std::endl;
+            
             throw std::runtime_error("A file with crystall responce from XOP in Laue geometry is required");
         }
 
     }
+    logBox->appendPlainText(logString.str().c_str());
+
 
     double cel_re1, cel_re2;
 
@@ -2033,7 +2058,10 @@ void Util::Read_CurveResponce() {
             //cout << "Reading file: " << ener << "keV_p" << endl;
         }
         else {
-            std::cout << "File " << inFile_p << " does not exist" << std::endl;
+            logString.clear();
+            logString << "File " << inFile_p << " does not exist" << std::endl;
+            logBox->appendPlainText(logString.str().c_str());
+            
             throw std::runtime_error("Expected a crystall responce from XOP in bragg geometry for energy" + ener);
         }
 
@@ -2069,7 +2097,10 @@ void Util::Read_CurveResponce() {
             //cout << "Reading file: " << ener << "keV_p" << endl;
         }
         else {
-            std::cout << "File " << inFile_s << " does not exist" << std::endl;
+            logString.clear();
+            logString << "File " << inFile_s << " does not exist" << std::endl;
+            logBox->appendPlainText(logString.str().c_str());
+            
             throw std::runtime_error("Expected a crystall responce from XOP in bragg geometry for energy" + ener);
         }
 
@@ -2423,6 +2454,8 @@ void Util::Set_angs() {
 /// </summary>
 void Util::test_In() {
 
+    std::stringstream logString;
+
     double b_anti_pick;
 
     b_anti_pick = -2 * (-teta_crys1 + theta_chk);
@@ -2472,8 +2505,8 @@ void Util::test_In() {
         gener_out << "The estimated angle of peak" << std::endl;
         gener_out << "taking into account crystal tilts and effective misalignement" << std::endl;
 
-        std::cout << "The estimated angle of peak" << std::endl;
-        std::cout << "taking into account crystal tilts and effective misalignement" << std::endl;
+        logString << "The estimated angle of peak" << std::endl;
+        logString << "taking into account crystal tilts and effective misalignement" << std::endl;
 
         ang_para_pre = teta_crys1 - esti_para;
 
@@ -2481,9 +2514,10 @@ void Util::test_In() {
         gener_out << " or, in turn of reference angle:	" << -esti_para << " deg" << std::endl;
         gener_out << std::endl;
 
-        std::cout << " in parallel is:					" << ang_para_pre << " deg" << std::endl;
-        std::cout << " or, in turn of reference angle:	" << -esti_para << " deg" << std::endl;
-        std::cout << std::endl;
+        logString << " in parallel is:					" << ang_para_pre << " deg" << std::endl;
+        logString << " or, in turn of reference angle:	" << -esti_para << " deg" << std::endl;
+        logString << std::endl;
+        logBox->appendPlainText(logString.str().c_str());
 
     }
 
@@ -2491,8 +2525,9 @@ void Util::test_In() {
         gener_out << "The estimated angle of peak" << std::endl;
         gener_out << "taking into account crystal tilts and effective misalignement" << std::endl;
 
-        std::cout << "The estimated angle of peak" << std::endl;
-        std::cout << "taking into account crystal tilts and effective misalignement" << std::endl;
+        logString.clear();
+        logString << "The estimated angle of peak" << std::endl;
+        logString << "taking into account crystal tilts and effective misalignement" << std::endl;
 
         ang_anti_pre = esti_anti - teta_crys1;
 
@@ -2500,9 +2535,11 @@ void Util::test_In() {
         gener_out << " or, in turn of reference angle:	" << -esti_anti << " deg" << std::endl;
         gener_out << std::endl;
 
-        std::cout << " in antiparallel is:				" << ang_anti_pre << " deg" << std::endl;
-        std::cout << " or, in turn of reference angle:	" << -esti_anti << " deg" << std::endl;
-        std::cout << std::endl;
+
+        logString << " in antiparallel is:				" << ang_anti_pre << " deg" << std::endl;
+        logString << " or, in turn of reference angle:	" << -esti_anti << " deg" << std::endl;
+        logString << std::endl;
+        logBox->appendPlainText(logString.str().c_str());
 
     }
 
@@ -2531,11 +2568,12 @@ void Util::test_In() {
         low_bound_angl_anti = ang_anti_pre - PlotParametersInput.delta_angl;
         high_bound_angl_anti = ang_anti_pre + PlotParametersInput.delta_angl;
 
-        std::cout << "With current setting, range to observe parallel peak: " << low_bound_angl_para << " deg; " << high_bound_angl_para << " deg" << std::endl;
-        std::cout << "With current setting, range to observe antiparallel peak: " << low_bound_angl_anti << " deg; " << high_bound_angl_anti << " deg" << std::endl;
+        logString.clear();
+        logString << "With current setting, range to observe parallel peak: " << low_bound_angl_para << " deg; " << high_bound_angl_para << " deg" << std::endl;
+        logString << "With current setting, range to observe antiparallel peak: " << low_bound_angl_anti << " deg; " << high_bound_angl_anti << " deg" << std::endl;
 
-        std::cout << "Estimated antiparallel angle: " << esti_anti << " teta_crys1 = " << teta_crys1 << std::endl;
-        std::cout << "Estimated parallel angle: " << esti_para << std::endl;
+        logString << "Estimated antiparallel angle: " << esti_anti << " teta_crys1 = " << teta_crys1 << std::endl;
+        logString << "Estimated parallel angle: " << esti_para << std::endl;
 
         Maxi_angl_anti = high_bound_angl_anti - teta_crys1;
         Mini_angl_anti = low_bound_angl_anti - teta_crys1;
@@ -2547,19 +2585,21 @@ void Util::test_In() {
         Maxi_angl = Maxi_angl_para + PlotParametersInput.shift_disp_window;
         Mini_angl = Mini_angl_para + PlotParametersInput.shift_disp_window;
 
-        std::cout << " Maxi_angl_anti: " << Maxi_angl_anti << std::endl;
-        std::cout << " Mini_angl_anti: " << Mini_angl_anti << std::endl;
-        std::cout << " Maxi_angl_para: " << Maxi_angl_para << std::endl;
-        std::cout << " Mini_angl_para: " << Mini_angl_para << std::endl;
-        std::cout << " *** Mini angl = " << Mini_angl << " Maxi_angl = " << Maxi_angl << std::endl;
+        logString << " Maxi_angl_anti: " << Maxi_angl_anti << std::endl;
+        logString << " Mini_angl_anti: " << Mini_angl_anti << std::endl;
+        logString << " Maxi_angl_para: " << Maxi_angl_para << std::endl;
+        logString << " Mini_angl_para: " << Mini_angl_para << std::endl;
+        logString << " *** Mini angl = " << Mini_angl << " Maxi_angl = " << Maxi_angl << std::endl;
 
         low_bound_angl_para = teta_crys1 + Mini_angl;
         high_bound_angl_para = teta_crys1 + Maxi_angl;
         low_bound_angl_anti = -teta_crys1 - Mini_angl;
         high_bound_angl_anti = -teta_crys1 - Maxi_angl;
 
-        std::cout << " Checking common range to observe parallel peak -> " << low_bound_angl_para << " deg; " << high_bound_angl_para << " deg; peak: " << ang_para_pre << " deg" << std::endl;
-        std::cout << " Checking common range to observe antiparallel peak -> " << low_bound_angl_anti << " deg; " << high_bound_angl_anti << " deg; peak: " << ang_anti_pre << " deg" << std::endl;
+        logString << " Checking common range to observe parallel peak -> " << low_bound_angl_para << " deg; " << high_bound_angl_para << " deg; peak: " << ang_para_pre << " deg" << std::endl;
+        logString << " Checking common range to observe antiparallel peak -> " << low_bound_angl_anti << " deg; " << high_bound_angl_anti << " deg; peak: " << ang_anti_pre << " deg" << std::endl;
+        logBox->appendPlainText(logString.str().c_str());
+
     }
     else
         throw std::runtime_error(" Error in test_input: ang_para_pre <= 0");
@@ -2580,22 +2620,24 @@ void Util::test_In() {
         throw std::runtime_error("*** Error in test_input: maximum angle variation > 4 deg, too large");
 
 
+    logString.clear();
+
     if (UserSettingsInput.see_para) {
         if (UserSettingsInput.see_anti) {
-            std::cout << "input range set up for observing both parallel and antiparallel" << std::endl;
+            logString << "input range set up for observing both parallel and antiparallel" << std::endl;
 
-            std::cout << Mini_angl << "\t" << Maxi_angl << std::endl;
+            logString << Mini_angl << "\t" << Maxi_angl << std::endl;
 
             if (abs(Mini_angl) > 4 || abs(Maxi_angl) > 4)
                 throw std::runtime_error("*** Error in test_input: minimum or maximum range > 4 deg, too large");
 
             if (FullEnergySpectrumInput.make_more_lines < 2) {
                 if (Maxi_angl < esti_anti || Mini_angl > esti_anti) {
-                    std::cout << "In this range the antiparallel peak will not be observed" << std::endl;
-                    std::cout << "Mini_angl = " << Mini_angl - teta_crys1 << " Maxi_angl = " << Maxi_angl - teta_crys1 << std::endl;
-                    std::cout << "Mini_angl(ref) = " << Mini_angl << " Maxi_angl(ref) = " << Maxi_angl << " estimated antiparallel angle " << esti_anti << std::endl;
-                    std::cout << "*** In test_input, warning: bad input for Mini_angl and Maxi_angl, peak may not be observed ***" << std::endl;
-                    std::cout << " setting maximum number of x rays in simulation to 2011 to check image" << std::endl;
+                    logString << "In this range the antiparallel peak will not be observed" << std::endl;
+                    logString << "Mini_angl = " << Mini_angl - teta_crys1 << " Maxi_angl = " << Maxi_angl - teta_crys1 << std::endl;
+                    logString << "Mini_angl(ref) = " << Mini_angl << " Maxi_angl(ref) = " << Maxi_angl << " estimated antiparallel angle " << esti_anti << std::endl;
+                    logString << "*** In test_input, warning: bad input for Mini_angl and Maxi_angl, peak may not be observed ***" << std::endl;
+                    logString << " setting maximum number of x rays in simulation to 2011 to check image" << std::endl;
 
                     NumberRaysInput.nbeams = 2011;
                 }
@@ -2608,11 +2650,11 @@ void Util::test_In() {
 
 
         if (Maxi_angl < -esti_para || Mini_angl > -esti_para) {
-            std::cout << "In this range the parallel peak will not be observed" << std::endl;
-            std::cout << "Mini_angl = " << Mini_angl - teta_crys1 << " Maxi_angl = " << Maxi_angl - teta_crys1 << std::endl;
-            std::cout << "Mini_angl(ref) = " << Mini_angl << " Maxi_angl(ref) = " << Maxi_angl << " estimated parallel angle " << esti_para << std::endl;
-            std::cout << "*** In test_input, warning: bad input for Mini_angl and Maxi_angl, peak may not be observed ***" << std::endl;
-            std::cout << " setting maximum number of x rays in simulation to 2011 to check image" << std::endl;
+            logString << "In this range the parallel peak will not be observed" << std::endl;
+            logString << "Mini_angl = " << Mini_angl - teta_crys1 << " Maxi_angl = " << Maxi_angl - teta_crys1 << std::endl;
+            logString << "Mini_angl(ref) = " << Mini_angl << " Maxi_angl(ref) = " << Maxi_angl << " estimated parallel angle " << esti_para << std::endl;
+            logString << "*** In test_input, warning: bad input for Mini_angl and Maxi_angl, peak may not be observed ***" << std::endl;
+            logString << " setting maximum number of x rays in simulation to 2011 to check image" << std::endl;
 
             NumberRaysInput.nbeams = 2011;
         }
@@ -2624,50 +2666,54 @@ void Util::test_In() {
             Maxi_angl += teta_crys1;
 
             if (Maxi_angl < esti_anti || Mini_angl > esti_anti) {
-                std::cout << "In this range the antiparallel peak will not be observed" << std::endl;
-                std::cout << "Mini_angl = " << Mini_angl - teta_crys1 << " Maxi_angl = " << Maxi_angl - teta_crys1 << std::endl;
-                std::cout << "Mini_angl(ref) = " << Mini_angl << " Maxi_angl(ref) = " << Maxi_angl << " estimated antiparallel angle " << esti_anti << std::endl;
-                std::cout << "*** In test_input, warning: bad input for Mini_angl and Maxi_angl, peak may not be observed ***" << std::endl;
-                std::cout << " setting maximum number of x rays in simulation to 2011 to check image" << std::endl;
+                logString << "In this range the antiparallel peak will not be observed" << std::endl;
+                logString << "Mini_angl = " << Mini_angl - teta_crys1 << " Maxi_angl = " << Maxi_angl - teta_crys1 << std::endl;
+                logString << "Mini_angl(ref) = " << Mini_angl << " Maxi_angl(ref) = " << Maxi_angl << " estimated antiparallel angle " << esti_anti << std::endl;
+                logString << "*** In test_input, warning: bad input for Mini_angl and Maxi_angl, peak may not be observed ***" << std::endl;
+                logString << " setting maximum number of x rays in simulation to 2011 to check image" << std::endl;
 
                 NumberRaysInput.nbeams = 2011;
             }
         }
         else {
-            std::cout << "No peak selected" << std::endl;
-            std::cout << "*** In test_input, warning: bad input for Mini_angl and Maxi_angl, peak may not be observed ***" << std::endl;
-            std::cout << " setting maximum number of x rays in simulation to 2011 to check image" << std::endl;
+            logString << "No peak selected" << std::endl;
+            logString << "*** In test_input, warning: bad input for Mini_angl and Maxi_angl, peak may not be observed ***" << std::endl;
+            logString << " setting maximum number of x rays in simulation to 2011 to check image" << std::endl;
 
             NumberRaysInput.nbeams = 2011;
         }
     }
+    logBox->appendPlainText(logString.str().c_str());
 
 
+    logString.clear();
     if (GeoParapathlengthsInput.type_source == "P") {
-        std::cout << " Evaluation set for a point source" << std::endl;
-        std::cout << std::endl;
+        logString << " Evaluation set for a point source" << std::endl;
+        logString << std::endl;
     }
     else if (GeoParapathlengthsInput.type_source == "UC") {
-        std::cout << " Evaluation set for an uniform circular source" << std::endl;
-        std::cout << std::endl;
+        logString << " Evaluation set for an uniform circular source" << std::endl;
+        logString << std::endl;
     }
     else if (GeoParapathlengthsInput.type_source == "UR") {
-        std::cout << " Evaluation set for an uniform rectangular source" << std::endl;
-        std::cout << std::endl;
+        logString << " Evaluation set for an uniform rectangular source" << std::endl;
+        logString << std::endl;
     }
     else if (GeoParapathlengthsInput.type_source == "G") {
-        std::cout << " Evaluation set for a gaussian source" << std::endl;
-        std::cout << std::endl;
+        logString << " Evaluation set for a gaussian source" << std::endl;
+        logString << std::endl;
     }
     else {
-        std::cout << "Bad input in the type_source" << std::endl;
-        std::cout << std::endl;
+        logString << "Bad input in the type_source" << std::endl;
+        logString << std::endl;
     }
 
     if (!UserSettingsInput.Make_Vertical) {
-        std::cout << "Evaluation with rays inside central plane" << std::endl;
-        std::cout << std::endl;
+        logString << "Evaluation with rays inside central plane" << std::endl;
+        logString << std::endl;
     }
+
+    logBox->appendPlainText(logString.str().c_str());
 
     gener_out << "----------------------------------------" << std::endl;
 

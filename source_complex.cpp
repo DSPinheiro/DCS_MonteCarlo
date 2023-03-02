@@ -15,6 +15,7 @@ using namespace std;
 
 void Source_complex::run_Source(SimulationMain *w){
 
+    stringstream logString;
     
     double counts_C2_para_t, counts_detc_para_t, counts_C2_anti_t, counts_detc_anti_t;
     
@@ -303,7 +304,7 @@ void Source_complex::run_Source(SimulationMain *w){
                     bin_fas,
                     pha_temp[2]);
 
-                cout << "inc_te: " << inc_tem << endl;
+                logString << "inc_te: " << inc_tem << endl;
 
                 d_lat2_para = Util::Latice_temp(d_lat, TemperatureParametersInput.T_crystal_2_para + inc_tem);
 
@@ -321,8 +322,11 @@ void Source_complex::run_Source(SimulationMain *w){
                 tw_d2_para = 2 * d_lat2_para;
                 tw_d2_anti = 2 * d_lat2_anti;
 
-                cout << "tw_1: " << d_lat1_para << endl;
-                cout << "tw_2: " << d_lat2_para << endl;
+
+                logString << "tw_1: " << d_lat1_para << endl;
+                logString << "tw_2: " << d_lat2_para << endl;
+                emit w->LogLine(logString.str());
+
             }
 
             angle_para = delrot * 180 / M_PI + teta_crys1;
@@ -528,8 +532,9 @@ void Source_complex::run_Source(SimulationMain *w){
                     //	make_length_cor(z_pro_C1, y_pro_C1, sin_fidir, cos_fidir, sin_tetadirCry1, z_pro_C1, y_pro_C1);
                     //}
 
-
-                    //cout << y_pro_C1 << "\t" << y_max_C1 << "\t" << y_min_C1 << "\t;\t" << z_pro_C1 << "\t" << z_max_C1 << "\t" << z_min_C1 << endl;
+                    //logString.clear();
+                    //logString << y_pro_C1 << "\t" << y_max_C1 << "\t" << y_min_C1 << "\t;\t" << z_pro_C1 << "\t" << z_max_C1 << "\t" << z_min_C1 << endl;
+                    //emit w->LogLine(logString.str());
 
                     if(y_pro_C1 < y_max_C1 && y_pro_C1 > y_min_C1 && z_pro_C1 < z_max_C1 && z_pro_C1 > z_min_C1){
                         if(!GraphOptionsInput.make_imageC1_After_refle){
@@ -574,7 +579,9 @@ void Source_complex::run_Source(SimulationMain *w){
 
                         tetabra1 = asin(lamda / tw_d1_para);
 
-                        //cout << angle << "\t" << tetabra1 << endl;
+                        //logString.clear();
+                        //logString << angle << "\t" << tetabra1 << endl;
+                        //emit w->LogLine(logString.str());
 
                         if(((double)rand() / RAND_MAX) < PolarizationParametersInput.relationP_S)
                             poliP = true;
@@ -603,7 +610,9 @@ void Source_complex::run_Source(SimulationMain *w){
                             rx_rot = cos_tetartab * r2x + sin_tetartab * r2y;
                             ry_rot = -sin_tetartab * r2x + cos_tetartab * r2y;
 
-                            //cout << ry_rot << "\t" << -sin_tetartab << "\t" << r2x << "\t" << cos_tetartab << "\t" << r2y << endl;
+                            //logString.clear();
+                            //logString << ry_rot << "\t" << -sin_tetartab << "\t" << r2x << "\t" << cos_tetartab << "\t" << r2y << endl;
+                            //emit w->LogLine(logString.str());
 
                             var_temp = ry_rot / rx_rot;
 
@@ -644,8 +653,9 @@ void Source_complex::run_Source(SimulationMain *w){
 
                             }
 
-
-                            //cout << cos_tetap << "\t" << tan_tetadir << "\t" << dist_Cr1_Cr2_Db << "\t" << corr_dis << endl;
+                            //logString.clear();
+                            //logString << cos_tetap << "\t" << tan_tetadir << "\t" << dist_Cr1_Cr2_Db << "\t" << corr_dis << endl;
+                            //emit w->LogLine(logString.str());
 
                             vector<double> yz = Util::getYZ(r, sin_tetap, cos_tetap, tan_tetadir, tan_fidir, dist_Cr1_Cr2_Db - corr_dis);
 
@@ -662,7 +672,9 @@ void Source_complex::run_Source(SimulationMain *w){
                                 //if(make_length_corr)
                                 //	make_length_cor(z_pro_C1, y_pro_C1, sin_fidir, cos_fidir, -sin_tetatab_del_dir, z_pro_C1, y_pro_C1);
 
-                                //cout << y_pro_C1 << "\t" << y_max_C2 << "\t" << y_min_C2 << "\t;\t" << z_pro_C1 << "\t" << z_max_C2 << "\t" << z_min_C2 << endl;
+                                //logString.clear();
+                                //logString << y_pro_C1 << "\t" << y_max_C2 << "\t" << y_min_C2 << "\t;\t" << z_pro_C1 << "\t" << z_max_C2 << "\t" << z_min_C2 << endl;
+                                //emit w->LogLine(logString.str());
 
                                 if(y_pro_C1 < y_max_C2 && y_pro_C1 > y_min_C2 && z_pro_C1 < z_max_C2 && z_pro_C1 > z_min_C2){
 

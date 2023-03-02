@@ -20,6 +20,8 @@ void Double_Crystal_diffraction::Make_Simu(SimulationMain* w){
 
     double center_2cry_at_temp, sin_t, theta_b, line_ener, termFW;
 
+    stringstream logString;
+
     string paraPath = string(File_simu) + "\\Histogram_parallel.txt";
     string antiPath = string(File_simu) + "\\Histogram_antiparallel.txt";
     string generPath = string(File_simu) + "\\general_output.txt";
@@ -95,9 +97,14 @@ void Double_Crystal_diffraction::Make_Simu(SimulationMain* w){
         center_2cry_at_temp = (GeoParapathlengthsInput.dist_T_Cr1 + GeoParapathlengthsInput.dist_Cr1_Cr2) * (GeoParametersInput.center_1cry_at / GeoParapathlengthsInput.dist_T_Cr1) - GeolengthelementsInput.S_shi_ver_A * GeoParapathlengthsInput.dist_Cr1_Cr2 / GeoParapathlengthsInput.dist_T_Cr1;
         sin_t = sin(M_PI / 2.0 - teta_crys1 * M_PI / 180.0);
 
-        cout << center_2cry_at_temp << "\t" << sin_t << "\t" << teta_crys1 << endl;
+
+        logString << center_2cry_at_temp << "\t" << sin_t << "\t" << teta_crys1 << endl;
+
         GeoParametersInput.tilt_C1 = (GeoParametersInput.center_2cry_at - center_2cry_at_temp) * 180.0 / (2.0 * GeoParapathlengthsInput.dist_Cr1_Cr2*sin_t) / M_PI;
-        cout << GeoParametersInput.tilt_C1 << endl;
+        
+        logString << GeoParametersInput.tilt_C1 << endl;
+        emit w->LogLine(logString.str());
+
     }
 
     if(linelamda < 2 * d_lat){
@@ -109,10 +116,13 @@ void Double_Crystal_diffraction::Make_Simu(SimulationMain* w){
     line_ener = Convert_Ag_minusone_eV / linelamda;
     theta_chk = 90 - theta_b;
 
-    cout << "Theta bragg = " << theta_b << endl;
-    cout << "Experimental first crystal angle = " << teta_crys1 << endl;
-    cout << "Glancing angle for central ray = " << 90 - teta_crys1 << endl;
-    cout << "theoretical = " << theta_chk << endl;
+    logString.clear();
+    logString << "Theta bragg = " << theta_b << endl;
+    logString << "Experimental first crystal angle = " << teta_crys1 << endl;
+    logString << "Glancing angle for central ray = " << 90 - teta_crys1 << endl;
+    logString << "theoretical = " << theta_chk << endl;
+    emit w->LogLine(logString.str());
+
 
     theta_b = 2.0 * theta_b + teta_crys1 - 180.0;
 
@@ -158,7 +168,10 @@ void Double_Crystal_diffraction::Make_Simu(SimulationMain* w){
     else if(GeoParapathlengthsInput.type_source == "G")
         gener_out << " This simulation is for an extended gaussian source" << endl;
     else{
-        cout << GeoParapathlengthsInput.type_source << endl;
+        logString.clear();
+        logString << GeoParapathlengthsInput.type_source << endl;
+        emit w->LogLine(logString.str());
+        
         throw runtime_error("Bad input for type_souce");
     }
 
@@ -252,15 +265,18 @@ void Double_Crystal_diffraction::Make_Simu(SimulationMain* w){
     Util::Set_angs();
     Util::Read_CurveResponce();
 
-    cout << "Monte Carlo simulation of the double Crystal spectrometer" << endl;
-    cout << "Parameters" << endl;
+    logString.clear();
+    logString << "Monte Carlo simulation of the double Crystal spectrometer" << endl;
+    logString << "Parameters" << endl;
+
 
     if(FullEnergySpectrumInput.make_more_lines <= 1){
-        cout << "Line wavelength = " << linelamda << " Ang" << endl;
-        cout << "Uncorrected Bragg angle (including position of parallel peak): " << - theta_b << endl;
-        cout << "Line energy = " << line_ener << " eV" << endl;
-        cout << "Line width (wavelength) = " << naturalwidth << " eV" << endl;
-        cout << "Line width (energy) = " << naturalwidth * linelamda / line_ener << endl;
+        logString << "Line wavelength = " << linelamda << " Ang" << endl;
+        logString << "Uncorrected Bragg angle (including position of parallel peak): " << - theta_b << endl;
+        logString << "Line energy = " << line_ener << " eV" << endl;
+        logString << "Line width (wavelength) = " << naturalwidth << " eV" << endl;
+        logString << "Line width (energy) = " << naturalwidth * linelamda / line_ener << endl;
+
     }else{
         vector <double> ener;
 
@@ -269,19 +285,23 @@ void Double_Crystal_diffraction::Make_Simu(SimulationMain* w){
         }
 
         if(PhysicalParametersInput.Unit_energy == "keV"){
-            cout << "Minimum energy loaded from file: " << *min_element(ener.begin(), ener.end()) << " eV" << endl;
-            cout << "Maximum energy loaded from file: " << *max_element(ener.begin(), ener.end()) << " eV" << endl;
+            logString << "Minimum energy loaded from file: " << *min_element(ener.begin(), ener.end()) << " eV" << endl;
+            logString << "Maximum energy loaded from file: " << *max_element(ener.begin(), ener.end()) << " eV" << endl;
+
         }else{
-            cout << "Minimum energy loaded from file: " << *min_element(ener.begin(), ener.end()) << PhysicalParametersInput.Unit_energy << endl;
-            cout << "Maximum energy loaded from file: " << *max_element(ener.begin(), ener.end()) << PhysicalParametersInput.Unit_energy << endl;
+            logString << "Minimum energy loaded from file: " << *min_element(ener.begin(), ener.end()) << PhysicalParametersInput.Unit_energy << endl;
+            logString << "Maximum energy loaded from file: " << *max_element(ener.begin(), ener.end()) << PhysicalParametersInput.Unit_energy << endl;
+
         }
     }
 
 
+    logString << "Crystal parameters: d = " << d_lat << "; Experimental first crystal angle = " << -teta_crys1 << endl;
+    logString << "Temperature first crystal = " << TemperatureParametersInput.T_crystal_1_para << " ºC; Temperature second crystal = " << TemperatureParametersInput.T_crystal_2_para << " ºC" << endl;
+    logString << "Vertical tilt first crystal = " << GeoParametersInput.tilt_C1 << " deg; Vertical tilt second crystal = " << GeoParametersInput.tilt_C2 << " deg" << endl;
+    
+    emit w->LogLine(logString.str());
 
-    cout << "Crystal parameters: d = " << d_lat << "; Experimental first crystal angle = " << -teta_crys1 << endl;
-    cout << "Temperature first crystal = " << TemperatureParametersInput.T_crystal_1_para << " ºC; Temperature second crystal = " << TemperatureParametersInput.T_crystal_2_para << " ºC" << endl;
-    cout << "Vertical tilt first crystal = " << GeoParametersInput.tilt_C1 << " deg; Vertical tilt second crystal = " << GeoParametersInput.tilt_C2 << " deg" << endl;
 
     hist_para << "# Line wavelength							= " << linelamda << " Ang" << endl;
     hist_para << "# Corresponding Bragg angle				= " << - theta_b << " Ang" << endl;
@@ -341,18 +361,22 @@ void Double_Crystal_diffraction::Make_Simu(SimulationMain* w){
         Source_complex c;
         c.run_Source(w);
     }
-    cout << "output of profiles in files" << endl;
-    cout << "Histogram_antiparallel" << endl;
-    cout << "Histogram_parallel" << endl;
+
+    logString.clear();
+    logString << "output of profiles in files" << endl;
+    logString << "Histogram_antiparallel" << endl;
+    logString << "Histogram_parallel" << endl;
+
 
     gener_out << "output of profiles in files" << endl;
     gener_out << "Histogram_antiparallel" << endl;
     gener_out << "Histogram_parallel" << endl;
 
 
-    cout << "General output in file" << endl;
-    cout << "general_output" << endl;
-    cout << endl;
+    logString << "General output in file" << endl;
+    logString << "general_output" << endl;
+    logString << endl;
+    emit w->LogLine(logString.str());
 
     if(UserSettingsInput.fitting){
         if(UserSettingsInput.see_para)

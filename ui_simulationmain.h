@@ -15,6 +15,7 @@
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QMainWindow>
+#include <QtWidgets/QPlainTextEdit>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
@@ -91,6 +92,7 @@ public:
     QHBoxLayout *histogramsLayout;
     QCustomPlot *AP_histogram;
     QCustomPlot *P_histogram;
+    QPlainTextEdit *logBox;
     QStatusBar *statusbar;
 
     void setupUi(QMainWindow *SimulationMain)
@@ -98,7 +100,7 @@ public:
         if (SimulationMain->objectName().isEmpty())
             SimulationMain->setObjectName(QString::fromUtf8("SimulationMain"));
         SimulationMain->setWindowModality(Qt::ApplicationModal);
-        SimulationMain->resize(1042, 604);
+        SimulationMain->resize(1042, 644);
         QSizePolicy sizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
         sizePolicy.setHorizontalStretch(1);
         sizePolicy.setVerticalStretch(1);
@@ -653,6 +655,14 @@ public:
 
         gridLayout->addLayout(mainLayout, 0, 0, 1, 1);
 
+        logBox = new QPlainTextEdit(centralwidget);
+        logBox->setObjectName(QString::fromUtf8("logBox"));
+        sizePolicy.setHeightForWidth(logBox->sizePolicy().hasHeightForWidth());
+        logBox->setSizePolicy(sizePolicy);
+        logBox->setMinimumSize(QSize(1024, 50));
+
+        gridLayout->addWidget(logBox, 1, 0, 1, 1);
+
         SimulationMain->setCentralWidget(centralwidget);
         statusbar = new QStatusBar(SimulationMain);
         statusbar->setObjectName(QString::fromUtf8("statusbar"));
@@ -704,6 +714,12 @@ public:
         DP_ImagePlate->setText(QString());
         DP_cScale->setText(QString());
         DP_vScale->setText(QString());
+#if QT_CONFIG(tooltip)
+        GL3Dvis->setToolTip(QString());
+#endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(statustip)
+        GL3Dvis->setStatusTip(QCoreApplication::translate("SimulationMain", "3D Visualization of the geometry and events being simulated.", nullptr));
+#endif // QT_CONFIG(statustip)
         Ecnts_label->setText(QCoreApplication::translate("SimulationMain", "Number of counts at entrance:", nullptr));
         C1cnts_label->setText(QCoreApplication::translate("SimulationMain", "Number of counts at C1:", nullptr));
         C2Pcnts_label->setText(QCoreApplication::translate("SimulationMain", "Number of counts at C2_para:", nullptr));
@@ -723,6 +739,12 @@ public:
 #endif // QT_CONFIG(statustip)
 #if QT_CONFIG(statustip)
         P_histogram->setStatusTip(QCoreApplication::translate("SimulationMain", "Parallel spectrum", nullptr));
+#endif // QT_CONFIG(statustip)
+#if QT_CONFIG(tooltip)
+        logBox->setToolTip(QString());
+#endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(statustip)
+        logBox->setStatusTip(QCoreApplication::translate("SimulationMain", "LogBox for the console output.", nullptr));
 #endif // QT_CONFIG(statustip)
     } // retranslateUi
 

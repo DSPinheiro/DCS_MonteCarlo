@@ -24,6 +24,8 @@ vector<int> Obtain_time::simuTime(
 
     double dif_time, dif_mili;
 
+    stringstream logString;
+
     if(First_call == 0){
 
         auto now = chrono::system_clock::now();
@@ -42,9 +44,12 @@ vector<int> Obtain_time::simuTime(
         int_time_mili_out = chrono::duration_cast<chrono::milliseconds>(now.time_since_epoch()).count();
 
         if(UserSettingsInput.Simple_simu){
-            cout << endl;
-            cout << "Simulation start at: " << Hour << " h " << Min << " m " << Sec << " s" << endl;
-            cout << endl;
+            logString.clear();
+            logString << endl;
+            logString << "Simulation start at: " << Hour << " h " << Min << " m " << Sec << " s" << endl;
+            logString << endl;
+            emit w->LogLine(logString.str());
+
         }
 
         gener_out << endl;
@@ -102,8 +107,10 @@ vector<int> Obtain_time::simuTime(
             if(GraphOptionsInput.MakeDislin)
                 emit w->changeTimes(1, dif_time_a[0], dif_time_a[1], dif_time_a[2]);
 
-            cout << "remainder time estimate: " << dif_time_a[0] << " h " << dif_time_a[1] << " m " << dif_time_a[2] << " s" << endl;
-            cout << endl;
+            logString.clear();
+            logString << "remainder time estimate: " << dif_time_a[0] << " h " << dif_time_a[1] << " m " << dif_time_a[2] << " s" << endl;
+            logString << endl;
+            emit w->LogLine(logString.str());
 
             //TODO implement gui
             //if(Graph_options.make_image_plates){
@@ -114,10 +121,12 @@ vector<int> Obtain_time::simuTime(
             //	}
             //}
         }else{
-            cout << "Simulation end at: " << Hour << " h " << Min << " m " << Sec << " s" << endl;
-            cout << endl;
-            cout << "Total time of simulation: " << dif_time_a[0] << " h " << dif_time_a[1] << " m " << dif_time_a[2] << " s" << endl;
-            cout << endl;
+            logString.clear();
+            logString << "Simulation end at: " << Hour << " h " << Min << " m " << Sec << " s" << endl;
+            logString << endl;
+            logString << "Total time of simulation: " << dif_time_a[0] << " h " << dif_time_a[1] << " m " << dif_time_a[2] << " s" << endl;
+            logString << endl;
+            emit w->LogLine(logString.str());
 
             gener_out << "Simulation end at: " << Hour << " h " << Min << " m " << Sec << " s" << endl;
             gener_out << endl;
