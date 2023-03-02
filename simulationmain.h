@@ -41,6 +41,7 @@ public slots:
     void changePlots(std::vector<plot> para, std::vector<plot> anti);
     void changePlates(double hist_image[n_his_ima][n_his_ima], double max_z, int crystal);
     void changeTimes(int timeSlot, int h, int m, int s);
+    void LogLine(std::string line);
 
 private:
     Ui::SimulationMain *ui;

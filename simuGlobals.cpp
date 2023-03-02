@@ -31,9 +31,13 @@ double request_width[4], request_energy[4];
 
 pick picks[5];
 
+<<<<<<< HEAD
 #ifdef QT_EXISTS
 QPlainTextEdit* logBox = nullptr;
 #endif
+=======
+QPlainTextEdit* logBox = nullptr;
+>>>>>>> 6e774af (Added Logbox to the GUI)
 
 std::ofstream gener_out;
 std::ofstream hist_para;

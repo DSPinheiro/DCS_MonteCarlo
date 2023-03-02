@@ -21,14 +21,20 @@ std::atomic<bool> done(false);
 
 void SimulationMain::guiSimu(){
     
+    stringstream logString;
+
     if(UserSettingsInput.mask_C1 < 0 || UserSettingsInput.mask_C1 > 2){
-        cout << "bad input for first crystal mask: " << UserSettingsInput.mask_C1 << endl;
+        
+        logString << "bad input for first crystal mask: " << UserSettingsInput.mask_C1 << endl;
+        LogLine(logString.str());
         throw runtime_error("value of 0 for no mask, 1 for mask on the bottom and 2 for mask on the top");
     }
 
     if(UserSettingsInput.mask_C2 < 0 || UserSettingsInput.mask_C2 > 2){
-            cout << "bad input for second crystal mask: " << UserSettingsInput.mask_C2 << endl;
-            throw runtime_error("value of 0 for no mask, 1 for mask on the bottom and 2 for mask on the top");
+        logString.clear();
+        logString << "bad input for second crystal mask: " << UserSettingsInput.mask_C2 << endl;
+        LogLine(logString.str());
+        throw runtime_error("value of 0 for no mask, 1 for mask on the bottom and 2 for mask on the top");
     }
 
 
@@ -66,11 +72,16 @@ void SimulationMain::guiSimu(){
         reques_width[2] = FullEnergySpectrumInput.naturalwidth3;
         reques_width[3] = FullEnergySpectrumInput.naturalwidth4;
     }else{
-        cout << "Reading input energy spectrum..." << endl;
+        logString.clear();
+        logString << "Reading input energy spectrum..." << endl;
+        LogLine(logString.str());
 
         Obtain_EnergySpectrum::Read_EnergySpectrum();
 
-        cout << "Input energy spectrum read." << endl;
+        logString.clear();
+        logString << "Input energy spectrum read." << endl;
+        LogLine(logString.str());
+
     }
 
     if(GeometryInput.crystal_Si){
@@ -153,7 +164,10 @@ void SimulationMain::guiSimu(){
     if(GeometryInput.mode_bragg_geo){
         Double_Crystal_diffraction::Make_Simu(this);
     }else{
-        cout << "unimplemented transmission mode" << endl;
+        logString.clear();
+        logString << "unimplemented transmission mode" << endl;
+        LogLine(logString.str());
+
     }
 }
 
@@ -233,6 +247,10 @@ SimulationMain::SimulationMain(QWidget *parent) :
             scale->setPixelColor(i, n_his_ima - 1 - j, QColor(r, g, b));
         }
     }
+    
+    //make the logbox read only
+    ui->logBox->setReadOnly(true);
+    logBox = ui->logBox;
 }
 
 SimulationMain::~SimulationMain()
@@ -396,3 +414,6 @@ void SimulationMain::changeTimes(int timeSlot, int h, int m, int s){
         ui->simremain->setText(QString(("Remaining time estimate:      " + to_string(h) + "h    " + to_string(m) + "m     " + to_string(s) + "s").c_str()));
 }
 
+void SimulationMain::LogLine(std::string line) {
+    ui->logBox->appendPlainText(QString(line.c_str()));
+}
