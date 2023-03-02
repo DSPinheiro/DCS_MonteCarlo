@@ -74,8 +74,8 @@ private:
     float yPan;
     float uScale;
 
-    float x_first_crys = 0.4;
-    float S_sour_y = 0.1;
+    float x_first_crys = 0.4f;
+    float S_sour_y = 0.1f;
     float text_scale = 4.0f;
     float text_voffset = 1.0f;
     float tetaref;

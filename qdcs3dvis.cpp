@@ -8,11 +8,11 @@ QDCS3Dvis::QDCS3Dvis(QWidget* parent)
     xRot = 0;
     yRot = 0;
     zRot = 0;
-    uScale = 0.2;
+    uScale = 0.2f;
     xPan = 0.0f;
     yPan = 0.0f;
 
-    delrot = 0;
+    delrot = 0.0f;
     tetaref = 90 - teta_crys1;
 }
 
@@ -66,10 +66,10 @@ static void qNormalizeAngle(int& angle)
 
 static void qNormalizeUScale(float& scale)
 {
-    if (scale < 0.01)
-        scale = 0.01;
-    else if (scale > 50)
-        scale = 50;
+    if (scale < 0.01f)
+        scale = 0.01f;
+    else if (scale > 50.0f)
+        scale = 50.0f;
 }
 
 void QDCS3Dvis::setXRotation(int angle)
@@ -1244,7 +1244,7 @@ void QDCS3Dvis::drawObject(std::vector<QVector3D> vertices, GLuint vbo, GLuint u
     );
 
 
-    glDrawArrays(GL_TRIANGLES, 0, vertices.size() );
+    glDrawArrays(GL_TRIANGLES, 0, (GLsizei)vertices.size() );
 
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
@@ -1344,7 +1344,6 @@ void QDCS3Dvis::drawParallelEvents(QMatrix4x4& m) {
 void QDCS3Dvis::drawAntiparallelEvents(QMatrix4x4& m) {
     source_posz -= 30.0f;
     ap_posz -= 30.0f;
-    float c1_posz = -30.0f;
     c2_posz -= 30.0f;
     table_posz -= 30.0f;
 

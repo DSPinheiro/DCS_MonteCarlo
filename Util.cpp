@@ -872,7 +872,7 @@ std::vector<double> Util::spline(std::vector<double> x, std::vector<double> y, d
 
     double p, qn, sig, un;
 
-    int n = x.size();
+    size_t n = x.size();
 
     if (yp1 > 0.99E30) {
         y2.push_back(0);
@@ -929,11 +929,11 @@ std::vector<double> Util::spline(std::vector<double> x, std::vector<double> y, d
 /// y value given by the spline interpolation.
 /// </returns>
 double Util::splint_te(std::vector<double> xa, std::vector<double> ya, std::vector<double> y2a, double x) {
-    int k, khi, klo;
+    int k, klo;
     double a, b, h;
 
     klo = 1;
-    khi = xa.size();
+    size_t khi = xa.size();
 
     while (khi - klo > 1) {
         k = (khi + klo) / 2;
@@ -1690,8 +1690,12 @@ void Util::initPlates() {
 /// </param>
 void Util::Make(int crystal, double y, double z) {
 
-    double step_z_hist, step_y_hist, max_plot_x_temp, max_plot_y_temp;
-    int col2_x = 1400, nx, ny, counts;
+    double max_plot_x_temp, max_plot_y_temp;
+    int nx, ny;
+
+    //Old unused variables
+    //double step_z_hist, step_y_hist;
+    //int col2_x = 1400, counts;
 
 
     max_plot_x_temp = max_plot_x[crystal - 1];
@@ -2322,7 +2326,10 @@ void Util::Read_EnergySpectrum() {
 /// </returns>
 std::vector<double> Util::misalign(double Dis_total) {
 
-    double dev, term_arc, Geo_para_matr[4][4], len, hei, tetaref, div, fi_temp, fi_max, fi_min, z_max, z_min;
+    double dev, term_arc, Geo_para_matr[4][4], tetaref, fi_max, fi_min, z_max, z_min;
+
+    //Old unused variables
+    //double len, hei, div, fi_temp;
 
     fi_max = 10;
     fi_min = -10;

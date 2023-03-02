@@ -19,18 +19,23 @@ void Source_complex::run_Source(SimulationMain *w){
     double counts_C2_para_t, counts_detc_para_t, counts_C2_anti_t, counts_detc_anti_t;
     
     double max_valu_para, max_valu_anti, S_aper_R_2, S_aper_var_2, S_aper_sqr, S_sour_2, z_sour_2, y_sour_2, zdetc_2_max, zdetc_2_min, ydetc_2_max, ydetc_2_min, tetaref, tetabrag_ref;
-    double cos_e, cos2_e, sin_e, tan_e, n1x, n1y, n1z, Dis_total, teta_max, teta_min, squa_tilt1, squa_tilt2, twtilt_C1, delrot_min, delrot_max, delrot_inc, cos_tilt_C1, sin_tilt_C1;
-    double delrot, d_lat1_para, d_lat2_para, d_lat1_anti, d_lat2_anti, tw_d1_para, tw_d2_para, tw_d1_anti, tw_d2_anti, a_lamds_uni, b_lamds_uni, del_teta, cosdel, fi_min, auxBragg;
-    double fi_max, del_fi, abs_fi_max, cosdel_othe, cosdel_teta, cosdel_teta_othe, n2x_para, n2y_para, n2x_anti, n2y_anti, n2z_para, n2z_anti, p, tetadir, tilt_C1_temp, n1x_temp, n1y_temp;
-    double fidir, z, y, r, tetap, sin_fi, cos_fi, sin_tetadir, cos_tetadir, rx, ry, rz, angle, lamda, tetabra1, tetabra2, sin_teref_tedi, teta_max_L, teta_min_L, del_teta_L, inc_tem;
-    double toint_para_nor, toint_anti_nor, angle_para, angle_anti, r2x, r2y, r2z, r3x, r3y, r3z, pha_temp[4], fi_max_L, fi_min_L, del_fi_L, tetartab;
+    double cos_e, sin_e, n1x, n1y, n1z, delrot_min, delrot_max, delrot_inc, cos_tilt_C1, sin_tilt_C1;
+    double delrot, d_lat1_para, d_lat2_para, d_lat1_anti, d_lat2_anti, tw_d1_para, tw_d2_para, tw_d1_anti, tw_d2_anti, a_lamds_uni, b_lamds_uni, auxBragg;
+    double n2x_para, n2y_para, n2x_anti, n2y_anti, n2z_para, n2z_anti, p, tetadir, tilt_C1_temp, n1x_temp, n1y_temp;
+    double fidir, z, y, r, tetap, sin_tetadir, cos_tetadir, rx, ry, rz, angle, lamda, tetabra1, tetabra2, teta_max_L, teta_min_L, del_teta_L, inc_tem;
+    double angle_para, angle_anti, r2x, r2y, r2z, r3x, r3y, r3z, pha_temp[4], fi_max_L, fi_min_L, del_fi_L, tetartab;
     double cos_tetartab, sin_tetartab, cos_difteC1_Ta, sin_difteC1_Ta, cos_tetartabdete_para, sin_tetartabdete_para, cos_tetartabdete_anti, sin_tetartabdete_anti, z_max_C2, z_min_C2;
     double LT_aper_Db, dist_T_Cr1_Db, dist_Cr1_Cr2_Db, dist_Cr2_det_Db, y_min_aper, y_max_aper, z_min_aper, z_max_aper, y_min_C1, y_max_C1, y_min_C2, y_max_C2, z_max_C1, z_min_C1;
     double tilt_C2_para_temp, tilt_C2_anti_temp, n2x_para_temp, n2y_para_temp, n2x_anti_temp;
     double n2y_anti_temp, cos_difteC2_det_para, sin_difteC2_det_para, tan_tetadir, cos_tetadirCry1, sin_fidir, cos_fidir, tan_fidir, cos_fidirtilt, sin_tetap, cos_tetap, var_temp;
-    double y_pro_C1, z_pro_C1, sin_tetadirCry1, Costeta_CHC, Sinteta_CHC, rx_rot, ry_rot, cos_fidirtilt2_para, cos_fidirtilt2_anti, corr_dis, sin_tetatab_del_dir, rx_rot_sec, ry_rot_sec;
+    double y_pro_C1, z_pro_C1, Costeta_CHC, Sinteta_CHC, rx_rot, ry_rot, cos_fidirtilt2_para, cos_fidirtilt2_anti, corr_dis, sin_tetatab_del_dir, rx_rot_sec, ry_rot_sec;
     double tetadir_det, tan_tetadir_det, cos_tetadir_det, fidir_det, tan_fidir_det, cos_fidir_det, corr_dis_d_pa, y_pro_C1_d_pa, cos_tetap_det, sin_tetap_det, z_det, y_det, r_det;
 
+    //Old unused variables
+    //double sin_tetadirCry1, teta_min, tan_e, del_fi, cos2_e, abs_fi_max, squa_tilt2, Dis_total
+    //double teta_max, squa_tilt1, twtilt_C1, fi_max, cosdel_othe, cosdel_teta, cosdel_teta_othe
+    //double sin_fi, cos_fi, toint_para_nor, toint_anti_nor, del_teta, cosdel, fi_min, sin_teref_tedi
+    //bool reach
     
     vector<int> int_time_out;
     int int_time_out_begg, int_time_mili_out_begg, toint_para, toint_anti, total_para, total_anti, bin_tem = 1, bin_fas = 1;
@@ -43,7 +48,7 @@ void Source_complex::run_Source(SimulationMain *w){
     fill(toint_anti_total, toint_anti_total + PlotParametersInput.nubins, 0);
     
     
-    bool make_G_function, sec_crystal_Parallel_reach, sec_crystal_Antiparallel_reach, reach, first_crystal_reach, cond_rotation, poliP;
+    bool make_G_function, sec_crystal_Parallel_reach, sec_crystal_Antiparallel_reach, first_crystal_reach, cond_rotation, poliP;
 
     sec_crystal_Parallel_reach = false;
     sec_crystal_Antiparallel_reach = false;
