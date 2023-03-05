@@ -735,7 +735,7 @@ public:
         DAcnts_val->setText(QString());
         currRot_val->setText(QString());
 #if QT_CONFIG(statustip)
-        AP_histogram->setStatusTip(QCoreApplication::translate("SimulationMain", "Antiparallel spectrum", nullptr));
+        AP_histogram->setStatusTip(QCoreApplication::translate("SimulationMain", "Antiparallel spectrum. The energy axis is only accurate after suficient statistics have been accumulated (>~100000 events per bin)", nullptr));
 #endif // QT_CONFIG(statustip)
 #if QT_CONFIG(statustip)
         P_histogram->setStatusTip(QCoreApplication::translate("SimulationMain", "Parallel spectrum", nullptr));
