@@ -343,6 +343,9 @@ bool Source_complex::run_Source(SimulationInterface *w){
             tilt_C2_anti_temp = GeoParametersInput.tilt_C2 * convrad;
         }
 
+            counts_c2_para = 0;
+            counts_c2_anti = 0;
+
 
         n2x_para = cos(tilt_C2_para_temp) * sin(GeoParametersInput.teta_table * convrad - tetaref + delrot);
         n2y_para = - cos(tilt_C2_para_temp) * cos(GeoParametersInput.teta_table * convrad - tetaref + delrot);
