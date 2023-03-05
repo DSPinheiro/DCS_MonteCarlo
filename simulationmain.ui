@@ -1262,7 +1262,7 @@
                </size>
               </property>
               <property name="statusTip">
-               <string>Antiparallel spectrum</string>
+               <string>Antiparallel spectrum. The energy axis is only accurate after suficient statistics have been accumulated (&gt;~100000 events per bin)</string>
               </property>
              </widget>
             </item>

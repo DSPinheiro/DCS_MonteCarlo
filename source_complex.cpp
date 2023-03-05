@@ -40,6 +40,7 @@ void Source_complex::run_Source(SimulationMain *w){
     
     vector<int> int_time_out;
     int int_time_out_begg, int_time_mili_out_begg, toint_para, toint_anti, total_para, total_anti, bin_tem = 1, bin_fas = 1;
+    int counts_c2_para, counts_c2_anti;
 
     int numbins, max_para, I, n_rota;
     int* toint_para_total = new int[PlotParametersInput.nubins];
@@ -278,6 +279,12 @@ void Source_complex::run_Source(SimulationMain *w){
 
     n_rota = 1;
 
+    vector<double> energy_sum_para;
+    vector<double> energy_sum_anti;
+
+    energy_sum_para.resize(PlotParametersInput.nubins);
+    energy_sum_anti.resize(PlotParametersInput.nubins);
+    
     while(n_rota <= NumberRaysInput.number_rotati){
         if(n_rota % 2 == 1)
             numbins = 0;
@@ -296,6 +303,9 @@ void Source_complex::run_Source(SimulationMain *w){
 
             toint_para = 0;
             toint_anti = 0;
+
+            counts_c2_para = 0;
+            counts_c2_anti = 0;
 
 
             if(TemperatureParametersInput.mk_temp_bin){
@@ -366,7 +376,7 @@ void Source_complex::run_Source(SimulationMain *w){
             vector<vector<double>> eventsToTrace_para;
             vector<vector<double>> eventsToTrace_anti;
 
-
+            
             while(I <= NumberRaysInput.nbeams){
                 //Temporary event to show in the 3D view
                 //If we have less than maxEventNum we just append otherwise we see
@@ -689,7 +699,7 @@ void Source_complex::run_Source(SimulationMain *w){
                                         }
                                     }
 
-
+                                    
                                     tetabra2 = asin(lamda / tw_d2_para);
 
 
@@ -798,6 +808,8 @@ void Source_complex::run_Source(SimulationMain *w){
 
                                             toint_para++;
 
+                                            energy_sum_para[numbins - 1] += Convert_Ag_minusone_eV / lamda;
+
                                         }
                                         else {
                                             if (GraphOptionsInput.make_image_plates) {
@@ -862,7 +874,7 @@ void Source_complex::run_Source(SimulationMain *w){
                                         }
                                     }
 
-
+                                    
                                     tetabra2 = asin(lamda / tw_d2_anti);
 
                                     if(CurvedCrystalInput.Curve_crystall){
@@ -970,6 +982,8 @@ void Source_complex::run_Source(SimulationMain *w){
 
                                             toint_anti++;
 
+                                            energy_sum_anti[numbins - 1] += Convert_Ag_minusone_eV / lamda;
+
                                         }
                                         else {
                                             if (GraphOptionsInput.make_image_plates) {
@@ -1045,8 +1059,10 @@ void Source_complex::run_Source(SimulationMain *w){
 
             if(GraphOptionsInput.make_graph_profile){
                 Make_plot_profiles::plotProfiles(
+                    energy_sum_para[numbins - 1] / total_para,
                     angle_para,
                     total_para,
+                    energy_sum_anti[numbins - 1] / total_anti,
                     angle_anti,
                     total_anti,
                     numbins,

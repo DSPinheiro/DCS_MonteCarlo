@@ -12,8 +12,10 @@ using namespace std;
 
 
 void Make_plot_profiles::plotProfiles(
+    double energy_para,
     double angle_para,
     int toint_para,
+    double energy_anti,
     double angle_anti,
     int toint_anti,
     int n_plot,
@@ -51,9 +53,11 @@ void Make_plot_profiles::plotProfiles(
             copy(begin(legen_counts_1C), end(legen_counts_1C), begin(legen_counts_temp));
     }
 
-
+    
     plot_para.at(n_plot - 1).x = angle_para;
+    plot_para.at(n_plot - 1).energy = energy_para;
     plot_anti.at(n_plot - 1).x = angle_anti;
+    plot_anti.at(n_plot - 1).energy = energy_anti;
     plot_para.at(n_plot - 1).y = (double)toint_para;
     plot_anti.at(n_plot - 1).y = (double)toint_anti;
     plot_para.at(n_plot - 1).error = sqrt((double)toint_para);

@@ -43,6 +43,7 @@ struct plotresponc {
 };
 
 struct plot {
+    double energy;
     double x;
     double y;
     double error;

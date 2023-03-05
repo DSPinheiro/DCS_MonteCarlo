@@ -171,7 +171,7 @@ void SimulationMain::guiSimu(){
     }
 }
 
-QCPErrorBars *errorBars_1, *errorBars;
+//QCPErrorBars *errorBars_1, *errorBars;
 
 QImage *img, *scale;
 
@@ -188,6 +188,15 @@ SimulationMain::SimulationMain(QWidget *parent) :
     ui->AP_histogram->graph(0)->setLineStyle(QCPGraph::lsStepCenter);
     ui->P_histogram->graph(0)->setLineStyle(QCPGraph::lsStepCenter);
 
+    ui->AP_histogram->addGraph(ui->AP_histogram->xAxis2, ui->AP_histogram->yAxis);
+    //ui->P_histogram->addGraph(ui->P_histogram->xAxis2, ui->P_histogram->yAxis);
+
+    ui->AP_histogram->graph(1)->setLineStyle(QCPGraph::lsStepCenter);
+    //ui->P_histogram->graph(1)->setLineStyle(QCPGraph::lsStepCenter);
+
+    ui->AP_histogram->graph(1)->setVisible(false);
+    //ui->P_histogram->setVisible(false);
+
     QPen pen;
     pen.setColor(QColor(0, 0, 255, 255));
 
@@ -198,18 +207,22 @@ SimulationMain::SimulationMain(QWidget *parent) :
 
     ui->AP_histogram->yAxis->setLabel("Counts");
     ui->AP_histogram->xAxis->setLabel("Crystal 2 antiparallel angle");
+    ui->AP_histogram->xAxis2->setLabel("Energy (eV)");
 
     ui->P_histogram->yAxis->setLabel("Counts");
     ui->P_histogram->xAxis->setLabel("Crystal 2 parallel angle");
+    //ui->P_histogram->xAxis2->setLabel("Energy (eV)");
 
     ui->AP_histogram->xAxis2->setVisible(true);
     ui->AP_histogram->yAxis2->setVisible(true);
-    ui->AP_histogram->xAxis2->setTickLabels(false);
+    ui->AP_histogram->xAxis2->setTickLabels(true);
     ui->AP_histogram->yAxis2->setTickLabels(false);
-    ui->AP_histogram->xAxis2->setTicks(false);
+    ui->AP_histogram->xAxis2->setTicks(true);
     ui->AP_histogram->yAxis2->setTicks(false);
-    ui->AP_histogram->xAxis2->setSubTicks(false);
+    ui->AP_histogram->xAxis2->setSubTicks(true);
     ui->AP_histogram->yAxis2->setSubTicks(false);
+    ui->AP_histogram->xAxis2->setRangeReversed(true);
+    
     ui->AP_histogram->xAxis->setTickLabelRotation(28);
 
     ui->P_histogram->xAxis2->setVisible(true);
@@ -220,10 +233,13 @@ SimulationMain::SimulationMain(QWidget *parent) :
     ui->P_histogram->yAxis2->setTicks(false);
     ui->P_histogram->xAxis2->setSubTicks(false);
     ui->P_histogram->yAxis2->setSubTicks(false);
+    //ui->P_histogram->xAxis2->setRangeReversed(true);
+    
     ui->P_histogram->xAxis->setTickLabelRotation(28);
 
     lastHistogramUpdate = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
 
+    /*
     errorBars = new QCPErrorBars(ui->AP_histogram->xAxis, ui->AP_histogram->yAxis);
     errorBars->removeFromLegend();
     errorBars->setAntialiased(false);
@@ -237,6 +253,7 @@ SimulationMain::SimulationMain(QWidget *parent) :
     errorBars_1->setDataPlottable(ui->P_histogram->graph(0));
     errorBars_1->setPen(QPen(QColor(180,180,180)));
     errorBars_1->setErrorType(QCPErrorBars::etValueError);
+    */
 
     img = new QImage(n_his_ima, n_his_ima, QImage::Format::Format_RGB16);
     scale = new QImage(n_his_ima / 10, n_his_ima, QImage::Format::Format_RGB16);
@@ -303,29 +320,38 @@ void SimulationMain::changePlots(vector<plot> para, vector<plot> anti){
     if (currTime - lastHistogramUpdate >= 100)
     {
         lastHistogramUpdate = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
-        QVector<double> qx_para, qy_para, qx_anti, qy_anti, e_para, e_anti;
+        QVector<double> qe_para, qx_para, qy_para, qe_anti, qx_anti, qy_anti, e_para, e_anti;
 
         for(unsigned int i = 0; i < para.size(); i++){
+            qe_para << para[i].energy;
             qx_para << para[i].x;
             qy_para << para[i].y;
             e_para << para[i].error;
         }
 
         for(unsigned int i = 0; i < anti.size(); i++){
+            qe_anti << anti[i].energy;
             qx_anti << anti[i].x;
             qy_anti << anti[i].y;
             e_anti << anti[i].error;
         }
 
-        errorBars->addData(e_anti);
-        errorBars_1->addData(e_para);
+        //errorBars->addData(e_anti);
+        //errorBars_1->addData(e_para);
 
-        ui->AP_histogram->graph()->setData(qx_anti, qy_anti);
-        ui->P_histogram->graph()->setData(qx_para, qy_para);
+        ui->AP_histogram->graph(0)->setData(qx_anti, qy_anti);
+        ui->P_histogram->graph(0)->setData(qx_para, qy_para);
 
-        ui->AP_histogram->graph()->rescaleAxes();
-        ui->P_histogram->graph()->rescaleAxes();
+        ui->AP_histogram->graph(0)->rescaleAxes();
+        ui->P_histogram->graph(0)->rescaleAxes();
 
+        ui->AP_histogram->graph(1)->setData(qe_anti, qy_anti);
+        //ui->P_histogram->graph(1)->setData(qe_para, qy_para);
+
+        ui->AP_histogram->graph(1)->rescaleAxes();
+        //ui->P_histogram->graph(1)->rescaleAxes();
+
+        
         if(!ui->AP_histogram->paintingActive())
             ui->AP_histogram->replot(QCustomPlot::rpQueuedReplot);
         if(!ui->P_histogram->paintingActive())
