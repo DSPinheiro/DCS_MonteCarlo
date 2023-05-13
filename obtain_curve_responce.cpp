@@ -157,7 +157,7 @@ void Obtain_curve_responce::Read_CurveResponce(){
         //Total
         vector<double> x, y, y2;
 
-        for(unsigned int i = 0; i < plotresponce_mide.size(); i++){
+        for(unsigned int i = 0; i < plotresponce_mide[energyIndex].size(); i++){
             x.push_back(plotresponce_mide[energyIndex][i].degree);
             y.push_back(plotresponce_mide[energyIndex][i].reflecti_total);
         }

@@ -136,7 +136,7 @@ void SimulationMain::guiSimu(){
             usable = CheckInputSpectrum::CheckSpectrum("eV");
 
             if(not usable){
-                throw runtime_error("bad input on the energies. requested energy spectrum will not be visible in output");
+                //throw runtime_error("bad input on the energies. requested energy spectrum will not be visible in output");
             }
         }else if(physical_parameters.Unit_energy == "A"){
             usable = CheckInputSpectrum::CheckSpectrum("A");

@@ -106,6 +106,7 @@ numberrays
 
 nbeams=1200000,							//number of X-ray beams used for simulation
 number_rotati=10						//max number of second crystal rotations
+number_graph_events=10					//max number of events that will be shown in the 3D view
   
 
 physical_parameters

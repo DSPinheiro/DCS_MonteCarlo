@@ -38,8 +38,8 @@ Glancing angle evaluated without approximation
 				dist_T_Cr1
 
  Make the image plate after the diffraction
- on first crystal: False
- and for second crystal: False
+ on first crystal: True
+ and for second crystal: True
 
  This simulation is for an extended circular uniform source
  length of copper tube: 200cm
@@ -53,14 +53,14 @@ Glancing angle evaluated without approximation
  Width of detector: 2.52cm
  Height of detector: 1.01cm
 
- The angle of the first crystal in respect to the table: -121.14deg
+ The angle of the first crystal in respect to the table: -104.227deg
  with an offset of: -0.0052deg
- The table axis makes an angle to the x axis is: 62.6deg
- Angle of crystal 1 normal vector to the x axis is: 58.5348deg
- Glancing angle for central ray: 31.4652
+ The table axis makes an angle to the x axis is: 28.444deg
+ Angle of crystal 1 normal vector to the x axis is: 75.778deg
+ Glancing angle for central ray: 14.222
 
- Angle of the detector position to the table is in parallel:-62.6deg
- In antiparallel: 62.6deg
+ Angle of the detector position to the table is in parallel:-28.444deg
+ In antiparallel: 28.444deg
 
  Tilt on crystal 1:0deg
  Tilt on crystal 2:-0deg
@@ -70,18 +70,18 @@ Glancing angle evaluated without approximation
 
  Profile plot scanning range: 0.15deg
  Profile plot display window shift: 0deg
- and has 400 bins
-Make graphical plot: False
+ and has 600 bins
+Make graphical plot: True
 
-Number of rays used 100
+Number of rays used 10000
 
 Make more energies from file
 Using energy spectrum from file Energy_spectrum_600.txt
 With a constant background: False
 
-Temperature of the Crystal 1: 22.5 ºC
-Temperature of the Crystal 2 parallel: 22.5 ºC
-Temperature of the Crystal 2 antiparallel: 22.5 ºC
+Temperature of the Crystal 1: 22.5 ÂºC
+Temperature of the Crystal 2 parallel: 22.5 ÂºC
+Temperature of the Crystal 2 antiparallel: 22.5 ÂºC
 
 Make cycle over crystal tilts: False
 
@@ -90,19 +90,19 @@ Make graph of analysis of vertical misalignement: False
 
 The estimated angle of peak
 taking into account crystal tilts and effective misalignement
- in parallel is:					58.8652 deg
- or, in turn of reference angle:	0.3304 deg
+ in parallel is:					75.778 deg
+ or, in turn of reference angle:	1.90833e-14 deg
 
 The estimated angle of peak
 taking into account crystal tilts and effective misalignement
- in antiparallel is:				42.822 deg
- or, in turn of reference angle:	-101.357 deg
+ in antiparallel is:				-33.9438 deg
+ or, in turn of reference angle:	-41.8342 deg
 
 
  Estimated energy
  without crystal tilts and effective misalignement: inf
 
- with crystal tilts and effective misalignement: 3091.09
+ with crystal tilts and effective misalignement: 8047.09
 
 difference: -infMeV
 
@@ -112,18 +112,5 @@ difference: -infMeV
 
 ----------------------------------------
 
-Simulation start at: 3 h 36 m 24 s
+Simulation start at: 18 h 45 m 23 s
 
-********************************
-
- Number of counts un the several geometric elements
-
-Number counts entrance:		0
-Number counts C1:				0
-Number counts C2_para:			0
-Number counts detc_para:		0
-Number counts C2_anti:			0
-Number counts detc_anti:		0
-output of profiles in files
-Histogram_antiparallel
-Histogram_parallel

@@ -64,7 +64,8 @@ void Source_complex::run_Source(SimulationMain *w){
     vector<int> int_time_out;
     int int_time_out_begg, int_time_mili_out_begg, toint_para, toint_anti, total_para, total_anti, bin_tem = 1, bin_fas = 1;
 
-    int numbins, max_para, I, n_rota, toint_para_total[plotparameters.nubins] = {0}, toint_anti_total[plotparameters.nubins] = {0};
+    int numbins, max_para, I, n_rota;
+    vector<int> toint_para_total(plotparameters.nubins, 0), toint_anti_total(plotparameters.nubins, 0);
 
     bool make_G_function, sec_crystal_Parallel_reach, sec_crystal_Antiparallel_reach, reach, first_crystal_reach, cond_rotation, poliP;
 

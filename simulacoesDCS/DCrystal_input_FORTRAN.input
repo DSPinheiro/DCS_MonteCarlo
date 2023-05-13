@@ -22,7 +22,7 @@
  make_imageC1_After_refle=.false., make_imageC2_After_refle=.false./ 
 &end
 &plotparameters delta_angl=0.15,  shift_disp_window=0.0d0,  nubins=400/
-&numberrays nbeams=1200000, number_rotati=1/  
+&numberrays nbeams=1200000, number_rotati=1, number_graph_events=10/  
 &physical_parameters Unit_energy="eV", linelamda=3091.782d0, naturalwidth=0.300d0, gauss_Doop=0.034185202461592800d0/
 &end
 &polarization_parameters mka_poli=.false., relationP_S=0.0d0/

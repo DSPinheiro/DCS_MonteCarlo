@@ -61,11 +61,11 @@ shift_det_ver=-0.0d0		//detector's initial vertical displacement
 
 GeoParameters
 
-Exp_crys1=-121.14d0		//starting angle of the first crystal with respect to the table (?) (has to be >0 for simple simulation and <0 for non simple)
-teta_table=62.6d0		//angle of the table axis with respect to simulation x axis
+Exp_crys1=-104.2272d0		//starting angle of the first crystal with respect to the table (?) (has to be >0 for simple simulation and <0 for non simple)
+teta_table=28.4440d0		//angle of the table axis with respect to simulation x axis
 OffsetRotCry1 =-0.0052d0	//angle offset of first crystal's tilt (conpensate for drift?)
-teta_detec_para=-62.6d0		//angle of the detector with respect to the table in parallel config
-teta_detec_anti=62.6d0		//angle of the detector with respect to the table in anti-parallel config
+teta_detec_para=-28.4440d0		//angle of the detector with respect to the table in parallel config
+teta_detec_anti=28.4440d0		//angle of the detector with respect to the table in anti-parallel config
 tilt_C1=0.0d0			//initial angle of the first crystal with respect to the table
 tilt_C2=-0.0d0			//initial angle of the second crystal with respect to the table
 xsi=0.0d0			//effective missalignment between crystals (only works or simple simu)
@@ -97,19 +97,20 @@ plotparameters
 
 delta_angl=0.15d0				//scaning range for profile plot
 shift_disp_window=0.0d0				//angle shift from plot to window
-nubins=400					//histogram profile bin number
+nubins=600					//histogram profile bin number
 
 
 numberrays
 
-nbeams=100							//number of X-ray beams used for simulation
+nbeams=10000							//number of X-ray beams used for simulation
 number_rotati=10						//max number of second crystal rotations
+number_graph_events=100					//max number of events that will be shown in the 3D view
   
 
 physical_parameters
 
 Unit_energy="eV"						//output energy unit
-linelamda=3091.782d0					//X-ray wavelength (?)
+linelamda=8047.074148d0					//X-ray wavelength (?)
 naturalwidth=0.300d0					//X-ray natural width (broadning?)
 gauss_Doop=0.034185202461592800d0		//gaussian FWMH
 

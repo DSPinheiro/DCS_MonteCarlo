@@ -32,7 +32,7 @@ bool Gaussi_rockin::getReflection(double angle, double tetabra, double lamda, bo
     int index = 0;
     for(double energ : available_energies)
     {
-        if (energ > energy)
+        if (energ > energy / 1000)
         {
             energy_resp_index = index - 1;
             break;
