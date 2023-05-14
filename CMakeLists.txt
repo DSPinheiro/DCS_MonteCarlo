@@ -150,11 +150,16 @@ set(INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH "Installation director
 
 set(INSTALL_HEADERS
     simulationmain.h
+    simuGlobals.hh
 )
 
+file(REAL_PATH "${CMAKE_INSTALL_PREFIX}/${INSTALL_INCLUDE_DIR}" ABS_INCLUDE_DIR)
+set(CONF_INCLUDE_DIRS "${ABS_INCLUDE_DIR}")
+configure_file(cmake/DCSsimuWrapperConfig.cmake.in "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/DCSsimuWrapperConfig.cmake" @ONLY)
+
 install(TARGETS DCSsimuWrapper EXPORT DCSsimuWrapper DESTINATION ${INSTALL_LIB_DIR})
-install(FILES ${CMAKE_SOURCE_DIR}/${INSTALL_HEADERS} DESTINATION ${INSTALL_INCLUDE_DIR})
-install(FILES cmake/DCSsimuWrapperConfig.cmake DESTINATION ${INSTALL_CMAKE_DIR})
+install(FILES ${CMAKE_SOURCE_DIR}/${INSTALL_HEADERS} DESTINATION ${INSTALL_INCLUDE_DIR}/DCSsimu)
+install(FILES ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/DCSsimuWrapperConfig.cmake DESTINATION ${INSTALL_CMAKE_DIR})
 install(EXPORT DCSsimuWrapper DESTINATION ${INSTALL_CMAKE_DIR})
 
 # TODO : Fix target exporting to the registry (avoiding setting the CMAKE_PREFIX_PATH on the client)

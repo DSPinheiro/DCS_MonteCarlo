@@ -1,0 +1,9 @@
+get_filename_component(SELF_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+include(${SELF_DIR}/DCSsimuWrapper.cmake)
+
+# Set library names
+set(DCSSIMUWRAPPER_LIBRARIES DCSsimuWrapper)
+
+# Compute include paths
+get_filename_component(DCSSIMUWRAPPER_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+set(DCSSIMUWRAPPER_INCLUDE_DIRS "@CONF_INCLUDE_DIRS@")
