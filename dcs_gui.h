@@ -38,6 +38,10 @@ private slots:
 
     void on_startSim_button_clicked();
 
+    void on_saveSim_button_clicked();
+
+    void on_loadSim_button_clicked();
+
     void on_energy_val_textEdited(const QString &arg1);
 
     void on_naturalWidth_val_textEdited(const QString &arg1);
@@ -102,5 +106,7 @@ private slots:
 
 private:
     Ui::DCS_GUI *ui;
+
+    void update_ui_text();
 };
 #endif // DCS_GUI_H

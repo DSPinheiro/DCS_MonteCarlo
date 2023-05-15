@@ -23,11 +23,49 @@ public:
     void closeEvent(QCloseEvent *event);
     void guiSimu();
 
+    struct Stats
+    {
+        double c_sour;
+        double c_cr1;
+        double c_cr2_para;
+        double c_cr2_anti;
+        double c_detc_para;
+        double c_detc_anti;
+        double delrot;
+    };
+
+    struct Plots
+    {
+        std::vector<plot> para;
+        std::vector<plot> anti;
+    };
+
+    struct Plates
+    {
+        double hist_image[n_his_ima][n_his_ima];
+        double max_z;
+        int crystal;
+    };
+
+    struct Times
+    {
+        int timeSlot;
+        int h;
+        int m;
+        int s;
+    };
+
+signals:
+    void changeStatsSignal(Stats stats);
+    void changePlotsSignal(Plots plots);
+    void changePlatesSignal(Plates plates);
+    void changeTimesSignal(Times times);
+
 public slots:
-    void changeStats(double c_sour, double c_cr1, double c_cr2_para, double c_cr2_anti, double c_detc_para, double c_detc_anti, double delrot);
-    void changePlots(std::vector<plot> para, std::vector<plot> anti);
-    void changePlates(double hist_image[n_his_ima][n_his_ima], double max_z, int crystal);
-    void changeTimes(int timeSlot, int h, int m, int s);
+    void changeStats(Stats stats);
+    void changePlots(Plots plots);
+    void changePlates(Plates plates);
+    void changeTimes(Times times);
 
 private:
     Ui::SimulationMain *ui;

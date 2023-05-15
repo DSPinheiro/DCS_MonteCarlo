@@ -119,6 +119,9 @@ set(SOURCE
 
     dcs_gui.ui
     simulationmain.ui
+
+    # Wrapper
+    wrapper/sserializer.inl
 )
 
 # Just using a static lib (improves the "portability" of the final executable)

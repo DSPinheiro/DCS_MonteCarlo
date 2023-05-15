@@ -2,7 +2,7 @@
  * DCS_MonteCarlo.hh
  *
  *  Created on: Oct 29, 2020
- *      Author: danip
+ *      Author: danip, cgodinho
  */
 
 #ifndef DCS_MONTECARLO_HH_
@@ -45,7 +45,6 @@ temperature_parameters temperature_parameters;
 fullenergyspectrum fullenergyspectrum;
 Curved_Crystal Curved_Crystal;
 AnalysiesCrystaltilts AnalysiesCrystaltilts;
-
 
 double reques_energ[4];
 double reques_width[4];
