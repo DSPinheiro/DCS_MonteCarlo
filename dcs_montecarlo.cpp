@@ -1,6 +1,6 @@
 //============================================================================
 // Name        : DCS_MonteCarlo.cpp
-// Author      : Daniel Pinheiro, Pedro Amaro
+// Author      : Daniel Pinheiro, Pedro Amaro, César Godinho
 // Version     : 1.0
 // Copyright   : Your copyright notice
 // Description : Entry point for the DCS simulation
@@ -8,10 +8,16 @@
 
 #include "dcs_montecarlo.hh"
 
+#include "configure.inl"
+
+#include <filesystem>
+
 
 using namespace std;
 
+char inFile[200];
 char File_simu[200];
+char Output_dir[200];
 std::string Unit_energy;
 double refra_corr;
 bool root_script;
@@ -23,16 +29,13 @@ double d_lat;// = 3.13560123; // CODATA
 int ENTRYPOINT(int argc, char *argv[]){
 
     QApplication a(argc, argv);
-
-    char pathName[500];
-
-    strcpy(pathName, QApplication::applicationDirPath().toUtf8().constData());
-    strcat(pathName, "/DCrystal_input.path");
-
-    ifstream pathFile(pathName);
-
     string line;
 
+#if 0
+    char pathName[500];
+    strcpy(pathName, QApplication::applicationDirPath().toUtf8().constData());
+    strcat(pathName, "/DCrystal_input.path");
+    ifstream pathFile(pathName);
 
     if(pathFile){
         while (getline(pathFile, line)){
@@ -45,20 +48,58 @@ int ENTRYPOINT(int argc, char *argv[]){
     }else{
         cout << "Could not open path file: " << pathName << endl;
     }
-
     pathFile.close();
+#endif
 
-    cout << "Path to simulation workspace: " << File_simu << endl;
-    cout << endl;
-    cout << endl;
+    // This is my proposal (César) Just use an argument on the standalone executable instead of a .path file
+    // The new version does not require the input file
+    // However, there are a few option that need to be added to the GUI before we can remove this feature
+    // Also just leaving for compatibility is ok I believe
+    CommandLineParams input_params = command_line_parser(argc, argv);
+    if(!input_params.valid) return 0;
 
+    // Setup workspace dir
+    strcpy(File_simu, input_params.input_dir_path.c_str());
+    cout << "Path to simulation workspace: " << File_simu << "\n\n" << endl;
 
-    char inFile[223] = { 0 };
+    // Setup input config file name
     strcat(inFile, File_simu);
-    strcat(inFile, "/DCrystal_input.input");
+    if(!input_params.input_config_file_path.empty())
+    {
+        strcat(inFile, "/");
+        strcat(inFile, input_params.input_config_file_path.c_str());
+    }
+    else // Else try and use the default filename
+    {
+        strcat(inFile, "/DCrystal_input.input");
+    }
 
+    // Configure the output directory
+    if(!input_params.output_dir_path.empty())
+    {
+        if(input_params.use_rel_output)
+        {
+            strcat(Output_dir, File_simu);
+            strcat(Output_dir, "/");
+            strcat(Output_dir, input_params.output_dir_path.c_str());
+        }
+        else // Just use a path relative to the executable's location
+        {
+            strcat(Output_dir, input_params.output_dir_path.c_str());
+        }
+    }
+    else
+    {
+        strcat(Output_dir, "output");
+    }
+
+    if(!filesystem::is_directory(Output_dir) || !filesystem::exists(Output_dir))
+    {
+        filesystem::create_directories(Output_dir);
+    }
+
+    // Parse the input file
     ifstream inputFile(inFile);
-
     if(inputFile.is_open()){
         char str[1];
         char* firstChar = str;
@@ -1236,26 +1277,23 @@ int ENTRYPOINT(int argc, char *argv[]){
         }
     }else{
         cout << "Could not open input file on path: " << inFile << endl;
-
         return 0;
     }
-
     inputFile.close();
-
     cout << "Input file read." << endl;
 
-    if(Geometry.imh == 2 and Geometry.imk == 2 and Geometry.iml == 2)
-        refra_corr = refra_corrNIST;
-    else
-        refra_corr = refra_corrPARIS;
-
-
+    // Make aditional configurations
     Unit_energy = physical_parameters.Unit_energy;
-
-
+    if(Geometry.imh == 2 and Geometry.imk == 2 and Geometry.iml == 2)
+    {
+        refra_corr = refra_corrNIST;
+    }
+    else
+    {
+        refra_corr = refra_corrPARIS;
+    }
 
     root_script = false;
-
     if(not root_script){
         if(Graph_options.MakeDislin){
             DCS_GUI w;

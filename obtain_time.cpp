@@ -106,8 +106,18 @@ vector<int> Obtain_time::simuTime(int First_call, int process_remain, int int_ti
                 emit w->changeTimesSignal(times);
             }
 
-            cout << "remainder time estimate: " << dif_time_a[0] << " h " << dif_time_a[1] << " m " << dif_time_a[2] << " s" << endl;
-            cout << endl;
+            // (César) : This is on the GUI already no need to polute the console (if displaying one)
+            // cout << "remainder time estimate: " << dif_time_a[0] << " h " << dif_time_a[1] << " m " << dif_time_a[2] << " s" << endl;
+            // cout << endl;
+            static int rotate = 0;
+            if(rotate % 7 == 0)      cout << "Working       \r";
+            else if(rotate % 7 == 1) cout << "Working .     \r";
+            else if(rotate % 7 == 2) cout << "Working ..    \r";
+            else if(rotate % 7 == 3) cout << "Working ...   \r";
+            else if(rotate % 7 == 4) cout << "Working ....  \r";
+            else if(rotate % 7 == 5) cout << "Working ..... \r";
+            else if(rotate % 7 == 6) cout << "Working ......\r";
+            rotate++;
 
             //TODO implement gui
             //if(Graph_options.make_image_plates){

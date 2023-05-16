@@ -173,7 +173,7 @@ static std::vector<uint8_t> read_buffer_from_file(const std::string& filename)
     return buffer;
 }
 
-extern char File_simu[200];
+extern char inFile[200];
 
 #ifndef LIB_DEF
 SimulationMain *wsimu;
@@ -231,8 +231,7 @@ DCS_GUI::DCS_GUI(QWidget *parent)
     char inFileText[234];
 
     strcpy(inFileText, "More Settings can be changed at: ");
-    strcat(inFileText, File_simu);
-    strcat(inFileText, "\\DCrystal_input.input");
+    strcat(inFileText, inFile);
 
     ui->fullSettings_path->setText(QString(inFileText));
 

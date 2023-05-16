@@ -42,8 +42,6 @@ extern pick picks[5];
 
 extern double gauss_Doop_ev;
 
-extern char File_simu[200];
-
 bool running = false;
 
 thread t1;
@@ -271,6 +269,7 @@ SimulationMain::SimulationMain(QWidget *parent) :
     connect(this, SIGNAL(changePlotsSignal(Plots)), this, SLOT(changePlots(Plots)), Qt::QueuedConnection);
     connect(this, SIGNAL(changePlatesSignal(Plates)), this, SLOT(changePlates(Plates)), Qt::QueuedConnection);
     connect(this, SIGNAL(changeTimesSignal(Times)), this, SLOT(changeTimes(Times)), Qt::QueuedConnection);
+    connect(this, SIGNAL(showDoneDialogSignal()), this, SLOT(showDoneDialog()), Qt::QueuedConnection);
 }
 
 SimulationMain::~SimulationMain()
@@ -295,7 +294,12 @@ void SimulationMain::showEvent(QShowEvent *)
 {
 #ifndef LIB_DEF
     if(!running){
-        t1 = std::thread([&]{SimulationMain::guiSimu(); done = true; running = false;});
+        t1 = std::thread([&]{
+            SimulationMain::guiSimu(); 
+            emit SimulationMain::showDoneDialogSignal();
+            done = true;
+            running = false;
+        });
         running = true;
     }
 #endif
@@ -303,12 +307,17 @@ void SimulationMain::showEvent(QShowEvent *)
 
 void SimulationMain::closeEvent(QCloseEvent *){
 #ifndef LIB_DEF
-    if(running){
+    if(!running){
         t1.join();
         exit(0);
     }else
         throw runtime_error("Simulation ended by user input before finishing. Results are incomplete.");
 #endif
+}
+
+void SimulationMain::showDoneDialog()
+{
+    QMessageBox::information(this, tr("DCS Simulation"), tr("Simulation Finished!"), QMessageBox::Ok);
 }
 
 void SimulationMain::changeStats(Stats stats){

@@ -144,7 +144,7 @@ void MakefitVoigt::fit(bool Parallel){
     }else{
         mrq_min(x, y, sig, NPT, a, ia, MA, covar, alpha, MA, chisq, Pseud, alamda);
     }
-    cout << "skgnkdbgnkdg" << endl;
+    
     for(int i = 0; i < MA; i++){
         gener_out << name_varia[i] << "\t" << a[i] << endl;
         cout << name_varia[i] << "\t" << a[i] << endl;

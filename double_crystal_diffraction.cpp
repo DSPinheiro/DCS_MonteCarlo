@@ -10,7 +10,7 @@
 
 using namespace std;
 
-extern char File_simu[200];
+extern char Output_dir[200];
 extern double teta_crys1;
 extern pick picks[5];
 extern vector<energy_gen> Energy_spec;
@@ -45,9 +45,9 @@ void Double_Crystal_diffraction::Make_Simu(SimulationMain *w){
 
     double linelamda, naturalwidth, center_2cry_at_temp, sin_t, theta_b, line_ener, termFW;
 
-    string paraPath = string(File_simu) + "\\Histogram_parallel.txt";
-    string antiPath = string(File_simu) + "\\Histogram_antiparallel.txt";
-    string generPath = string(File_simu) + "\\general_output.txt";
+    string paraPath = string(Output_dir) + "\\Histogram_parallel.txt";
+    string antiPath = string(Output_dir) + "\\Histogram_antiparallel.txt";
+    string generPath = string(Output_dir) + "\\general_output.txt";
 
     hist_para.open(paraPath, ofstream::out | ofstream::trunc);
     hist_anti.open(antiPath, ofstream::out | ofstream::trunc);

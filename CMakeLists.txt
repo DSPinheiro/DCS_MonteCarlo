@@ -122,6 +122,8 @@ set(SOURCE
 
     # Wrapper
     wrapper/sserializer.inl
+
+    configure.inl
 )
 
 # Just using a static lib (improves the "portability" of the final executable)

@@ -61,12 +61,14 @@ signals:
     void changePlotsSignal(Plots plots);
     void changePlatesSignal(Plates plates);
     void changeTimesSignal(Times times);
+    void showDoneDialogSignal();
 
 public slots:
     void changeStats(Stats stats);
     void changePlots(Plots plots);
     void changePlates(Plates plates);
     void changeTimes(Times times);
+    void showDoneDialog();
 
 private:
     Ui::SimulationMain *ui;
