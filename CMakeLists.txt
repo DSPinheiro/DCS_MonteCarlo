@@ -126,6 +126,7 @@ set(SOURCE
 
 # Just using a static lib (improves the "portability" of the final executable)
 add_library(DCSsimuWrapper STATIC ${SOURCE})
+target_compile_definitions(DCSsimuWrapper PRIVATE -DENTRYPOINT=dummy -DLIB_DEF)
 
 target_link_libraries(DCSsimuWrapper PRIVATE
     Qt${QT_VERSION_MAJOR}::Widgets
@@ -154,6 +155,7 @@ set(INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH "Installation director
 set(INSTALL_HEADERS
     simulationmain.h
     simuGlobals.hh
+    dcs_gui.h
 )
 
 file(REAL_PATH "${CMAKE_INSTALL_PREFIX}/${INSTALL_INCLUDE_DIR}" ABS_INCLUDE_DIR)
@@ -173,6 +175,7 @@ export(PACKAGE DCSsimuWrapper)
 # no need to use qmake (but useful if using qtcreator)
 # Keep it a console application just like in the base port qmake file
 add_executable(DCSsimu ${SOURCE})
+target_compile_definitions(DCSsimu PRIVATE -DENTRYPOINT=main)
 
 target_link_libraries(DCSsimu PRIVATE
     Qt${QT_VERSION_MAJOR}::Widgets

@@ -175,7 +175,9 @@ static std::vector<uint8_t> read_buffer_from_file(const std::string& filename)
 
 extern char File_simu[200];
 
+#ifndef LIB_DEF
 SimulationMain *wsimu;
+#endif
 
 DCS_GUI::DCS_GUI(QWidget *parent)
     : QMainWindow(parent)
@@ -183,7 +185,9 @@ DCS_GUI::DCS_GUI(QWidget *parent)
 {
     ui->setupUi(this);
 
-    wsimu = new SimulationMain();
+#ifndef LIB_DEF
+    wsimu = new SimulationMain(this);
+#endif
 
     QValidator *v = new QDoubleValidator(DBL_MIN, DBL_MAX, 6, this);
     QValidator *vi = new QIntValidator(1, INT_MAX, this);
@@ -255,7 +259,7 @@ void DCS_GUI::update_ui_text()
 
     ui->makeImagePlateC2_check->setChecked(Graph_options.make_imageC1_After_refle);
     ui->makeImagePlateC1_check->setChecked(Graph_options.make_imageC2_After_refle);
-    
+
     ui->energy_val->setText(std::to_string(physical_parameters.linelamda).c_str());
     ui->naturalWidth_val->setText(std::to_string(physical_parameters.naturalwidth).c_str());
     ui->tempC1P_val->setText(std::to_string(temperature_parameters.T_crystal_1_para).c_str());
@@ -294,7 +298,9 @@ void DCS_GUI::update_ui_text()
 DCS_GUI::~DCS_GUI()
 {
     delete ui;
+#ifndef LIB_DEF
     exit(0);
+#endif
 }
 
 
@@ -350,8 +356,12 @@ void DCS_GUI::on_makeImagePlateC2_check_stateChanged(int arg1)
 
 void DCS_GUI::on_startSim_button_clicked()
 {
+#ifdef LIB_DEF // Using as a module behaviour
+    
+#else // Default standalone behaviour
     DCS_GUI::close();
     wsimu->show();
+#endif
 }
 
 void DCS_GUI::on_saveSim_button_clicked()

@@ -44,7 +44,7 @@ extern double gauss_Doop_ev;
 
 extern char File_simu[200];
 
-bool first = true;
+bool running = false;
 
 thread t1;
 
@@ -276,23 +276,39 @@ SimulationMain::SimulationMain(QWidget *parent) :
 SimulationMain::~SimulationMain()
 {
     delete ui;
+#ifndef LIB_DEF
     exit(0);
+#endif
+}
+
+void SimulationMain::startSimulationThread()
+{
+#ifdef LIB_DEF
+    if(!running){
+        t1 = std::thread([&]{SimulationMain::guiSimu(); done = true; running = false;});
+        running = true;
+    }
+#endif
 }
 
 void SimulationMain::showEvent(QShowEvent *)
 {
-    if(first){
-        t1 = std::thread([&]{SimulationMain::guiSimu(); done = true;});
-        first = false;
+#ifndef LIB_DEF
+    if(!running){
+        t1 = std::thread([&]{SimulationMain::guiSimu(); done = true; running = false;});
+        running = true;
     }
+#endif
 }
 
 void SimulationMain::closeEvent(QCloseEvent *){
-    if(done){
+#ifndef LIB_DEF
+    if(running){
         t1.join();
         exit(0);
     }else
         throw runtime_error("Simulation ended by user input before finishing. Results are incomplete.");
+#endif
 }
 
 void SimulationMain::changeStats(Stats stats){

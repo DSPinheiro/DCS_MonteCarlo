@@ -22,6 +22,7 @@ public:
     void showEvent(QShowEvent *);
     void closeEvent(QCloseEvent *event);
     void guiSimu();
+    void startSimulationThread();
 
     struct Stats
     {

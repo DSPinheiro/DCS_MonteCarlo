@@ -20,7 +20,7 @@ double gauss_Doop_ev;
 double d_lat;// = 3.13560123; // CODATA
 
 
-int main(int argc, char *argv[]){
+int ENTRYPOINT(int argc, char *argv[]){
 
     QApplication a(argc, argv);
 
