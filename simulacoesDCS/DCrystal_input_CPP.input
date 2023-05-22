@@ -1,0 +1,168 @@
+Geometry
+
+mode_bragg_geo=.true.,		//diffraction mode or transmission mode: true for diffraction
+imh=1,						//miller h index
+imk=1,						//miller k index
+iml=1,						//miller l index
+crystal_Si=.true.			//Crystal structure: true for Si, false for Ge
+
+
+UserSettings
+
+see_para=.true.,			//position of the second crystal and detector in relation to the direction of X-ray propagation from the source (Voigt Fit)
+see_anti=.true.,			//position of the second crystal and detector in relation to the direction of X-ray propagation from the source (No Voigt Fit)
+Make_Vertical=.true.,		//if there is any vertical divergency in the X-ray
+Make_Horizontal=.true.,		//if there is any horizontal divergency in the X-ray
+angle_aprox=0,				//degree of aproximation on each crystal incident X-ray angle: 0 - no aprox; 1 - partial aprox; 2 - full aprox
+fitting=.true.,				//enable fitting (Voigt profile)									mask=0	z=C/2	---------------------	mask=1	z=C/2	--*-*-*-*-*-*-*-*-*--	mask=1	z=C/2	---------------------
+TrueVoigt=.true.,			//enable true Voigt profile															-					-	z_max=C/2-0.2	-					-	z_max=0			-*******************-
+Simple_simu=.false.,		//enable simplified angle calculation and simplified X-ray source					-					-	z_min=0			-					-	z_min=-C/2+0.2	-*******************-
+center_1crys=.false.,		//center the X-ray source spot(?) on first crystal							z=0		-					-			z=0		-					-			z=0		-					-
+center_2crys=.false.,		//center the X-ray source spot(?) on second crystal									-					-					-*******************-					-					-
+mask_C1=0,					//first crystal masking: 0 - no mask; 1 - mask down; 2 - mask up					-					-					-*******************-					-					-
+mask_C2=0,					//second crystal masking: 0 - no mask; 1 - mask down; 2 - mask up 			z=-C/2	---------------------			z=-C/2	---------------------			z=-C/2	--*-*-*-*-*-*-*-*-*--
+print_scan=.false.,			//output scan to image(?) (.tif)
+center_Mask=.false.,		//source center masking(?)
+make_mask_test=.false.		//test witch mask configuration (1 or 2) gives peak intensity
+
+
+GeoParapathlenghts
+
+type_source="UC",			//source geometry: UC - extended uniform circular; UR - extended uniform rectangular; P - point; G - extended gaussian
+LT_aper=200.0d0,			//aperture length (copper tube)
+dist_T_Cr1=80.0d0,			//length of source aperture (copper tube) to first crystal
+dist_Cr1_Cr2=40.0d0,		//distance between crystals
+dist_Cr2_Det=8.0d0,			//distance from second crystal to detector
+dist_aper_det=0.0d0			//length of detector aperture (unused)
+
+
+Geolenghtelemets			//ANGLE CALCULATION AND GEOMETRY ELEMENTS POSITIONING	
+							
+							//FOR UR SOURCE TYPE
+y_sour=1.2d,				//X-ray source y length value(?)
+z_sour=1.2d0,				//X-ray source z length value(?)
+y_aper=1.2d,				//X-ray source aperture y length value (?)
+z_aper=0.0d,				//X-ray source aperture z length value (?)
+							//FOR UC SOURCE TYPE
+S_sour=0.0d0,				//X-ray source diameter
+S_aper=1.2d0,				//X-ray source aperture diameter
+S_aper_var=0.0d0,			//something related to aperture diameter (????)
+S_shi_hor_B=0.0d0,			//something related to source horizontal positioning (????)
+S_shi_hor_A=0.0d0,			//something related to source horizontal positioning (????)
+S_shi_ver_B=-0.00d0,		//something related to source vertical positioning (????)
+S_shi_ver_A= 0.00d0,		//something related to source vertical positioning (????)
+
+y_first_crys=4.70d0,		//first crystal's width
+z_first_crys=2.60d0,		//first crystal's height
+ydetc=2.52d0,				//detector width
+zdetc=1.01d0,				//detector height
+shift_det_ver=-0.0d0,		//detector's initial vertical displacement
+yAperDet=0.0d0,				//detector aperture width (unused)
+zAperDet=0.0d0				//detector aperture height (unused)
+
+
+GeoParameters
+
+Exp_crys1=-129.376d0,		//starting angle of the first crystal with respect to the table (?) (has to be >0 for simple simulation and <0 for non simple)
+teta_table=79.133d0,		//angle of the table axis with respect to simulation x axis
+OffsetRotCry1 =-0.0052d0,	//angle offset of first crystal's tilt (conpensate for drift?)
+teta_detec_para=-79.133d0,	//angle of the detector with respect to the table in parallel config
+teta_detec_anti=79.133d0,	//angle of the detector with respect to the table in anti-parallel config
+tilt_C1=0.0d0,				//initial angle of the first crystal with respect to the table
+tilt_C2=-0.0d0,				//initial angle of the second crystal with respect to the table
+xsi=0.0d0,					//effective missalignment between crystals (only works or simple simu)
+center_1cry_at= 0.0d0,		//center first crystal incident spot at (effectively an offset ?)
+center_2cry_at= -0.60d0		//center second crystal incident spot at (effectively an offset ?)
+
+
+CurveVerticalTilt
+
+make_CurveTilt=.false.,		//something related to crystal tilt angle
+phas_tilt1=3.95194d0,		//something related to first crystal tilt angle
+phas_tilt2=28.073d0,		//something related to second crystal tilt angle
+offsettilt1=0.010577d0,		//something related to first crystal tilt angle (angle drift correction?)
+offsettilt2=-0.02571d0,		//something related to second crystal tilt angle (angle drift correction?)
+consttilt1=0.01036d0,		//something related to first crystal tilt angle
+consttilt2=0.0076059d0		//something related to second crystal tilt angle
+
+
+Graph_options
+
+MakeDislin=.false.,						//enable dislin app
+make_graph_profile=.true.,				//enable graphical ploting
+make_image_plates=.true.,				//enable image calculation of intensity distribuition on crystals(?)
+make_imageC1_After_refle=.false.,		//calculate fist crystal's image plate after reflexion(?)
+make_imageC2_After_refle=.false.		//calculate fist crystal's image plate after reflexion(?)
+
+
+plotparameters
+
+delta_angl=0.15,						//scaning range for profile plot
+shift_disp_window=0.0d0,				//angle shift from plot to window
+nubins=400								//histogram profile bin number
+
+
+numberrays
+
+nbeams=1200000,							//number of X-ray beams used for simulation
+number_rotati=10						//max number of second crystal rotations
+number_graph_events=10					//max number of events that will be shown in the 3D view
+  
+
+physical_parameters
+
+Unit_energy="eV",						//output energy unit
+linelamda=3091.782d0,					//X-ray wavelength (?)
+naturalwidth=0.300d0,					//X-ray natural width (broadning?)
+gauss_Doop=0.034185202461592800d0		//gaussian FWMH
+
+
+polarization_parameters
+
+mka_second_poli=.false.,				//0 matches in workspace?
+othe_poli=.false.,						//unused
+poli=1.0d0								//X-ray source polarization(?)
+
+
+temperature_parameters
+
+T_crystal_1_para=22.5d0,				//temperature of the first crystal in parallel config
+T_crystal_1_anti=22.5d0,				//temperature of the first crystal in anti-parallel config
+T_crystal_2_para=22.5d0,				//temperature of the second crystal in parallel config
+T_crystal_2_anti=22.5d0,				//temperature of the second crystal in anti-parallel config
+mk_temp_bin=.false.,					//compute temperature changes in the second crystal(? first crystal comented out)
+AA_tempera=2.0,							//integral constant for temperature calculations(?)
+TT_tempera=3							//integral constant for temperature calculations(?)
+
+
+fullenergyspectrum
+
+make_more_lines=2,					//type of input spectrum to compute
+linelamda1=6000.00d0,					//energy to look for in the spectrum
+naturalwidth1=0.00d0,					//natural width of the above energy
+p1_ener=0.2500d0,						//above spectral line proportion relative to?
+linelamda2=6000.78d0,					//energy to look for in the spectrum
+naturalwidth2=0.00d0,					//natural width of the above energy
+p2_ener=0.25d0, 						//above spectral line proportion relative to?
+linelamda3=4000.148d0,					//energy to look for in the spectrum
+naturalwidth3=0.00d0,					//natural width of the above energy
+p3_ener=0.25d0,							//above spectral line proportion relative to?
+linelamda4=4000.10d0,					//energy to look for in the spectrum
+naturalwidth4=0.00d0,					//natural width of the above energy
+Do_background=.false.					//above spectral line proportion relative to?
+
+
+Curved_Crystal
+
+Curve_crystall=.false.,					//enable curved crystals
+R_cur_crys_1=1.0e-10,					//first crystal curvature radius
+R_cur_crys_2=1.0e-10					//second crystal curvature radius
+
+
+AnalysiesCrystaltilts
+
+make_matrix_full=.false.,				//make cycle over crystal tilts (make full simulation including crystal curvature??)
+make_graph_widths=.false.,				//enable output of vertical missalignment graph
+metafile="EPS",							//output metafiles extension
+make_an_C1_ta=.false.,					//something related to first crystal's fitting analisies
+make_plot_C1_table=.false.				//make a plot of first crystal's rotation with the table (uses dislin)
