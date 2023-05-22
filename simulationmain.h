@@ -22,7 +22,10 @@ public:
     void showEvent(QShowEvent *);
     void closeEvent(QCloseEvent *event);
     void guiSimu();
-    void startSimulationThread();
+
+    inline bool isRunning() const { return running; }
+    inline float getPctDone() const { return simulation_pct.load(); }
+    inline void setPctDone(float pct) { simulation_pct.store(pct); }
 
     struct Stats
     {
@@ -69,9 +72,12 @@ public slots:
     void changePlates(Plates plates);
     void changeTimes(Times times);
     void showDoneDialog();
+    void startSimulationThread();
 
 private:
     Ui::SimulationMain *ui;
+    bool running;
+    std::atomic<float> simulation_pct;
 
     long int lastHistogramUpdate;
 

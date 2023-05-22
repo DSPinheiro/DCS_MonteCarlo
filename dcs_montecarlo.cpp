@@ -25,36 +25,8 @@ pick picks[5];
 double gauss_Doop_ev;
 double d_lat;// = 3.13560123; // CODATA
 
-
-int ENTRYPOINT(int argc, char *argv[]){
-
-    QApplication a(argc, argv);
-    string line;
-
-#if 0
-    char pathName[500];
-    strcpy(pathName, QApplication::applicationDirPath().toUtf8().constData());
-    strcat(pathName, "/DCrystal_input.path");
-    ifstream pathFile(pathName);
-
-    if(pathFile){
-        while (getline(pathFile, line)){
-            if(line[0] != '/' and line[1] != '/'){
-                if(line.substr(0, 9) == "File_simu"){
-                    strcpy(File_simu, split(line, "=")[1].c_str());
-                }
-            }
-        }
-    }else{
-        cout << "Could not open path file: " << pathName << endl;
-    }
-    pathFile.close();
-#endif
-
-    // This is my proposal (César) Just use an argument on the standalone executable instead of a .path file
-    // The new version does not require the input file
-    // However, there are a few option that need to be added to the GUI before we can remove this feature
-    // Also just leaving for compatibility is ok I believe
+static int configure(int argc, char* argv[])
+{
     CommandLineParams input_params = command_line_parser(argc, argv);
     if(!input_params.valid) return 0;
 
@@ -100,6 +72,7 @@ int ENTRYPOINT(int argc, char *argv[]){
 
     // Parse the input file
     ifstream inputFile(inFile);
+    string line;
     if(inputFile.is_open()){
         char str[1];
         char* firstChar = str;
@@ -1293,10 +1266,45 @@ int ENTRYPOINT(int argc, char *argv[]){
         refra_corr = refra_corrPARIS;
     }
 
+    return 1; // Dirty workaround
+}
+
+
+int ENTRYPOINT(int argc, char *argv[]){
+
+    QApplication a(argc, argv);
+
+#if 0
+    char pathName[500];
+    strcpy(pathName, QApplication::applicationDirPath().toUtf8().constData());
+    strcat(pathName, "/DCrystal_input.path");
+    ifstream pathFile(pathName);
+
+    if(pathFile){
+        while (getline(pathFile, line)){
+            if(line[0] != '/' and line[1] != '/'){
+                if(line.substr(0, 9) == "File_simu"){
+                    strcpy(File_simu, split(line, "=")[1].c_str());
+                }
+            }
+        }
+    }else{
+        cout << "Could not open path file: " << pathName << endl;
+    }
+    pathFile.close();
+#endif
+
+    // This is my proposal (César) Just use an argument on the standalone executable instead of a .path file
+    // The new version does not require the input file
+    // However, there are a few option that need to be added to the GUI before we can remove this feature
+    // Also just leaving for compatibility is ok I believe
+    if(!configure(argc, argv)) return 0;
+
     root_script = false;
     if(not root_script){
         if(Graph_options.MakeDislin){
-            DCS_GUI w;
+            // DCS_GUI w;
+            GUISettingsWindow w;
             w.show();
             return a.exec();
         }
@@ -1349,18 +1357,24 @@ int ENTRYPOINT(int argc, char *argv[]){
 
     }else if(fullenergyspectrum.make_more_lines == 0){
         reques_energ[0] = linelamda;
-        reques_energ[1] = fullenergyspectrum.linelamda2;
+        reques_energ[1] = fullenergyspectrum.linelamda1;
+        // reques_energ[1] = fullenergyspectrum.linelamda2;
+        // TODO(César) : Is this correct now ? Also using arrays with index 1
+        //               I suppose this is due to the porting from FORTRAN
         reques_energ[2] = fullenergyspectrum.linelamda3;
         reques_energ[3] = fullenergyspectrum.linelamda4;
 
         reques_width[0] = naturalwidth;
-        reques_width[1] = fullenergyspectrum.naturalwidth2;
+        reques_width[1] = fullenergyspectrum.naturalwidth1;
+        // reques_width[1] = fullenergyspectrum.naturalwidth2;
+        // TODO(César) : Is this correct now ? Also using arrays with index 1
+        //               I suppose this is due to the porting from FORTRAN
         reques_width[2] = fullenergyspectrum.naturalwidth3;
         reques_width[3] = fullenergyspectrum.naturalwidth4;
     }else{
         cout << "Reading input energy spectrum..." << endl;
 
-        Obtain_EnergySpectrum::Read_EnergySpectrum();
+        Obtain_EnergySpectrum::Read_EnergySpectrum(fullenergyspectrum.energy_spectrum_file);
 
         cout << "Input energy spectrum read." << endl;
     }
@@ -1395,7 +1409,7 @@ int ENTRYPOINT(int argc, char *argv[]){
         }
     }else{
         if(physical_parameters.Unit_energy == "keV"){
-            usable = CheckInputSpectrum::CheckSpectrum("eV");
+            usable = CheckInputSpectrum::CheckSpectrum("keV");
 
             if(not usable){
                 cout << "bad input on the energies. requested energy spectrum will not be visible in output" << endl;

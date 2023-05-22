@@ -61,10 +61,12 @@ void Source_complex::run_Source(SimulationMain *w){
     double y_pro_C1, z_pro_C1, sin_tetadirCry1, Costeta_CHC, Sinteta_CHC, rx_rot, ry_rot, cos_fidirtilt2_para, cos_fidirtilt2_anti, corr_dis, sin_tetatab_del_dir, rx_rot_sec, ry_rot_sec;
     double tetadir_det, tan_tetadir_det, cos_tetadir_det, fidir_det, tan_fidir_det, cos_fidir_det, corr_dis_d_pa, y_pro_C1_d_pa, cos_tetap_det, sin_tetap_det, z_det, y_det, r_det;
 
+
     vector<int> int_time_out;
     int int_time_out_begg, int_time_mili_out_begg, toint_para, toint_anti, total_para, total_anti, bin_tem = 1, bin_fas = 1;
 
     int numbins, max_para, I, n_rota;
+    int64_t total_current_bins = 0, total_expexted_bins = numberrays.number_rotati * numberrays.nbeams * plotparameters.nubins;
     vector<int> toint_para_total(plotparameters.nubins, 0), toint_anti_total(plotparameters.nubins, 0);
 
     bool make_G_function, sec_crystal_Parallel_reach, sec_crystal_Antiparallel_reach, reach, first_crystal_reach, cond_rotation, poliP;
@@ -870,7 +872,7 @@ void Source_complex::run_Source(SimulationMain *w){
                 }
 
                 I++;
-
+                w->setPctDone(static_cast<float>(++total_current_bins) / total_expexted_bins);
             }
 
 

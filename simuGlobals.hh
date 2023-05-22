@@ -168,6 +168,7 @@ struct temperature_parameters {
 
 struct fullenergyspectrum {
     int make_more_lines;
+    std::string energy_spectrum_file;
     double linelamda1;
     double naturalwidth1;
     double p1_ener;

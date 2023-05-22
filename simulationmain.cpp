@@ -42,8 +42,6 @@ extern pick picks[5];
 
 extern double gauss_Doop_ev;
 
-bool running = false;
-
 thread t1;
 
 std::atomic<bool> done(false);
@@ -85,18 +83,24 @@ void SimulationMain::guiSimu(){
 
     }else if(fullenergyspectrum.make_more_lines == 0){
         reques_energ[0] = linelamda;
-        reques_energ[1] = fullenergyspectrum.linelamda2;
+        reques_energ[1] = fullenergyspectrum.linelamda1;
+        // reques_energ[1] = fullenergyspectrum.linelamda2;
+        // TODO(César) : Is this correct now ? Also using arrays with index 1
+        //               I suppose this is due to the porting from FORTRAN
         reques_energ[2] = fullenergyspectrum.linelamda3;
         reques_energ[3] = fullenergyspectrum.linelamda4;
 
         reques_width[0] = naturalwidth;
-        reques_width[1] = fullenergyspectrum.naturalwidth2;
+        reques_width[1] = fullenergyspectrum.naturalwidth1;
+        // reques_width[1] = fullenergyspectrum.naturalwidth2;
+        // TODO(César) : Is this correct now ? Also using arrays with index 1
+        //               I suppose this is due to the porting from FORTRAN
         reques_width[2] = fullenergyspectrum.naturalwidth3;
         reques_width[3] = fullenergyspectrum.naturalwidth4;
     }else{
         cout << "Reading input energy spectrum..." << endl;
 
-        Obtain_EnergySpectrum::Read_EnergySpectrum();
+        Obtain_EnergySpectrum::Read_EnergySpectrum(fullenergyspectrum.energy_spectrum_file);
 
         cout << "Input energy spectrum read." << endl;
     }
@@ -190,7 +194,8 @@ QImage *img, *scale;
 
 SimulationMain::SimulationMain(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::SimulationMain)
+    ui(new Ui::SimulationMain),
+    running(false)
 {
     ui->setupUi(this);
 
@@ -283,9 +288,20 @@ SimulationMain::~SimulationMain()
 void SimulationMain::startSimulationThread()
 {
 #ifdef LIB_DEF
-    if(!running){
-        t1 = std::thread([&]{SimulationMain::guiSimu(); done = true; running = false;});
+    if(!running)
+    {
+        // Start the simulation job
+        t1 = std::thread([&]{
+            SimulationMain::guiSimu();
+            emit SimulationMain::showDoneDialogSignal();
+            done = true;
+            running = false;
+        });
         running = true;
+    }
+    else
+    {
+
     }
 #endif
 }

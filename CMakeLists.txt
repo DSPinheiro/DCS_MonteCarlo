@@ -118,25 +118,16 @@ set(SOURCE
     test_input.hh
 
     dcs_gui.ui
+    dcs_gui_new.ui
     simulationmain.ui
 
     # Wrapper
     wrapper/sserializer.inl
 
     configure.inl
-)
 
-# Just using a static lib (improves the "portability" of the final executable)
-add_library(DCSsimuWrapper STATIC ${SOURCE})
-target_compile_definitions(DCSsimuWrapper PRIVATE -DENTRYPOINT=dummy -DLIB_DEF)
-
-target_link_libraries(DCSsimuWrapper PRIVATE
-    Qt${QT_VERSION_MAJOR}::Widgets
-    Qt${QT_VERSION_MAJOR}::Core
-    Qt${QT_VERSION_MAJOR}::Gui
-    Qt${QT_VERSION_MAJOR}::OpenGL
-    Qt${QT_VERSION_MAJOR}::PrintSupport
-    "${OPENGL_LIBRARIES}"
+    dcs_gui_new.h
+    dcs_gui_new.cpp
 )
 
 # We could either use this as a submodule and everything would be simpler (but not if we are using a private repo)
@@ -147,6 +138,7 @@ set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install" CACHE STRING " " FORCE)
 # Offer the user the choice of overriding the installation directories
 set(INSTALL_LIB_DIR lib CACHE PATH "Installation directory for libraries")
 set(INSTALL_INCLUDE_DIR include CACHE PATH "Installation directory for header files")
+set(INSTALL_DATA_DIR data CACHE PATH "Installation directory for data files")
 if(WIN32 AND NOT CYGWIN)
   set(DEF_INSTALL_CMAKE_DIR CMake)
 else()
@@ -157,12 +149,25 @@ set(INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH "Installation director
 set(INSTALL_HEADERS
     simulationmain.h
     simuGlobals.hh
-    dcs_gui.h
+    dcs_gui_new.h
 )
 
 file(REAL_PATH "${CMAKE_INSTALL_PREFIX}/${INSTALL_INCLUDE_DIR}" ABS_INCLUDE_DIR)
 set(CONF_INCLUDE_DIRS "${ABS_INCLUDE_DIR}")
 configure_file(cmake/DCSsimuWrapperConfig.cmake.in "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/DCSsimuWrapperConfig.cmake" @ONLY)
+
+# Just using a static lib (improves the "portability" of the final executable)
+add_library(DCSsimuWrapper STATIC ${SOURCE})
+target_compile_definitions(DCSsimuWrapper PRIVATE -DENTRYPOINT=dummy -DLIB_DEF -DLIB_DATA_DIR="${CMAKE_INSTALL_PREFIX}/${INSTALL_DATA_DIR}")
+
+target_link_libraries(DCSsimuWrapper PRIVATE
+    Qt${QT_VERSION_MAJOR}::Widgets
+    Qt${QT_VERSION_MAJOR}::Core
+    Qt${QT_VERSION_MAJOR}::Gui
+    Qt${QT_VERSION_MAJOR}::OpenGL
+    Qt${QT_VERSION_MAJOR}::PrintSupport
+    "${OPENGL_LIBRARIES}"
+)
 
 install(TARGETS DCSsimuWrapper EXPORT DCSsimuWrapper DESTINATION ${INSTALL_LIB_DIR})
 install(FILES ${CMAKE_SOURCE_DIR}/${INSTALL_HEADERS} DESTINATION ${INSTALL_INCLUDE_DIR}/DCSsimu)
@@ -187,3 +192,16 @@ target_link_libraries(DCSsimu PRIVATE
     Qt${QT_VERSION_MAJOR}::PrintSupport
     "${OPENGL_LIBRARIES}"
 )
+
+# Install aditional files into the data/ directory
+# Crystal profiles
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/simulacoesDCS/Crystal_Profiles DESTINATION ${CMAKE_INSTALL_PREFIX}/data)
+
+# OpenGL Models
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/simulacoesDCS/DCSModels DESTINATION ${CMAKE_INSTALL_PREFIX}/data)
+
+# Copy files for the build dir
+add_custom_target(copy-workspace-build ALL
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/simulacoesDCS ${CMAKE_BINARY_DIR}/simulacoesDCS
+)
+# file(COPY ${CMAKE_SOURCE_DIR}/simulacoesDCS/ DESTINATION ${CMAKE_BINARY_DIR}/)

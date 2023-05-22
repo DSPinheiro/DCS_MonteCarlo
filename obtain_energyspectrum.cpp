@@ -14,7 +14,7 @@ extern string Unit_energy;
 
 std::vector<energy_gen> Energy_spec;
 
-void Obtain_EnergySpectrum::Read_EnergySpectrum(){
+void Obtain_EnergySpectrum::Read_EnergySpectrum(const std::string& filename){
 
     bool exist_file;
     double y1d, yud;
@@ -24,18 +24,23 @@ void Obtain_EnergySpectrum::Read_EnergySpectrum(){
 
     ifstream pathFile;
 
-    char inFile[223] = "";
-    strcat(inFile, File_simu);
-    strcat(inFile, "\\Energy_spectrum_600.txt");
+    // char inFile[223] = "";
+    // strcat(inFile, File_simu);
+    // strcat(inFile, "\\Energy_spectrum_600.txt");
+    const char* inFile = filename.c_str();
 
 
     struct stat buffer;
     exist_file = (stat (inFile, &buffer) == 0);
 
-    if(exist_file){
+    if(exist_file)
+    {
         pathFile.open(inFile);
-    }else{
-        throw runtime_error("input energy spectrum file \"Energy_spectrum_600.txt\" not found");
+    }
+    else
+    {
+        std::cout << "Input energy spectrum file \"" << filename << "\" not found" << std::endl;
+        exit(-1);
     }
 
     if(Unit_energy == "keV")

@@ -41,8 +41,9 @@ double theta_chk;
 double peak_posi_para, peak_posi_anti, max_plot[2][2] = {{0, 0}, {0, 0}}, min_plot[2][2] = {{0, 0}, {0, 0}};
 
 
-void Double_Crystal_diffraction::Make_Simu(SimulationMain *w){
-
+void Double_Crystal_diffraction::Make_Simu(SimulationMain *w)
+{
+    w->setPctDone(0.0f);
     double linelamda, naturalwidth, center_2cry_at_temp, sin_t, theta_b, line_ener, termFW;
 
     string paraPath = string(Output_dir) + "\\Histogram_parallel.txt";

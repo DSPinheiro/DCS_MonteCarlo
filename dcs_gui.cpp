@@ -77,7 +77,21 @@ static std::vector<uint8_t> serialize_inputs()
 
     serialize_data(buffer, temperature_parameters);
 
-    serialize_data(buffer, fullenergyspectrum);
+    // serialize_data(buffer, fullenergyspectrum);
+    serialize_data(buffer, fullenergyspectrum.make_more_lines);
+    serialize_data(buffer, fullenergyspectrum.energy_spectrum_file);
+    serialize_data(buffer, fullenergyspectrum.linelamda1);
+    serialize_data(buffer, fullenergyspectrum.naturalwidth1);
+    serialize_data(buffer, fullenergyspectrum.p1_ener);
+    serialize_data(buffer, fullenergyspectrum.linelamda2);
+    serialize_data(buffer, fullenergyspectrum.naturalwidth2);
+    serialize_data(buffer, fullenergyspectrum.p2_ener);
+    serialize_data(buffer, fullenergyspectrum.linelamda3);
+    serialize_data(buffer, fullenergyspectrum.naturalwidth3);
+    serialize_data(buffer, fullenergyspectrum.p3_ener);
+    serialize_data(buffer, fullenergyspectrum.linelamda4);
+    serialize_data(buffer, fullenergyspectrum.naturalwidth4);
+    serialize_data(buffer, fullenergyspectrum.Do_background);
 
     serialize_data(buffer, Curved_Crystal);
 
@@ -124,7 +138,21 @@ static void deserialize_inputs(std::vector<uint8_t>& buffer)
 
     consume_buffer(buffer, temperature_parameters);
 
-    consume_buffer(buffer, fullenergyspectrum);
+    // consume_buffer(buffer, fullenergyspectrum);
+    consume_buffer(buffer, fullenergyspectrum.make_more_lines);
+    consume_buffer(buffer, fullenergyspectrum.energy_spectrum_file);
+    consume_buffer(buffer, fullenergyspectrum.linelamda1);
+    consume_buffer(buffer, fullenergyspectrum.naturalwidth1);
+    consume_buffer(buffer, fullenergyspectrum.p1_ener);
+    consume_buffer(buffer, fullenergyspectrum.linelamda2);
+    consume_buffer(buffer, fullenergyspectrum.naturalwidth2);
+    consume_buffer(buffer, fullenergyspectrum.p2_ener);
+    consume_buffer(buffer, fullenergyspectrum.linelamda3);
+    consume_buffer(buffer, fullenergyspectrum.naturalwidth3);
+    consume_buffer(buffer, fullenergyspectrum.p3_ener);
+    consume_buffer(buffer, fullenergyspectrum.linelamda4);
+    consume_buffer(buffer, fullenergyspectrum.naturalwidth4);
+    consume_buffer(buffer, fullenergyspectrum.Do_background);
 
     consume_buffer(buffer, Curved_Crystal);
 

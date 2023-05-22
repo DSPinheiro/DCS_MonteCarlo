@@ -28,6 +28,7 @@
 #include "double_crystal_diffraction.hh"
 #include "simuGlobals.hh"
 #include "dcs_gui.h"
+#include "dcs_gui_new.h"
 
 
 Geometry Geometry;

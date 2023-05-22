@@ -15,8 +15,6 @@ public:
     DCS_GUI(QWidget *parent = nullptr);
     ~DCS_GUI();
 
-    
-
 private slots:
     void on_makeP_check_stateChanged(int arg1);
 

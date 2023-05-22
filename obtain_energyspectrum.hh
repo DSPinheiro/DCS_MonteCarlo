@@ -22,7 +22,7 @@
 
 class Obtain_EnergySpectrum{
     public:
-        static void Read_EnergySpectrum();
+        static void Read_EnergySpectrum(const std::string& filename);
 };
 
 
