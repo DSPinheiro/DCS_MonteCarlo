@@ -1,5 +1,9 @@
+#pragma once
+
 #ifndef DCS_GUI_H
 #define DCS_GUI_H
+
+#include "simuGlobals.hh"
 
 #include <QMainWindow>
 
@@ -12,7 +16,7 @@ class DCS_GUI : public QMainWindow
     Q_OBJECT
 
 public:
-    DCS_GUI(QWidget *parent = nullptr);
+    DCS_GUI(QWidget* parent);
     ~DCS_GUI();
 
 private slots:

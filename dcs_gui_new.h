@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 #include <QTimer>
+
+#include "simuGlobals.hh"
 #include "simulationmain.h"
 
 QT_BEGIN_NAMESPACE

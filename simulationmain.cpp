@@ -5,158 +5,138 @@
 #include "simulationmain.h"
 #include "ui_simulationmain.h"
 
-#include "simuGlobals.hh"
-#include "obtain_energyspectrum.hh"
-#include "CheckInputSpectrum.hh"
 #include "double_crystal_diffraction.hh"
+#include <Util.h>
 
 using namespace std;
 
 
-extern Geometry Geometry;
-extern UserSettings UserSettings;
-extern GeoParapathlengths GeoParapathlengths;
-extern Geolengthelements Geolengthelements;
-extern GeoParameters GeoParameters;
-extern CurveVerticalTilt CurveVerticalTilt;
-extern Graph_options Graph_options;
-extern plotparameters plotparameters;
-extern numberrays numberrays;
-extern physical_parameters physical_parameters;
-extern polarization_parameters polarization_parameters;
-extern temperature_parameters temperature_parameters;
-extern fullenergyspectrum fullenergyspectrum;
-extern Curved_Crystal Curved_Crystal;
-extern AnalysiesCrystaltilts AnalysiesCrystaltilts;
 
-extern double reques_energ[4];
-extern double reques_width[4];
-
-extern double linelamda, naturalwidth;
-
-extern double d_lat;
-
-extern bool exist_file, usable;
-
-extern pick picks[5];
-
-extern double gauss_Doop_ev;
+bool first = true;
 
 thread t1;
 
 std::atomic<bool> done(false);
 
+
 void SimulationMain::guiSimu(){
-    if(UserSettings.mask_C1 < 0 or UserSettings.mask_C1 > 2){
-        cout << "bad input for first crystal mask: " << UserSettings.mask_C1 << endl;
+    
+    stringstream logString;
+
+    if(UserSettingsInput.mask_C1 < 0 || UserSettingsInput.mask_C1 > 2){
+        
+        logString << "bad input for first crystal mask: " << UserSettingsInput.mask_C1 << endl;
+        LogLine(logString.str());
         throw runtime_error("value of 0 for no mask, 1 for mask on the bottom and 2 for mask on the top");
     }
 
-    if(UserSettings.mask_C2 < 0 or UserSettings.mask_C2 > 2){
-            cout << "bad input for second crystal mask: " << UserSettings.mask_C2 << endl;
-            throw runtime_error("value of 0 for no mask, 1 for mask on the bottom and 2 for mask on the top");
+    if(UserSettingsInput.mask_C2 < 0 || UserSettingsInput.mask_C2 > 2){
+        logString.clear();
+        logString << "bad input for second crystal mask: " << UserSettingsInput.mask_C2 << endl;
+        LogLine(logString.str());
+        throw runtime_error("value of 0 for no mask, 1 for mask on the bottom and 2 for mask on the top");
     }
 
 
-    if(not Graph_options.MakeDislin){
-        Graph_options.make_graph_profile = false;
-        Graph_options.make_image_plates = false;
-        AnalysiesCrystaltilts.make_graph_widths = false;
+    if(!GraphOptionsInput.MakeDislin){
+        GraphOptionsInput.make_graph_profile = false;
+        GraphOptionsInput.make_image_plates = false;
+        AnalysiesCrystaltiltsInput.make_graph_widths = false;
     }
 
-    if(fullenergyspectrum.make_more_lines == 1){
-        if(not fullenergyspectrum.Do_background){
-            if(fullenergyspectrum.p3_ener + fullenergyspectrum.p2_ener + fullenergyspectrum.p1_ener > 1.0){
-                throw runtime_error("bad input for lines proportion: " + to_string(fullenergyspectrum.p1_ener) + " + " + to_string(fullenergyspectrum.p2_ener) + " + " + to_string(fullenergyspectrum.p3_ener) + " is greater than 1");
+    if(FullEnergySpectrumInput.make_more_lines == 1){
+        if(!FullEnergySpectrumInput.Do_background){
+            if(FullEnergySpectrumInput.p3_ener + FullEnergySpectrumInput.p2_ener + FullEnergySpectrumInput.p1_ener > 1.0){
+                throw runtime_error("bad input for lines proportion: " + to_string(FullEnergySpectrumInput.p1_ener) + " + " + to_string(FullEnergySpectrumInput.p2_ener) + " + " + to_string(FullEnergySpectrumInput.p3_ener) + " is greater than 1");
             }
         }
 
-        reques_energ[0] = fullenergyspectrum.linelamda1;
-        reques_energ[1] = fullenergyspectrum.linelamda2;
-        reques_energ[2] = fullenergyspectrum.linelamda3;
-        reques_energ[3] = fullenergyspectrum.linelamda4;
+        reques_energ[0] = FullEnergySpectrumInput.linelamda1;
+        reques_energ[1] = FullEnergySpectrumInput.linelamda2;
+        reques_energ[2] = FullEnergySpectrumInput.linelamda3;
+        reques_energ[3] = FullEnergySpectrumInput.linelamda4;
 
-        reques_width[0] = fullenergyspectrum.naturalwidth1;
-        reques_width[1] = fullenergyspectrum.naturalwidth2;
-        reques_width[2] = fullenergyspectrum.naturalwidth3;
-        reques_width[3] = fullenergyspectrum.naturalwidth4;
+        reques_width[0] = FullEnergySpectrumInput.naturalwidth1;
+        reques_width[1] = FullEnergySpectrumInput.naturalwidth2;
+        reques_width[2] = FullEnergySpectrumInput.naturalwidth3;
+        reques_width[3] = FullEnergySpectrumInput.naturalwidth4;
 
-    }else if(fullenergyspectrum.make_more_lines == 0){
+    }else if(FullEnergySpectrumInput.make_more_lines == 0){
         reques_energ[0] = linelamda;
-        reques_energ[1] = fullenergyspectrum.linelamda1;
-        // reques_energ[1] = fullenergyspectrum.linelamda2;
-        // TODO(César) : Is this correct now ? Also using arrays with index 1
-        //               I suppose this is due to the porting from FORTRAN
-        reques_energ[2] = fullenergyspectrum.linelamda3;
-        reques_energ[3] = fullenergyspectrum.linelamda4;
+        reques_energ[1] = FullEnergySpectrumInput.linelamda2;
+        reques_energ[2] = FullEnergySpectrumInput.linelamda3;
+        reques_energ[3] = FullEnergySpectrumInput.linelamda4;
 
         reques_width[0] = naturalwidth;
-        reques_width[1] = fullenergyspectrum.naturalwidth1;
-        // reques_width[1] = fullenergyspectrum.naturalwidth2;
-        // TODO(César) : Is this correct now ? Also using arrays with index 1
-        //               I suppose this is due to the porting from FORTRAN
-        reques_width[2] = fullenergyspectrum.naturalwidth3;
-        reques_width[3] = fullenergyspectrum.naturalwidth4;
+        reques_width[1] = FullEnergySpectrumInput.naturalwidth2;
+        reques_width[2] = FullEnergySpectrumInput.naturalwidth3;
+        reques_width[3] = FullEnergySpectrumInput.naturalwidth4;
     }else{
-        cout << "Reading input energy spectrum..." << endl;
+        logString.clear();
+        logString << "Reading input energy spectrum..." << endl;
+        LogLine(logString.str());
 
-        Obtain_EnergySpectrum::Read_EnergySpectrum(fullenergyspectrum.energy_spectrum_file);
+        Util::Read_EnergySpectrum(FullEnergySpectrumInput.energy_spectrum_file);
 
-        cout << "Input energy spectrum read." << endl;
+        logString.clear();
+        logString << "Input energy spectrum read." << endl;
+        LogLine(logString.str());
+
     }
 
-    if(Geometry.crystal_Si){
-        d_lat = a_si_para / sqrt(pow(Geometry.imh, 2) + pow(Geometry.imk, 2) + pow(Geometry.iml, 2));
+    if(GeometryInput.crystal_Si){
+        d_lat = a_si_para / sqrt(pow(GeometryInput.imh, 2) + pow(GeometryInput.imk, 2) + pow(GeometryInput.iml, 2));
     }else{
-        d_lat = a_Ge_para / sqrt(pow(Geometry.imh, 2) + pow(Geometry.imk, 2) + pow(Geometry.iml, 2));
+        d_lat = a_Ge_para / sqrt(pow(GeometryInput.imh, 2) + pow(GeometryInput.imk, 2) + pow(GeometryInput.iml, 2));
     }
 
-    if(fullenergyspectrum.make_more_lines == 0 or fullenergyspectrum.make_more_lines == 1){
-        if(physical_parameters.Unit_energy == evv[0]){
+    if(FullEnergySpectrumInput.make_more_lines == 0 || FullEnergySpectrumInput.make_more_lines == 1){
+        if(PhysicalParametersInput.Unit_energy == evv[0]){
             for(int i = 0; i < 4; i++){
                 if(reques_energ[i] < 10.0){
                     throw runtime_error("bad input on the energies. requested energy less than 10 eV");
                 }
             }
-        }else if(physical_parameters.Unit_energy == "A"){
+        }else if(PhysicalParametersInput.Unit_energy == "A"){
             for(int i = 0; i < 4; i++){
                 if(reques_energ[i] > 10.0){
                     throw runtime_error("bad input on the energies. requested energy more than 10 A");
                 }
             }
         }else{
-            throw runtime_error("bad input on the energy unit: " + physical_parameters.Unit_energy);
+            throw runtime_error("bad input on the energy unit: " + PhysicalParametersInput.Unit_energy);
         }
     }else{
-        if(physical_parameters.Unit_energy == "keV"){
-            usable = CheckInputSpectrum::CheckSpectrum("eV");
+        bool usable;
+        if(PhysicalParametersInput.Unit_energy == "keV"){
+            usable = Util::CheckSpectrum("eV");
 
-            if(not usable){
+            if(! usable){
                 throw runtime_error("bad input on the energies. requested energy spectrum will not be visible in output");
             }
-        }else if(physical_parameters.Unit_energy == "eV"){
-            usable = CheckInputSpectrum::CheckSpectrum("eV");
+        }else if(PhysicalParametersInput.Unit_energy == "eV"){
+            usable = Util::CheckSpectrum("eV");
 
-            if(not usable){
-                //throw runtime_error("bad input on the energies. requested energy spectrum will not be visible in output");
+            if(! usable){
+                throw runtime_error("bad input on the energies. requested energy spectrum will not be visible in output");
             }
-        }else if(physical_parameters.Unit_energy == "A"){
-            usable = CheckInputSpectrum::CheckSpectrum("A");
+        }else if(PhysicalParametersInput.Unit_energy == "A"){
+            usable = Util::CheckSpectrum("A");
 
-            if(not usable){
+            if(! usable){
                 throw runtime_error("bad input on the energies. requested energy spectrum will not be visible in output");
             }
         }else{
-            throw runtime_error("bad input on the energy unit: " + physical_parameters.Unit_energy);
+            throw runtime_error("bad input on the energy unit: " + PhysicalParametersInput.Unit_energy);
         }
     }
 
 
-    if(fullenergyspectrum.make_more_lines == 1){
+    if(FullEnergySpectrumInput.make_more_lines == 1){
         for(int i = 0; i < 4; i++){
-            reques_width[i] = reques_width[i] / 2.0;
+            reques_width[i] /= 2.0;
 
-            if(physical_parameters.Unit_energy == evv[0]){
+            if(PhysicalParametersInput.Unit_energy == evv[0]){
                 picks[i].lamda = Convert_Ag_minusone_eV / reques_energ[i];
                 picks[i].natural_varia = Convert_Ag_minusone_eV * reques_width[i] / (pow(reques_energ[i], 2) - pow(reques_width[i], 2));
             }else{
@@ -164,10 +144,10 @@ void SimulationMain::guiSimu(){
                 picks[i].natural_varia = reques_width[i];
             }
         }
-    }else if(fullenergyspectrum.make_more_lines == 0){
+    }else if(FullEnergySpectrumInput.make_more_lines == 0){
         reques_width[1] = reques_width[1] / 2.0;
 
-        if(physical_parameters.Unit_energy == evv[0]){
+        if(PhysicalParametersInput.Unit_energy == evv[0]){
             picks[1].lamda = Convert_Ag_minusone_eV / reques_energ[1];
             picks[1].natural_varia = Convert_Ag_minusone_eV * reques_width[1] / (pow(reques_energ[1], 2) - pow(reques_width[1], 2));
         }else{
@@ -177,20 +157,24 @@ void SimulationMain::guiSimu(){
     }
 
 
-    gauss_Doop_ev = physical_parameters.gauss_Doop;
-    physical_parameters.gauss_Doop = Convert_Ag_minusone_eV * physical_parameters.gauss_Doop / (pow(reques_energ[1], 2) - pow(physical_parameters.gauss_Doop, 2));
+    gauss_Doop_ev = PhysicalParametersInput.gauss_Doop;
+    PhysicalParametersInput.gauss_Doop = Convert_Ag_minusone_eV * PhysicalParametersInput.gauss_Doop / (pow(reques_energ[1], 2) - pow(PhysicalParametersInput.gauss_Doop, 2));
 
 
-    if(Geometry.mode_bragg_geo){
+    if(GeometryInput.mode_bragg_geo){
         Double_Crystal_diffraction::Make_Simu(this);
     }else{
-        cout << "unimplemented transmission mode" << endl;
+        logString.clear();
+        logString << "unimplemented transmission mode" << endl;
+        LogLine(logString.str());
+
     }
 }
 
-QCPErrorBars *errorBars_1, *errorBars;
+//QCPErrorBars *errorBars_1, *errorBars;
 
 QImage *img, *scale;
+
 
 SimulationMain::SimulationMain(QWidget *parent) :
     QMainWindow(parent),
@@ -205,6 +189,15 @@ SimulationMain::SimulationMain(QWidget *parent) :
     ui->AP_histogram->graph(0)->setLineStyle(QCPGraph::lsStepCenter);
     ui->P_histogram->graph(0)->setLineStyle(QCPGraph::lsStepCenter);
 
+    ui->AP_histogram->addGraph(ui->AP_histogram->xAxis2, ui->AP_histogram->yAxis);
+    //ui->P_histogram->addGraph(ui->P_histogram->xAxis2, ui->P_histogram->yAxis);
+
+    ui->AP_histogram->graph(1)->setLineStyle(QCPGraph::lsStepCenter);
+    //ui->P_histogram->graph(1)->setLineStyle(QCPGraph::lsStepCenter);
+
+    ui->AP_histogram->graph(1)->setVisible(false);
+    //ui->P_histogram->setVisible(false);
+
     QPen pen;
     pen.setColor(QColor(0, 0, 255, 255));
 
@@ -215,18 +208,22 @@ SimulationMain::SimulationMain(QWidget *parent) :
 
     ui->AP_histogram->yAxis->setLabel("Counts");
     ui->AP_histogram->xAxis->setLabel("Crystal 2 antiparallel angle");
+    ui->AP_histogram->xAxis2->setLabel("Energy (eV)");
 
     ui->P_histogram->yAxis->setLabel("Counts");
     ui->P_histogram->xAxis->setLabel("Crystal 2 parallel angle");
+    //ui->P_histogram->xAxis2->setLabel("Energy (eV)");
 
     ui->AP_histogram->xAxis2->setVisible(true);
     ui->AP_histogram->yAxis2->setVisible(true);
-    ui->AP_histogram->xAxis2->setTickLabels(false);
+    ui->AP_histogram->xAxis2->setTickLabels(true);
     ui->AP_histogram->yAxis2->setTickLabels(false);
-    ui->AP_histogram->xAxis2->setTicks(false);
+    ui->AP_histogram->xAxis2->setTicks(true);
     ui->AP_histogram->yAxis2->setTicks(false);
-    ui->AP_histogram->xAxis2->setSubTicks(false);
+    ui->AP_histogram->xAxis2->setSubTicks(true);
     ui->AP_histogram->yAxis2->setSubTicks(false);
+    ui->AP_histogram->xAxis2->setRangeReversed(true);
+    
     ui->AP_histogram->xAxis->setTickLabelRotation(28);
 
     ui->P_histogram->xAxis2->setVisible(true);
@@ -237,10 +234,13 @@ SimulationMain::SimulationMain(QWidget *parent) :
     ui->P_histogram->yAxis2->setTicks(false);
     ui->P_histogram->xAxis2->setSubTicks(false);
     ui->P_histogram->yAxis2->setSubTicks(false);
+    //ui->P_histogram->xAxis2->setRangeReversed(true);
+    
     ui->P_histogram->xAxis->setTickLabelRotation(28);
 
     lastHistogramUpdate = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
 
+    /*
     errorBars = new QCPErrorBars(ui->AP_histogram->xAxis, ui->AP_histogram->yAxis);
     errorBars->removeFromLegend();
     errorBars->setAntialiased(false);
@@ -254,6 +254,7 @@ SimulationMain::SimulationMain(QWidget *parent) :
     errorBars_1->setDataPlottable(ui->P_histogram->graph(0));
     errorBars_1->setPen(QPen(QColor(180,180,180)));
     errorBars_1->setErrorType(QCPErrorBars::etValueError);
+    */
 
     img = new QImage(n_his_ima, n_his_ima, QImage::Format::Format_RGB16);
     scale = new QImage(n_his_ima / 10, n_his_ima, QImage::Format::Format_RGB16);
@@ -274,7 +275,12 @@ SimulationMain::SimulationMain(QWidget *parent) :
     connect(this, SIGNAL(changePlotsSignal(Plots)), this, SLOT(changePlots(Plots)), Qt::QueuedConnection);
     connect(this, SIGNAL(changePlatesSignal(Plates)), this, SLOT(changePlates(Plates)), Qt::QueuedConnection);
     connect(this, SIGNAL(changeTimesSignal(Times)), this, SLOT(changeTimes(Times)), Qt::QueuedConnection);
+    connect(this, SIGNAL(LogLineSignal(std::string)), this, SLOT(LogLine(std::string)), Qt::QueuedConnection);
     connect(this, SIGNAL(showDoneDialogSignal()), this, SLOT(showDoneDialog()), Qt::QueuedConnection);
+    
+    //make the logbox read only
+    ui->logBox->setReadOnly(true);
+    logBox = ui->logBox;
 }
 
 SimulationMain::~SimulationMain()
@@ -336,7 +342,8 @@ void SimulationMain::showDoneDialog()
     QMessageBox::information(this, tr("DCS Simulation"), tr("Simulation Finished!"), QMessageBox::Ok);
 }
 
-void SimulationMain::changeStats(Stats stats){
+void SimulationMain::changeStats(Stats stats)
+{
     ui->Ecnts_val->setText(QString(split(to_string(stats.c_sour), ".")[0].c_str()));
     ui->C1cnts_val->setText(QString(split(to_string(stats.c_cr1), ".")[0].c_str()));
     ui->C2Pcnts_val->setText(QString(split(to_string(stats.c_cr2_para), ".")[0].c_str()));
@@ -345,6 +352,7 @@ void SimulationMain::changeStats(Stats stats){
     ui->DAcnts_val->setText(QString(split(to_string(stats.c_detc_anti), ".")[0].c_str()));
     ui->currRot_val->setText(QString(to_string(stats.delrot * convdeg).c_str()));
     ui->GL3Dvis->setDelrot(stats.delrot);
+    ui->GL3Dvis->setEventsToTrace(events_para, events_anti);
     ui->GL3Dvis->update();
 }
 
@@ -354,29 +362,38 @@ void SimulationMain::changePlots(Plots plots){
     if (currTime - lastHistogramUpdate >= 100)
     {
         lastHistogramUpdate = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
-        QVector<double> qx_para, qy_para, qx_anti, qy_anti, e_para, e_anti;
+        QVector<double> qe_para, qx_para, qy_para, qe_anti, qx_anti, qy_anti, e_para, e_anti;
 
         for(unsigned int i = 0; i < plots.para.size(); i++){
+            qe_para << plots.para[i].energy;
             qx_para << plots.para[i].x;
             qy_para << plots.para[i].y;
             e_para << plots.para[i].error;
         }
 
         for(unsigned int i = 0; i < plots.anti.size(); i++){
+            qe_anti << plots.anti[i].energy;
             qx_anti << plots.anti[i].x;
             qy_anti << plots.anti[i].y;
             e_anti << plots.anti[i].error;
         }
 
-        errorBars->addData(e_anti);
-        errorBars_1->addData(e_para);
+        //errorBars->addData(e_anti);
+        //errorBars_1->addData(e_para);
 
-        ui->AP_histogram->graph()->setData(qx_anti, qy_anti);
-        ui->P_histogram->graph()->setData(qx_para, qy_para);
+        ui->AP_histogram->graph(0)->setData(qx_anti, qy_anti);
+        ui->P_histogram->graph(0)->setData(qx_para, qy_para);
 
-        ui->AP_histogram->graph()->rescaleAxes();
-        ui->P_histogram->graph()->rescaleAxes();
+        ui->AP_histogram->graph(0)->rescaleAxes();
+        ui->P_histogram->graph(0)->rescaleAxes();
 
+        ui->AP_histogram->graph(1)->setData(qe_anti, qy_anti);
+        //ui->P_histogram->graph(1)->setData(qe_para, qy_para);
+
+        ui->AP_histogram->graph(1)->rescaleAxes();
+        //ui->P_histogram->graph(1)->rescaleAxes();
+
+        
         if(!ui->AP_histogram->paintingActive())
             ui->AP_histogram->replot(QCustomPlot::rpQueuedReplot);
         if(!ui->P_histogram->paintingActive())
@@ -465,4 +482,8 @@ void SimulationMain::changeTimes(Times times){
         ui->simstart->setText(QString(("Simulation start at:      " + to_string(times.h) + "h    " + to_string(times.m) + "m     " + to_string(times.s) + "s").c_str()));
     else if(times.timeSlot == 1)
         ui->simremain->setText(QString(("Remaining time estimate:      " + to_string(times.h) + "h    " + to_string(times.m) + "m     " + to_string(times.s) + "s").c_str()));
+}
+
+void SimulationMain::LogLine(std::string line) {
+    ui->logBox->appendPlainText(QString(line.c_str()));
 }

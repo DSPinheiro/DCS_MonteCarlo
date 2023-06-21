@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * Obtain_time.hh
  *
@@ -13,16 +15,18 @@
 #include <ctime>
 #include <iomanip>
 #include <sstream>
-#include <string>
-#include <fstream>
 
 #include "simuGlobals.hh"
-
 #include "simulationmain.h"
 
 class Obtain_time{
 public:
-    static std::vector<int> simuTime(int First_call, int process_remain, int int_time, int int_time_mili, SimulationMain *w = nullptr);
+    static std::vector<int> simuTime(
+        int First_call,
+        int process_remain,
+        int int_time,
+        int int_time_mili,
+        SimulationMain* w);
 };
 
 

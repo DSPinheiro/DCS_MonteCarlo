@@ -11,16 +11,20 @@
 
 using namespace std;
 
-extern UserSettings UserSettings;
-extern Graph_options Graph_options;
 
-extern ofstream gener_out;
 
-vector<int> Obtain_time::simuTime(int First_call, int process_remain, int int_time, int int_time_mili, SimulationMain *w){
+vector<int> Obtain_time::simuTime(
+    int First_call,
+    int process_remain,
+    int int_time,
+    int int_time_mili,
+    SimulationMain *w){
 
     int int_time_temp, int_time_mili_temp, dif_time_a[3], int_time_out, int_time_mili_out;
 
     double dif_time, dif_mili;
+
+    stringstream logString;
 
     if(First_call == 0){
 
@@ -33,7 +37,7 @@ vector<int> Obtain_time::simuTime(int First_call, int process_remain, int int_ti
         int Min    = localTime.tm_min;
         int Sec    = localTime.tm_sec;
 
-        if(Graph_options.MakeDislin)
+        if(GraphOptionsInput.MakeDislin)
         {
             SimulationMain::Times times = { 0, Hour, Min, Sec };
             emit w->changeTimesSignal(times);
@@ -42,10 +46,13 @@ vector<int> Obtain_time::simuTime(int First_call, int process_remain, int int_ti
         int_time_out = 60 * ((60 * Hour) + Min) + Sec;
         int_time_mili_out = chrono::duration_cast<chrono::milliseconds>(now.time_since_epoch()).count();
 
-        if(UserSettings.Simple_simu){
-            cout << endl;
-            cout << "Simulation start at: " << Hour << " h " << Min << " m " << Sec << " s" << endl;
-            cout << endl;
+        if(UserSettingsInput.Simple_simu){
+            logString.clear();
+            logString << endl;
+            logString << "Simulation start at: " << Hour << " h " << Min << " m " << Sec << " s" << endl;
+            logString << endl;
+            emit w->LogLineSignal(logString.str());
+
         }
 
         gener_out << endl;
@@ -106,18 +113,10 @@ vector<int> Obtain_time::simuTime(int First_call, int process_remain, int int_ti
                 emit w->changeTimesSignal(times);
             }
 
-            // (César) : This is on the GUI already no need to polute the console (if displaying one)
-            // cout << "remainder time estimate: " << dif_time_a[0] << " h " << dif_time_a[1] << " m " << dif_time_a[2] << " s" << endl;
-            // cout << endl;
-            static int rotate = 0;
-            if(rotate % 7 == 0)      cout << "Working       \r";
-            else if(rotate % 7 == 1) cout << "Working .     \r";
-            else if(rotate % 7 == 2) cout << "Working ..    \r";
-            else if(rotate % 7 == 3) cout << "Working ...   \r";
-            else if(rotate % 7 == 4) cout << "Working ....  \r";
-            else if(rotate % 7 == 5) cout << "Working ..... \r";
-            else if(rotate % 7 == 6) cout << "Working ......\r";
-            rotate++;
+            logString.clear();
+            logString << "remainder time estimate: " << dif_time_a[0] << " h " << dif_time_a[1] << " m " << dif_time_a[2] << " s" << endl;
+            logString << endl;
+            emit w->LogLineSignal(logString.str());
 
             //TODO implement gui
             //if(Graph_options.make_image_plates){
@@ -128,10 +127,12 @@ vector<int> Obtain_time::simuTime(int First_call, int process_remain, int int_ti
             //	}
             //}
         }else{
-            cout << "Simulation end at: " << Hour << " h " << Min << " m " << Sec << " s" << endl;
-            cout << endl;
-            cout << "Total time of simulation: " << dif_time_a[0] << " h " << dif_time_a[1] << " m " << dif_time_a[2] << " s" << endl;
-            cout << endl;
+            logString.clear();
+            logString << "Simulation end at: " << Hour << " h " << Min << " m " << Sec << " s" << endl;
+            logString << endl;
+            logString << "Total time of simulation: " << dif_time_a[0] << " h " << dif_time_a[1] << " m " << dif_time_a[2] << " s" << endl;
+            logString << endl;
+            emit w->LogLineSignal(logString.str());
 
             gener_out << "Simulation end at: " << Hour << " h " << Min << " m " << Sec << " s" << endl;
             gener_out << endl;

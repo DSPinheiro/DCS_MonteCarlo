@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * Make_plot_profiles.hh
  *
@@ -16,7 +18,15 @@
 
 class Make_plot_profiles{
     public:
-        static void plotProfiles(double angle_para, int toint_para, double angle_anti, int toint_anti, int n_plot, SimulationMain *w);
+        static void plotProfiles(
+            double energy_para,
+            double angle_para,
+            int toint_para,
+            double energy_anti,
+            double angle_anti,
+            int toint_anti,
+            int n_plot, 
+            SimulationMain* w);
 };
 
 

@@ -7,160 +7,132 @@
 #include "dcs_gui.h"
 #include "ui_dcs_gui.h"
 
-#include "simuGlobals.hh"
 #include "simulationmain.h"
 #include "wrapper/sserializer.inl"
 
 #include <fstream>
 
-// using namespace std;
-
-// extern UserSettings UserSettings;
-// extern Graph_options Graph_options;
-// extern physical_parameters physical_parameters;
-// extern temperature_parameters temperature_parameters;
-// extern plotparameters plotparameters;
-// extern Geolengthelements Geolengthelements;
-// extern GeoParameters GeoParameters;
-// extern numberrays numberrays;
-// extern GeoParapathlengths GeoParapathlengths;
-
-extern Geometry Geometry;
-extern UserSettings UserSettings;
-extern GeoParapathlengths GeoParapathlengths;
-extern Geolengthelements Geolengthelements;
-extern GeoParameters GeoParameters;
-extern CurveVerticalTilt CurveVerticalTilt;
-extern Graph_options Graph_options;
-extern plotparameters plotparameters;
-extern numberrays numberrays;
-extern physical_parameters physical_parameters;
-extern polarization_parameters polarization_parameters;
-extern temperature_parameters temperature_parameters;
-extern fullenergyspectrum fullenergyspectrum;
-extern Curved_Crystal Curved_Crystal;
-extern AnalysiesCrystaltilts AnalysiesCrystaltilts;
 
 static std::vector<uint8_t> serialize_inputs()
 {
     std::vector<uint8_t> buffer;
 
-    serialize_data(buffer, Geometry);
+    serialize_data(buffer, GeometryInput);
 
-    serialize_data(buffer, UserSettings);
+    serialize_data(buffer, UserSettingsInput);
 
-    serialize_data(buffer, GeoParapathlengths.type_source);
-    serialize_data(buffer, GeoParapathlengths.LT_aper);
-    serialize_data(buffer, GeoParapathlengths.dist_T_Cr1);
-    serialize_data(buffer, GeoParapathlengths.dist_Cr1_Cr2);
-    serialize_data(buffer, GeoParapathlengths.dist_Cr2_Det);
-    serialize_data(buffer, GeoParapathlengths.dist_aper_det);
+    serialize_data(buffer, GeoParapathlengthsInput.type_source);
+    serialize_data(buffer, GeoParapathlengthsInput.LT_aper);
+    serialize_data(buffer, GeoParapathlengthsInput.dist_T_Cr1);
+    serialize_data(buffer, GeoParapathlengthsInput.dist_Cr1_Cr2);
+    serialize_data(buffer, GeoParapathlengthsInput.dist_Cr2_Det);
+    serialize_data(buffer, GeoParapathlengthsInput.dist_aper_det);
 
-    serialize_data(buffer, Geolengthelements);
+    serialize_data(buffer, GeolengthelementsInput);
 
-    serialize_data(buffer, GeoParameters);
+    serialize_data(buffer, GeoParametersInput);
 
-    serialize_data(buffer, CurveVerticalTilt);
+    serialize_data(buffer, CurveVerticalTiltInput);
 
-    serialize_data(buffer, Graph_options);
+    serialize_data(buffer, GraphOptionsInput);
 
-    serialize_data(buffer, plotparameters);
+    serialize_data(buffer, PlotParametersInput);
 
-    serialize_data(buffer, numberrays);
+    serialize_data(buffer, NumberRaysInput);
 
-    serialize_data(buffer, physical_parameters.Unit_energy);
-    serialize_data(buffer, physical_parameters.linelamda);
-    serialize_data(buffer, physical_parameters.naturalwidth);
-    serialize_data(buffer, physical_parameters.gauss_Doop);
+    serialize_data(buffer, PhysicalParametersInput.Unit_energy);
+    serialize_data(buffer, PhysicalParametersInput.linelamda);
+    serialize_data(buffer, PhysicalParametersInput.naturalwidth);
+    serialize_data(buffer, PhysicalParametersInput.gauss_Doop);
 
-    serialize_data(buffer, polarization_parameters);
+    serialize_data(buffer, PolarizationParametersInput);
 
-    serialize_data(buffer, temperature_parameters);
+    serialize_data(buffer, TemperatureParametersInput);
 
-    // serialize_data(buffer, fullenergyspectrum);
-    serialize_data(buffer, fullenergyspectrum.make_more_lines);
-    serialize_data(buffer, fullenergyspectrum.energy_spectrum_file);
-    serialize_data(buffer, fullenergyspectrum.linelamda1);
-    serialize_data(buffer, fullenergyspectrum.naturalwidth1);
-    serialize_data(buffer, fullenergyspectrum.p1_ener);
-    serialize_data(buffer, fullenergyspectrum.linelamda2);
-    serialize_data(buffer, fullenergyspectrum.naturalwidth2);
-    serialize_data(buffer, fullenergyspectrum.p2_ener);
-    serialize_data(buffer, fullenergyspectrum.linelamda3);
-    serialize_data(buffer, fullenergyspectrum.naturalwidth3);
-    serialize_data(buffer, fullenergyspectrum.p3_ener);
-    serialize_data(buffer, fullenergyspectrum.linelamda4);
-    serialize_data(buffer, fullenergyspectrum.naturalwidth4);
-    serialize_data(buffer, fullenergyspectrum.Do_background);
+    // serialize_data(buffer, FullEnergySpectrumInput);
+    serialize_data(buffer, FullEnergySpectrumInput.make_more_lines);
+    serialize_data(buffer, FullEnergySpectrumInput.energy_spectrum_file);
+    serialize_data(buffer, FullEnergySpectrumInput.linelamda1);
+    serialize_data(buffer, FullEnergySpectrumInput.naturalwidth1);
+    serialize_data(buffer, FullEnergySpectrumInput.p1_ener);
+    serialize_data(buffer, FullEnergySpectrumInput.linelamda2);
+    serialize_data(buffer, FullEnergySpectrumInput.naturalwidth2);
+    serialize_data(buffer, FullEnergySpectrumInput.p2_ener);
+    serialize_data(buffer, FullEnergySpectrumInput.linelamda3);
+    serialize_data(buffer, FullEnergySpectrumInput.naturalwidth3);
+    serialize_data(buffer, FullEnergySpectrumInput.p3_ener);
+    serialize_data(buffer, FullEnergySpectrumInput.linelamda4);
+    serialize_data(buffer, FullEnergySpectrumInput.naturalwidth4);
+    serialize_data(buffer, FullEnergySpectrumInput.Do_background);
 
-    serialize_data(buffer, Curved_Crystal);
+    serialize_data(buffer, CurvedCrystalInput);
 
-    serialize_data(buffer, AnalysiesCrystaltilts.make_matrix_full);
-    serialize_data(buffer, AnalysiesCrystaltilts.make_graph_widths);
-    serialize_data(buffer, AnalysiesCrystaltilts.metafile);
-    serialize_data(buffer, AnalysiesCrystaltilts.make_an_C1_ta);
-    serialize_data(buffer, AnalysiesCrystaltilts.make_plot_C1_table);
+    serialize_data(buffer, AnalysiesCrystaltiltsInput.make_matrix_full);
+    serialize_data(buffer, AnalysiesCrystaltiltsInput.make_graph_widths);
+    serialize_data(buffer, AnalysiesCrystaltiltsInput.metafile);
+    serialize_data(buffer, AnalysiesCrystaltiltsInput.make_an_C1_ta);
+    serialize_data(buffer, AnalysiesCrystaltiltsInput.make_plot_C1_table);
 
     return buffer;
 }
 
 static void deserialize_inputs(std::vector<uint8_t>& buffer)
 {
-    consume_buffer(buffer, Geometry);
+    consume_buffer(buffer, GeometryInput);
 
-    consume_buffer(buffer, UserSettings);
+    consume_buffer(buffer, UserSettingsInput);
 
-    consume_buffer(buffer, GeoParapathlengths.type_source);
-    consume_buffer(buffer, GeoParapathlengths.LT_aper);
-    consume_buffer(buffer, GeoParapathlengths.dist_T_Cr1);
-    consume_buffer(buffer, GeoParapathlengths.dist_Cr1_Cr2);
-    consume_buffer(buffer, GeoParapathlengths.dist_Cr2_Det);
-    consume_buffer(buffer, GeoParapathlengths.dist_aper_det);
+    consume_buffer(buffer, GeoParapathlengthsInput.type_source);
+    consume_buffer(buffer, GeoParapathlengthsInput.LT_aper);
+    consume_buffer(buffer, GeoParapathlengthsInput.dist_T_Cr1);
+    consume_buffer(buffer, GeoParapathlengthsInput.dist_Cr1_Cr2);
+    consume_buffer(buffer, GeoParapathlengthsInput.dist_Cr2_Det);
+    consume_buffer(buffer, GeoParapathlengthsInput.dist_aper_det);
 
-    consume_buffer(buffer, Geolengthelements);
+    consume_buffer(buffer, GeolengthelementsInput);
 
-    consume_buffer(buffer, GeoParameters);
+    consume_buffer(buffer, GeoParametersInput);
 
-    consume_buffer(buffer, CurveVerticalTilt);
+    consume_buffer(buffer, CurveVerticalTiltInput);
 
-    consume_buffer(buffer, Graph_options);
+    consume_buffer(buffer, GraphOptionsInput);
 
-    consume_buffer(buffer, plotparameters);
+    consume_buffer(buffer, PlotParametersInput);
 
-    consume_buffer(buffer, numberrays);
+    consume_buffer(buffer, NumberRaysInput);
 
-    consume_buffer(buffer, physical_parameters.Unit_energy);
-    consume_buffer(buffer, physical_parameters.linelamda);
-    consume_buffer(buffer, physical_parameters.naturalwidth);
-    consume_buffer(buffer, physical_parameters.gauss_Doop);
+    consume_buffer(buffer, PhysicalParametersInput.Unit_energy);
+    consume_buffer(buffer, PhysicalParametersInput.linelamda);
+    consume_buffer(buffer, PhysicalParametersInput.naturalwidth);
+    consume_buffer(buffer, PhysicalParametersInput.gauss_Doop);
 
-    consume_buffer(buffer, polarization_parameters);
+    consume_buffer(buffer, PolarizationParametersInput);
 
-    consume_buffer(buffer, temperature_parameters);
+    consume_buffer(buffer, TemperatureParametersInput);
 
-    // consume_buffer(buffer, fullenergyspectrum);
-    consume_buffer(buffer, fullenergyspectrum.make_more_lines);
-    consume_buffer(buffer, fullenergyspectrum.energy_spectrum_file);
-    consume_buffer(buffer, fullenergyspectrum.linelamda1);
-    consume_buffer(buffer, fullenergyspectrum.naturalwidth1);
-    consume_buffer(buffer, fullenergyspectrum.p1_ener);
-    consume_buffer(buffer, fullenergyspectrum.linelamda2);
-    consume_buffer(buffer, fullenergyspectrum.naturalwidth2);
-    consume_buffer(buffer, fullenergyspectrum.p2_ener);
-    consume_buffer(buffer, fullenergyspectrum.linelamda3);
-    consume_buffer(buffer, fullenergyspectrum.naturalwidth3);
-    consume_buffer(buffer, fullenergyspectrum.p3_ener);
-    consume_buffer(buffer, fullenergyspectrum.linelamda4);
-    consume_buffer(buffer, fullenergyspectrum.naturalwidth4);
-    consume_buffer(buffer, fullenergyspectrum.Do_background);
+    // consume_buffer(buffer, FullEnergySpectrumInput);
+    consume_buffer(buffer, FullEnergySpectrumInput.make_more_lines);
+    consume_buffer(buffer, FullEnergySpectrumInput.energy_spectrum_file);
+    consume_buffer(buffer, FullEnergySpectrumInput.linelamda1);
+    consume_buffer(buffer, FullEnergySpectrumInput.naturalwidth1);
+    consume_buffer(buffer, FullEnergySpectrumInput.p1_ener);
+    consume_buffer(buffer, FullEnergySpectrumInput.linelamda2);
+    consume_buffer(buffer, FullEnergySpectrumInput.naturalwidth2);
+    consume_buffer(buffer, FullEnergySpectrumInput.p2_ener);
+    consume_buffer(buffer, FullEnergySpectrumInput.linelamda3);
+    consume_buffer(buffer, FullEnergySpectrumInput.naturalwidth3);
+    consume_buffer(buffer, FullEnergySpectrumInput.p3_ener);
+    consume_buffer(buffer, FullEnergySpectrumInput.linelamda4);
+    consume_buffer(buffer, FullEnergySpectrumInput.naturalwidth4);
+    consume_buffer(buffer, FullEnergySpectrumInput.Do_background);
 
-    consume_buffer(buffer, Curved_Crystal);
+    consume_buffer(buffer, CurvedCrystalInput);
 
-    consume_buffer(buffer, AnalysiesCrystaltilts.make_matrix_full);
-    consume_buffer(buffer, AnalysiesCrystaltilts.make_graph_widths);
-    consume_buffer(buffer, AnalysiesCrystaltilts.metafile);
-    consume_buffer(buffer, AnalysiesCrystaltilts.make_an_C1_ta);
-    consume_buffer(buffer, AnalysiesCrystaltilts.make_plot_C1_table);
+    consume_buffer(buffer, AnalysiesCrystaltiltsInput.make_matrix_full);
+    consume_buffer(buffer, AnalysiesCrystaltiltsInput.make_graph_widths);
+    consume_buffer(buffer, AnalysiesCrystaltiltsInput.metafile);
+    consume_buffer(buffer, AnalysiesCrystaltiltsInput.make_an_C1_ta);
+    consume_buffer(buffer, AnalysiesCrystaltiltsInput.make_plot_C1_table);
 }
 
 static void write_buffer_to_file(const std::vector<uint8_t>& buffer, const std::string& filename)
@@ -267,59 +239,59 @@ DCS_GUI::DCS_GUI(QWidget *parent)
 
 void DCS_GUI::update_ui_text()
 {
-    ui->makeP_check->setChecked(UserSettings.see_para);
-    ui->makeAP_check->setChecked(UserSettings.see_anti);
+    ui->makeP_check->setChecked(UserSettingsInput.see_para);
+    ui->makeAP_check->setChecked(UserSettingsInput.see_anti);
 
-    if(UserSettings.mask_C1 == 0)
+    if(UserSettingsInput.mask_C1 == 0)
         ui->C1_noMask_radio->toggle();
-    else if(UserSettings.mask_C1 == 1)
+    else if(UserSettingsInput.mask_C1 == 1)
         ui->C1_downMask_radio->toggle();
-    else if(UserSettings.mask_C1 == 2)
+    else if(UserSettingsInput.mask_C1 == 2)
         ui->C1_upMask_radio->toggle();
 
-    if(UserSettings.mask_C2 == 0)
+    if(UserSettingsInput.mask_C2 == 0)
         ui->C2_noMask_radio->toggle();
-    else if(UserSettings.mask_C2 == 1)
+    else if(UserSettingsInput.mask_C2 == 1)
         ui->C2_downMask_radio->toggle();
-    else if(UserSettings.mask_C2 == 2)
+    else if(UserSettingsInput.mask_C2 == 2)
         ui->C2_upMask_radio->toggle();
 
-    ui->makeImagePlateC2_check->setChecked(Graph_options.make_imageC1_After_refle);
-    ui->makeImagePlateC1_check->setChecked(Graph_options.make_imageC2_After_refle);
+    ui->makeImagePlateC2_check->setChecked(GraphOptionsInput.make_imageC1_After_refle);
+    ui->makeImagePlateC1_check->setChecked(GraphOptionsInput.make_imageC2_After_refle);
 
-    ui->energy_val->setText(std::to_string(physical_parameters.linelamda).c_str());
-    ui->naturalWidth_val->setText(std::to_string(physical_parameters.naturalwidth).c_str());
-    ui->tempC1P_val->setText(std::to_string(temperature_parameters.T_crystal_1_para).c_str());
-    ui->tempC1AP_val->setText(std::to_string(temperature_parameters.T_crystal_1_anti).c_str());
-    ui->tempC2P_val->setText(std::to_string(temperature_parameters.T_crystal_2_para).c_str());
-    ui->tempC2AP_val->setText(std::to_string(temperature_parameters.T_crystal_2_anti).c_str());
-    ui->dopplerFWHMGauss_val->setText(std::to_string(physical_parameters.gauss_Doop).c_str());
+    ui->energy_val->setText(std::to_string(PhysicalParametersInput.linelamda).c_str());
+    ui->naturalWidth_val->setText(std::to_string(PhysicalParametersInput.naturalwidth).c_str());
+    ui->tempC1P_val->setText(std::to_string(TemperatureParametersInput.T_crystal_1_para).c_str());
+    ui->tempC1AP_val->setText(std::to_string(TemperatureParametersInput.T_crystal_1_anti).c_str());
+    ui->tempC2P_val->setText(std::to_string(TemperatureParametersInput.T_crystal_2_para).c_str());
+    ui->tempC2AP_val->setText(std::to_string(TemperatureParametersInput.T_crystal_2_anti).c_str());
+    ui->dopplerFWHMGauss_val->setText(std::to_string(PhysicalParametersInput.gauss_Doop).c_str());
 
-    ui->angleScanRange_val->setText(std::to_string(plotparameters.delta_angl).c_str());
-    ui->angleDispShift_val->setText(std::to_string(plotparameters.shift_disp_window).c_str());
-    ui->binNum_val->setText(std::to_string(plotparameters.nubins).c_str());
-    ui->rayNum_val->setText(std::to_string(numberrays.nbeams).c_str());
+    ui->angleScanRange_val->setText(std::to_string(PlotParametersInput.delta_angl).c_str());
+    ui->angleDispShift_val->setText(std::to_string(PlotParametersInput.shift_disp_window).c_str());
+    ui->binNum_val->setText(std::to_string(PlotParametersInput.nubins).c_str());
+    ui->rayNum_val->setText(std::to_string(NumberRaysInput.nbeams).c_str());
 
-    ui->distSAP_val->setText(std::to_string(GeoParapathlengths.LT_aper).c_str());
-    ui->distAPC1_val->setText(std::to_string(GeoParapathlengths.dist_T_Cr1).c_str());
-    ui->distC1C2_val->setText(std::to_string(GeoParapathlengths.dist_Cr1_Cr2).c_str());
-    ui->distC2D_val->setText(std::to_string(GeoParapathlengths.dist_Cr2_Det).c_str());
-    ui->cuTubeDiam_val->setText(std::to_string(Geolengthelements.S_aper).c_str());
-    ui->lengthCs_val->setText(std::to_string(Geolengthelements.y_first_crys).c_str());
-    ui->heightCs_val->setText(std::to_string(Geolengthelements.z_first_crys).c_str());
-    ui->lengthD_val->setText(std::to_string(Geolengthelements.ydetc).c_str());
-    ui->heightD_val->setText(std::to_string(Geolengthelements.zdetc).c_str());
-    ui->hshiftTubeS_val->setText(std::to_string(Geolengthelements.S_shi_hor_B).c_str());
-    ui->hshiftTubeAP_val->setText(std::to_string(Geolengthelements.S_shi_hor_A).c_str());
-    ui->vshiftTubeS_val->setText(std::to_string(Geolengthelements.S_shi_ver_B).c_str());
-    ui->vshiftTubeAP_val->setText(std::to_string(Geolengthelements.S_shi_ver_A).c_str());
-    ui->angleC1_val->setText(std::to_string(GeoParameters.Exp_crys1).c_str());
-    ui->angleOffC1_val->setText(std::to_string(GeoParameters.OffsetRotCry1).c_str());
-    ui->angleTable_val->setText(std::to_string(GeoParameters.teta_table).c_str());
-    ui->angleDP_val->setText(std::to_string(GeoParameters.teta_detec_para).c_str());
-    ui->angleDAP_val->setText(std::to_string(GeoParameters.teta_detec_anti).c_str());
-    ui->angleC1tilt_val->setText(std::to_string(GeoParameters.tilt_C1).c_str());
-    ui->angleC2tilt_val->setText(std::to_string(GeoParameters.tilt_C2).c_str());
+    ui->distSAP_val->setText(std::to_string(GeoParapathlengthsInput.LT_aper).c_str());
+    ui->distAPC1_val->setText(std::to_string(GeoParapathlengthsInput.dist_T_Cr1).c_str());
+    ui->distC1C2_val->setText(std::to_string(GeoParapathlengthsInput.dist_Cr1_Cr2).c_str());
+    ui->distC2D_val->setText(std::to_string(GeoParapathlengthsInput.dist_Cr2_Det).c_str());
+    ui->cuTubeDiam_val->setText(std::to_string(GeolengthelementsInput.S_aper).c_str());
+    ui->lengthCs_val->setText(std::to_string(GeolengthelementsInput.y_first_crys).c_str());
+    ui->heightCs_val->setText(std::to_string(GeolengthelementsInput.z_first_crys).c_str());
+    ui->lengthD_val->setText(std::to_string(GeolengthelementsInput.ydetc).c_str());
+    ui->heightD_val->setText(std::to_string(GeolengthelementsInput.zdetc).c_str());
+    ui->hshiftTubeS_val->setText(std::to_string(GeolengthelementsInput.S_shi_hor_B).c_str());
+    ui->hshiftTubeAP_val->setText(std::to_string(GeolengthelementsInput.S_shi_hor_A).c_str());
+    ui->vshiftTubeS_val->setText(std::to_string(GeolengthelementsInput.S_shi_ver_B).c_str());
+    ui->vshiftTubeAP_val->setText(std::to_string(GeolengthelementsInput.S_shi_ver_A).c_str());
+    ui->angleC1_val->setText(std::to_string(GeoParametersInput.Exp_crys1).c_str());
+    ui->angleOffC1_val->setText(std::to_string(GeoParametersInput.OffsetRotCry1).c_str());
+    ui->angleTable_val->setText(std::to_string(GeoParametersInput.teta_table).c_str());
+    ui->angleDP_val->setText(std::to_string(GeoParametersInput.teta_detec_para).c_str());
+    ui->angleDAP_val->setText(std::to_string(GeoParametersInput.teta_detec_anti).c_str());
+    ui->angleC1tilt_val->setText(std::to_string(GeoParametersInput.tilt_C1).c_str());
+    ui->angleC2tilt_val->setText(std::to_string(GeoParametersInput.tilt_C2).c_str());
 }
 
 DCS_GUI::~DCS_GUI()
@@ -333,52 +305,52 @@ DCS_GUI::~DCS_GUI()
 
 void DCS_GUI::on_makeP_check_stateChanged(int arg1)
 {
-    UserSettings.see_para = (bool)arg1;
+    UserSettingsInput.see_para = (bool)arg1;
 }
 
 void DCS_GUI::on_makeAP_check_stateChanged(int arg1)
 {
-    UserSettings.see_anti = (bool)arg1;
+    UserSettingsInput.see_anti = (bool)arg1;
 }
 
 void DCS_GUI::on_C1_noMask_radio_clicked()
 {
-    UserSettings.mask_C1 = 0;
+    UserSettingsInput.mask_C1 = 0;
 }
 
 void DCS_GUI::on_C1_downMask_radio_clicked()
 {
-    UserSettings.mask_C1 = 1;
+    UserSettingsInput.mask_C1 = 1;
 }
 
 void DCS_GUI::on_C1_upMask_radio_clicked()
 {
-    UserSettings.mask_C1 = 2;
+    UserSettingsInput.mask_C1 = 2;
 }
 
 void DCS_GUI::on_C2_noMask_radio_clicked()
 {
-    UserSettings.mask_C2 = 0;
+    UserSettingsInput.mask_C2 = 0;
 }
 
 void DCS_GUI::on_C2_downMask_radio_clicked()
 {
-    UserSettings.mask_C2 = 1;
+    UserSettingsInput.mask_C2 = 1;
 }
 
 void DCS_GUI::on_C2_upMask_radio_clicked()
 {
-    UserSettings.mask_C2 = 2;
+    UserSettingsInput.mask_C2 = 2;
 }
 
 void DCS_GUI::on_makeImagePlateC1_check_stateChanged(int arg1)
 {
-    Graph_options.make_imageC1_After_refle = (bool) arg1;
+    GraphOptionsInput.make_imageC1_After_refle = (bool) arg1;
 }
 
 void DCS_GUI::on_makeImagePlateC2_check_stateChanged(int arg1)
 {
-    Graph_options.make_imageC2_After_refle = (bool) arg1;
+    GraphOptionsInput.make_imageC2_After_refle = (bool) arg1;
 }
 
 void DCS_GUI::on_startSim_button_clicked()
@@ -429,155 +401,155 @@ void DCS_GUI::on_loadSim_button_clicked()
 
 void DCS_GUI::on_energy_val_textEdited(const QString &arg1)
 {
-    physical_parameters.linelamda = std::stod(arg1.toStdString());
+    PhysicalParametersInput.linelamda = std::stod(arg1.toStdString());
 }
 
 void DCS_GUI::on_naturalWidth_val_textEdited(const QString &arg1)
 {
-    physical_parameters.naturalwidth = std::stod(arg1.toStdString());
+    PhysicalParametersInput.naturalwidth = std::stod(arg1.toStdString());
 }
 
 void DCS_GUI::on_tempC1P_val_textEdited(const QString &arg1)
 {
-    temperature_parameters.T_crystal_1_para = std::stod(arg1.toStdString());
+    TemperatureParametersInput.T_crystal_1_para = std::stod(arg1.toStdString());
 }
 
 void DCS_GUI::on_tempC1AP_val_textEdited(const QString &arg1)
 {
-    temperature_parameters.T_crystal_1_anti = std::stod(arg1.toStdString());
+    TemperatureParametersInput.T_crystal_1_anti = std::stod(arg1.toStdString());
 }
 
 void DCS_GUI::on_tempC2P_val_textEdited(const QString &arg1)
 {
-    temperature_parameters.T_crystal_2_para = std::stod(arg1.toStdString());
+    TemperatureParametersInput.T_crystal_2_para = std::stod(arg1.toStdString());
 }
 
 void DCS_GUI::on_tempC2AP_val_textEdited(const QString &arg1)
 {
-    temperature_parameters.T_crystal_2_anti = std::stod(arg1.toStdString());
+    TemperatureParametersInput.T_crystal_2_anti = std::stod(arg1.toStdString());
 }
 
 void DCS_GUI::on_dopplerFWHMGauss_val_textEdited(const QString &arg1)
 {
-    physical_parameters.gauss_Doop = std::stod(arg1.toStdString());
+    PhysicalParametersInput.gauss_Doop = std::stod(arg1.toStdString());
 }
 
 void DCS_GUI::on_angleScanRange_val_textEdited(const QString &arg1)
 {
-    plotparameters.delta_angl = std::stod(arg1.toStdString());
+    PlotParametersInput.delta_angl = std::stod(arg1.toStdString());
 }
 
 void DCS_GUI::on_angleDispShift_val_textEdited(const QString &arg1)
 {
-    plotparameters.shift_disp_window = std::stod(arg1.toStdString());
+    PlotParametersInput.shift_disp_window = std::stod(arg1.toStdString());
 }
 
 void DCS_GUI::on_binNum_val_textEdited(const QString &arg1)
 {
-    plotparameters.nubins = stoi(arg1.toStdString());
+    PlotParametersInput.nubins = stoi(arg1.toStdString());
 }
 
 void DCS_GUI::on_rayNum_val_textEdited(const QString &arg1)
 {
-    numberrays.nbeams = stoi(arg1.toStdString());
+    NumberRaysInput.nbeams = stoi(arg1.toStdString());
 }
 
 void DCS_GUI::on_distSAP_val_textEdited(const QString &arg1)
 {
-    GeoParapathlengths.LT_aper = std::stod(arg1.toStdString());
+    GeoParapathlengthsInput.LT_aper = std::stod(arg1.toStdString());
 }
 
 void DCS_GUI::on_distAPC1_val_textEdited(const QString &arg1)
 {
-    GeoParapathlengths.dist_T_Cr1 = std::stod(arg1.toStdString());
+    GeoParapathlengthsInput.dist_T_Cr1 = std::stod(arg1.toStdString());
 }
 
 void DCS_GUI::on_distC1C2_val_textEdited(const QString &arg1)
 {
-    GeoParapathlengths.dist_Cr1_Cr2 = std::stod(arg1.toStdString());
+    GeoParapathlengthsInput.dist_Cr1_Cr2 = std::stod(arg1.toStdString());
 }
 
 void DCS_GUI::on_distC2D_val_textEdited(const QString &arg1)
 {
-    GeoParapathlengths.dist_Cr2_Det = std::stod(arg1.toStdString());
+    GeoParapathlengthsInput.dist_Cr2_Det = std::stod(arg1.toStdString());
 }
 
 void DCS_GUI::on_cuTubeDiam_val_textEdited(const QString &arg1)
 {
-    Geolengthelements.S_aper = std::stod(arg1.toStdString());
+    GeolengthelementsInput.S_aper = std::stod(arg1.toStdString());
 }
 
 void DCS_GUI::on_lengthCs_val_textEdited(const QString &arg1)
 {
-    Geolengthelements.y_first_crys = std::stod(arg1.toStdString());
+    GeolengthelementsInput.y_first_crys = std::stod(arg1.toStdString());
 }
 
 void DCS_GUI::on_heightCs_val_textEdited(const QString &arg1)
 {
-    Geolengthelements.z_first_crys = std::stod(arg1.toStdString());
+    GeolengthelementsInput.z_first_crys = std::stod(arg1.toStdString());
 }
 
 void DCS_GUI::on_lengthD_val_textEdited(const QString &arg1)
 {
-    Geolengthelements.ydetc = std::stod(arg1.toStdString());
+    GeolengthelementsInput.ydetc = std::stod(arg1.toStdString());
 }
 
 void DCS_GUI::on_heightD_val_textEdited(const QString &arg1)
 {
-    Geolengthelements.zdetc = std::stod(arg1.toStdString());
+    GeolengthelementsInput.zdetc = std::stod(arg1.toStdString());
 }
 
 void DCS_GUI::on_hshiftTubeS_val_textEdited(const QString &arg1)
 {
-    Geolengthelements.S_shi_hor_B = std::stod(arg1.toStdString());
+    GeolengthelementsInput.S_shi_hor_B = std::stod(arg1.toStdString());
 }
 
 void DCS_GUI::on_hshiftTubeAP_val_textEdited(const QString &arg1)
 {
-    Geolengthelements.S_shi_hor_A = std::stod(arg1.toStdString());
+    GeolengthelementsInput.S_shi_hor_A = std::stod(arg1.toStdString());
 }
 
 void DCS_GUI::on_vshiftTubeS_val_textEdited(const QString &arg1)
 {
-    Geolengthelements.S_shi_ver_B = std::stod(arg1.toStdString());
+    GeolengthelementsInput.S_shi_ver_B = std::stod(arg1.toStdString());
 }
 
 void DCS_GUI::on_vshiftTubeAP_val_textEdited(const QString &arg1)
 {
-    Geolengthelements.S_shi_ver_A = std::stod(arg1.toStdString());
+    GeolengthelementsInput.S_shi_ver_A = std::stod(arg1.toStdString());
 }
 
 void DCS_GUI::on_angleC1_val_textEdited(const QString &arg1)
 {
-    GeoParameters.Exp_crys1 = std::stod(arg1.toStdString());
+    GeoParametersInput.Exp_crys1 = std::stod(arg1.toStdString());
 }
 
 void DCS_GUI::on_angleOffC1_val_textEdited(const QString &arg1)
 {
-    GeoParameters.OffsetRotCry1 = std::stod(arg1.toStdString());
+    GeoParametersInput.OffsetRotCry1 = std::stod(arg1.toStdString());
 }
 
 void DCS_GUI::on_angleTable_val_textEdited(const QString &arg1)
 {
-    GeoParameters.teta_table = std::stod(arg1.toStdString());
+    GeoParametersInput.teta_table = std::stod(arg1.toStdString());
 }
 
 void DCS_GUI::on_angleDP_val_textEdited(const QString &arg1)
 {
-    GeoParameters.teta_detec_para = std::stod(arg1.toStdString());
+    GeoParametersInput.teta_detec_para = std::stod(arg1.toStdString());
 }
 
 void DCS_GUI::on_angleDAP_val_textEdited(const QString &arg1)
 {
-    GeoParameters.teta_detec_anti = std::stod(arg1.toStdString());
+    GeoParametersInput.teta_detec_anti = std::stod(arg1.toStdString());
 }
 
 void DCS_GUI::on_angleC1tilt_val_textEdited(const QString &arg1)
 {
-    GeoParameters.tilt_C1 = std::stod(arg1.toStdString());
+    GeoParametersInput.tilt_C1 = std::stod(arg1.toStdString());
 }
 
 void DCS_GUI::on_angleC2tilt_val_textEdited(const QString &arg1)
 {
-    GeoParameters.tilt_C2 = std::stod(arg1.toStdString());
+    GeoParametersInput.tilt_C2 = std::stod(arg1.toStdString());
 }

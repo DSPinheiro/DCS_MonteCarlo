@@ -1693,7 +1693,7 @@ background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgb
               <x>0</x>
               <y>0</y>
               <width>348</width>
-              <height>759</height>
+              <height>787</height>
              </rect>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_12">
@@ -1702,7 +1702,7 @@ background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgb
                <property name="title">
                 <string>Simulation</string>
                </property>
-               <layout class="QVBoxLayout" name="verticalLayout_13">
+               <layout class="QVBoxLayout" name="verticalLayout_10">
                 <item>
                  <layout class="QHBoxLayout" name="horizontalLayout_49">
                   <item>
@@ -1732,6 +1732,24 @@ background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgb
                   </item>
                   <item>
                    <widget class="QSpinBox" name="spinBox_3">
+                    <property name="maximum">
+                     <number>1000000</number>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_51">
+                  <item>
+                   <widget class="QLabel" name="sg_label_47">
+                    <property name="text">
+                     <string>Number of Events</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QSpinBox" name="spinBox_4">
                     <property name="maximum">
                      <number>1000000</number>
                     </property>

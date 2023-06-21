@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * Make_test_c2.hh
  *
@@ -11,12 +13,10 @@
 
 #include <stdio.h>
 #include <iostream>
-#include <fstream>
 
 #include "simuGlobals.hh"
 #include "source_complex.hh"
-#include "makefitvoigt.hh"
-#include "analysie_voigt.hh"
+
 
 class Mask_test_c2{
     public:

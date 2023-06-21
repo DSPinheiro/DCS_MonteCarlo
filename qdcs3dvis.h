@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef QDCS3DVIS_H
 #define QDCS3DVIS_H
 
@@ -14,8 +16,6 @@
 #include <QMouseEvent>
 #include <QWheelEvent>
 #include <iostream>
-#include <fstream>
-
 
 #include "simuGlobals.hh"
 
@@ -24,10 +24,11 @@ class QDCS3Dvis : public QOpenGLWidget, protected QOpenGLFunctions
 {
 
 public:
-    explicit QDCS3Dvis(QWidget *parent = 0);
+    explicit QDCS3Dvis(QWidget *parent);
     ~QDCS3Dvis();
 
     void setDelrot(float rot);
+    void setEventsToTrace(std::vector<std::vector<double>> events_para, std::vector<std::vector<double>> events_anti);
 signals:
 
 public slots:
@@ -57,11 +58,15 @@ protected:
     );
 
 private:
+
     void drawParallel(QMatrix4x4 &m);
     void drawAntiParallel(QMatrix4x4 &m);
     void drawParallelText(QMatrix4x4 &m);
     void drawAntiParallelText(QMatrix4x4 &m);
     void drawObject(std::vector<QVector3D> vertices, GLuint vbo, GLuint uvb);
+
+    void drawParallelEvents(QMatrix4x4& m);
+    void drawAntiparallelEvents(QMatrix4x4& m);
 
     int xRot;
     int yRot;
@@ -70,11 +75,10 @@ private:
     float yPan;
     float uScale;
 
-    float x_first_crys = 0.4;
-    float S_sour_y = 0.1;
+    float x_first_crys = 0.4f;
+    float S_sour_y = 0.1f;
     float text_scale = 4.0f;
     float text_voffset = 1.0f;
-    float teta_crys1;
     float tetaref;
 
     float source_posx;
@@ -105,6 +109,11 @@ private:
     float table_posz;
 
     float delrot;
+
+    float eventLineSize = 0.05f;
+
+    std::vector<std::vector<double>> eventsToTrace_para;
+    std::vector<std::vector<double>> eventsToTrace_anti;
 
     QPoint lastPos;
 
@@ -222,28 +231,6 @@ private:
 
 
     QOpenGLShaderProgram *programShader;
-
-    static inline std::vector<std::string> split(std::string s, std::string delimiter)
-    {
-        size_t last = 0;
-        size_t next = std::string::npos;
-
-        std::vector<std::string> tokens;
-        std::string token;
-
-        while ((next = s.find(delimiter, last)) != std::string::npos)
-        {
-            token = s.substr(last, next - last);
-
-            last = next + delimiter.length();
-
-            tokens.push_back(token);
-        }
-
-        tokens.push_back(s.substr(last, next));
-
-        return tokens;
-    }
 };
 
 #endif // QDCS3DVIS_H

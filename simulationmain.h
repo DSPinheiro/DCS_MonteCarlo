@@ -64,6 +64,7 @@ signals:
     void changePlotsSignal(Plots plots);
     void changePlatesSignal(Plates plates);
     void changeTimesSignal(Times times);
+    void LogLineSignal(std::string line);
     void showDoneDialogSignal();
 
 public slots:
@@ -71,6 +72,7 @@ public slots:
     void changePlots(Plots plots);
     void changePlates(Plates plates);
     void changeTimes(Times times);
+    void LogLine(std::string line);
     void showDoneDialog();
     void startSimulationThread();
 
@@ -80,28 +82,7 @@ private:
     std::atomic<float> simulation_pct;
 
     long int lastHistogramUpdate;
-
-    static inline std::vector<std::string> split(std::string s, std::string delimiter)
-    {
-        size_t last = 0;
-        size_t next = std::string::npos;
-
-        std::vector<std::string> tokens;
-        std::string token;
-
-        while ((next = s.find(delimiter, last)) != std::string::npos)
-        {
-            token = s.substr(last, next - last);
-
-            last = next + delimiter.length();
-
-            tokens.push_back(token);
-        }
-
-        tokens.push_back(s.substr(last, next));
-
-        return tokens;
-    }
+    
     static inline double interpolate( double val, double y0, double x0, double y1, double x1 )
     {
       return (val-x0)*(y1-y0)/(x1-x0) + y0;

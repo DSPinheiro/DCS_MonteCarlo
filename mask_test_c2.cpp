@@ -6,48 +6,44 @@
  */
 
 #include "mask_test_c2.hh"
+#include <Util.h>
 
 using namespace std;
 
-extern UserSettings UserSettings;
-
-extern ofstream gener_out;
-
-extern double a_para_voig[MA], a_anti_voig[MA];
-
-Source_complex c;
 
 void Mask_test_c2::test_c2(){
 
     double inte_mask_down_para, inte_mask_down_anti, ratio_para, ratio_anti, inte_mask_up_para, inte_mask_up_anti;
 
-    UserSettings.mask_C2 = 1;
+    UserSettingsInput.mask_C2 = 1;
 
-    c.run_Source();
+    Source_complex c;
 
-    if(UserSettings.fitting){
-        if(UserSettings.see_para)
-            MakefitVoigt::fit(true);
-        if(UserSettings.see_anti)
-            MakefitVoigt::fit(false);
-        if(UserSettings.see_para and UserSettings.see_anti){}
-            Analysie_Voigt::analyse();
+    c.run_Source(nullptr);
+
+    if(UserSettingsInput.fitting){
+        if(UserSettingsInput.see_para)
+            Util::fit(true);
+        if(UserSettingsInput.see_anti)
+            Util::fit(false);
+        if(UserSettingsInput.see_para && UserSettingsInput.see_anti){}
+            Util::analyse();
     }
 
     inte_mask_down_para = a_para_voig[1];
     inte_mask_down_anti = a_anti_voig[1];
 
-    UserSettings.mask_C2 = 2;
+    UserSettingsInput.mask_C2 = 2;
 
-    c.run_Source();
+    c.run_Source(nullptr);
 
-    if(UserSettings.fitting){
-        if(UserSettings.see_para)
-            MakefitVoigt::fit(true);
-        if(UserSettings.see_anti)
-            MakefitVoigt::fit(false);
-        if(UserSettings.see_para and UserSettings.see_anti){}
-            Analysie_Voigt::analyse();
+    if(UserSettingsInput.fitting){
+        if(UserSettingsInput.see_para)
+            Util::fit(true);
+        if(UserSettingsInput.see_anti)
+            Util::fit(false);
+        if(UserSettingsInput.see_para && UserSettingsInput.see_anti){}
+            Util::analyse();
     }
 
     inte_mask_up_para = a_para_voig[1];
