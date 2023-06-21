@@ -181,7 +181,7 @@ export(PACKAGE DCSsimuWrapper)
 # Keep the original target here, in case we want to build standalone with cmake 
 # no need to use qmake (but useful if using qtcreator)
 # Keep it a console application just like in the base port qmake file
-add_executable(DCSsimu ${SOURCE})
+add_executable(DCSsimu WIN32 ${SOURCE})
 target_compile_definitions(DCSsimu PRIVATE -DENTRYPOINT=main)
 
 target_link_libraries(DCSsimu PRIVATE
