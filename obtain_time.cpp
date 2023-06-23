@@ -38,7 +38,10 @@ vector<int> Obtain_time::simuTime(
         int Sec    = localTime.tm_sec;
 
         if(GraphOptionsInput.MakeDislin)
-            emit w->changeTimes(0, Hour, Min, Sec);
+        {
+            SimulationMain::Times times = { 0, Hour, Min, Sec };
+            emit w->changeTimesSignal(times);
+        }
 
         int_time_out = 60 * ((60 * Hour) + Min) + Sec;
         int_time_mili_out = chrono::duration_cast<chrono::milliseconds>(now.time_since_epoch()).count();
@@ -48,7 +51,7 @@ vector<int> Obtain_time::simuTime(
             logString << endl;
             logString << "Simulation start at: " << Hour << " h " << Min << " m " << Sec << " s" << endl;
             logString << endl;
-            emit w->LogLine(logString.str());
+            emit w->LogLineSignal(logString.str());
 
         }
 
@@ -105,12 +108,15 @@ vector<int> Obtain_time::simuTime(
 
         if(First_call == 1){
             if(GraphOptionsInput.MakeDislin)
-                emit w->changeTimes(1, dif_time_a[0], dif_time_a[1], dif_time_a[2]);
+            {
+                SimulationMain::Times times = { 1, dif_time_a[0], dif_time_a[1], dif_time_a[2] };
+                emit w->changeTimesSignal(times);
+            }
 
             logString.clear();
             logString << "remainder time estimate: " << dif_time_a[0] << " h " << dif_time_a[1] << " m " << dif_time_a[2] << " s" << endl;
             logString << endl;
-            emit w->LogLine(logString.str());
+            emit w->LogLineSignal(logString.str());
 
             //TODO implement gui
             //if(Graph_options.make_image_plates){
@@ -126,7 +132,7 @@ vector<int> Obtain_time::simuTime(
             logString << endl;
             logString << "Total time of simulation: " << dif_time_a[0] << " h " << dif_time_a[1] << " m " << dif_time_a[2] << " s" << endl;
             logString << endl;
-            emit w->LogLine(logString.str());
+            emit w->LogLineSignal(logString.str());
 
             gener_out << "Simulation end at: " << Hour << " h " << Min << " m " << Sec << " s" << endl;
             gener_out << endl;

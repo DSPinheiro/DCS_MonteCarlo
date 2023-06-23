@@ -23,7 +23,7 @@
 
 #include "simuGlobals.hh"
 #include "double_crystal_diffraction.hh"
-#include "dcs_gui.h"
+#include "dcs_gui_new.h"
 
 
 #endif /* DCS_MONTECARLO_HH_ */

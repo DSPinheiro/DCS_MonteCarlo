@@ -7,7 +7,7 @@
 
 
 #include "double_crystal_diffraction.hh"
-#include <Util.h>
+#include "Util.h"
 
 using namespace std;
 
@@ -17,14 +17,16 @@ bool Make_Angle_brode, rotate_C1 = false;
 
 
 void Double_Crystal_diffraction::Make_Simu(SimulationMain* w){
-
+    
+    w->setPctDone(0.0f);
+    
     double center_2cry_at_temp, sin_t, theta_b, line_ener, termFW;
 
     stringstream logString;
 
-    string paraPath = string(File_simu) + "\\Histogram_parallel.txt";
-    string antiPath = string(File_simu) + "\\Histogram_antiparallel.txt";
-    string generPath = string(File_simu) + "\\general_output.txt";
+    string paraPath = string(Output_dir) + "\\Histogram_parallel.txt";
+    string antiPath = string(Output_dir) + "\\Histogram_antiparallel.txt";
+    string generPath = string(Output_dir) + "\\general_output.txt";
 
     hist_para.open(paraPath, ofstream::out | ofstream::trunc);
     hist_anti.open(antiPath, ofstream::out | ofstream::trunc);
@@ -103,7 +105,7 @@ void Double_Crystal_diffraction::Make_Simu(SimulationMain* w){
         GeoParametersInput.tilt_C1 = (GeoParametersInput.center_2cry_at - center_2cry_at_temp) * 180.0 / (2.0 * GeoParapathlengthsInput.dist_Cr1_Cr2*sin_t) / M_PI;
         
         logString << GeoParametersInput.tilt_C1 << endl;
-        emit w->LogLine(logString.str());
+        emit w->LogLineSignal(logString.str());
 
     }
 
@@ -121,7 +123,7 @@ void Double_Crystal_diffraction::Make_Simu(SimulationMain* w){
     logString << "Experimental first crystal angle = " << teta_crys1 << endl;
     logString << "Glancing angle for central ray = " << 90 - teta_crys1 << endl;
     logString << "theoretical = " << theta_chk << endl;
-    emit w->LogLine(logString.str());
+    emit w->LogLineSignal(logString.str());
 
 
     theta_b = 2.0 * theta_b + teta_crys1 - 180.0;
@@ -170,7 +172,7 @@ void Double_Crystal_diffraction::Make_Simu(SimulationMain* w){
     else{
         logString.clear();
         logString << GeoParapathlengthsInput.type_source << endl;
-        emit w->LogLine(logString.str());
+        emit w->LogLineSignal(logString.str());
         
         throw runtime_error("Bad input for type_souce");
     }
@@ -300,7 +302,7 @@ void Double_Crystal_diffraction::Make_Simu(SimulationMain* w){
     logString << "Temperature first crystal = " << TemperatureParametersInput.T_crystal_1_para << " ºC; Temperature second crystal = " << TemperatureParametersInput.T_crystal_2_para << " ºC" << endl;
     logString << "Vertical tilt first crystal = " << GeoParametersInput.tilt_C1 << " deg; Vertical tilt second crystal = " << GeoParametersInput.tilt_C2 << " deg" << endl;
     
-    emit w->LogLine(logString.str());
+    emit w->LogLineSignal(logString.str());
 
 
     hist_para << "# Line wavelength							= " << linelamda << " Ang" << endl;
@@ -376,7 +378,7 @@ void Double_Crystal_diffraction::Make_Simu(SimulationMain* w){
     logString << "General output in file" << endl;
     logString << "general_output" << endl;
     logString << endl;
-    emit w->LogLine(logString.str());
+    emit w->LogLineSignal(logString.str());
 
     if(UserSettingsInput.fitting){
         if(UserSettingsInput.see_para)

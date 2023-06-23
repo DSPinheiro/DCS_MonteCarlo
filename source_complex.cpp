@@ -6,7 +6,7 @@
  */
 
 #include "source_complex.hh"
-#include <Util.h>
+#include "Util.h"
 
 
 using namespace std;
@@ -43,6 +43,8 @@ void Source_complex::run_Source(SimulationMain *w){
     int counts_c2_para, counts_c2_anti;
 
     int numbins, max_para, I, n_rota;
+    int64_t total_current_bins = 0, total_expexted_bins = NumberRaysInput.number_rotati * NumberRaysInput.nbeams * PlotParametersInput.nubins;
+
     int* toint_para_total = new int[PlotParametersInput.nubins];
     int* toint_anti_total = new int[PlotParametersInput.nubins];
 
@@ -335,7 +337,7 @@ void Source_complex::run_Source(SimulationMain *w){
 
                 logString << "tw_1: " << d_lat1_para << endl;
                 logString << "tw_2: " << d_lat2_para << endl;
-                emit w->LogLine(logString.str());
+                emit w->LogLineSignal(logString.str());
 
             }
 
@@ -1024,19 +1026,24 @@ void Source_complex::run_Source(SimulationMain *w){
 
                 I++;
 
+                w->setPctDone(static_cast<float>(++total_current_bins) / total_expexted_bins);
             }
 
             if(GraphOptionsInput.make_image_plates){
                 emit w->changeStats(
-                    counts_sour,
-                    counts_C1,
-                    counts_C2_para,
-                    counts_C2_anti,
-                    counts_detc_para,
-                    counts_detc_anti,
-                    delrot,
-                    eventsToTrace_para,
-                    eventsToTrace_anti);
+                    SimulationMain::Stats
+                    {
+                        counts_sour,
+                        counts_C1,
+                        counts_C2_para,
+                        counts_C2_anti,
+                        counts_detc_para,
+                        counts_detc_anti,
+                        delrot,
+                        eventsToTrace_para,
+                        eventsToTrace_anti
+                    }
+                );
             }
 
 

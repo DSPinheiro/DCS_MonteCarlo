@@ -52,7 +52,7 @@ namespace Util {
     void Read_CurveResponce();
     std::vector<double> horCorr(double y_pro_C1, double y_max_C1, double z_pro_C1, double z_max_C1, bool type_c);
     void FitData(int numbins, double angle_para, int toint_para, double angle_anti, int toint_anti);
-    void Read_EnergySpectrum();
+    void Read_EnergySpectrum(const std::string& filename);
     std::vector<double> misalign(double Dis_total);
     void Set_angs();
     void test_In();
