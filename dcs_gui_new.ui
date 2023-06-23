@@ -36,19 +36,6 @@
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>(Simulation Requires Revision)</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
-        </property>
-        <property name="margin">
-         <number>7</number>
-        </property>
-       </widget>
-      </item>
-      <item>
        <spacer name="horizontalSpacer">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
@@ -1935,6 +1922,9 @@ background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgb
                     </property>
                     <property name="readOnly">
                      <bool>true</bool>
+                    </property>
+                    <property name="placeholderText">
+                     <string/>
                     </property>
                    </widget>
                   </item>

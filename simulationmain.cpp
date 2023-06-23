@@ -6,7 +6,7 @@
 #include "ui_simulationmain.h"
 
 #include "double_crystal_diffraction.hh"
-#include <Util.h>
+#include "Util.h"
 
 using namespace std;
 
@@ -270,6 +270,8 @@ SimulationMain::SimulationMain(QWidget *parent) :
     qRegisterMetaType<Plots>("Plots");
     qRegisterMetaType<Plates>("Plates");
     qRegisterMetaType<Times>("Times");
+    qRegisterMetaType<std::string>("std::string");
+    qRegisterMetaType<QTextCursor>("QTextCursor");
 
     connect(this, SIGNAL(changeStatsSignal(Stats)), this, SLOT(changeStats(Stats)), Qt::QueuedConnection);
     connect(this, SIGNAL(changePlotsSignal(Plots)), this, SLOT(changePlots(Plots)), Qt::QueuedConnection);
@@ -352,7 +354,7 @@ void SimulationMain::changeStats(Stats stats)
     ui->DAcnts_val->setText(QString(split(to_string(stats.c_detc_anti), ".")[0].c_str()));
     ui->currRot_val->setText(QString(to_string(stats.delrot * convdeg).c_str()));
     ui->GL3Dvis->setDelrot(stats.delrot);
-    ui->GL3Dvis->setEventsToTrace(events_para, events_anti);
+    ui->GL3Dvis->setEventsToTrace(stats.events_para, stats.events_anti);
     ui->GL3Dvis->update();
 }
 

@@ -2261,20 +2261,15 @@ void Util::FitData(int numbins, double angle_para, int toint_para, double angle_
 /// The cumulative distribution for the spectrum is also calculated
 /// to be used for the random energy generation.
 /// </summary>
-void Util::Read_EnergySpectrum() {
+void Util::Read_EnergySpectrum(const std::string& filename) {
 
     bool exist_file;
     double y1d, yud;
     double x1d, xud;
     int mult;
 
-
     std::ifstream pathFile;
-
-    char inFile[223] = "";
-    strcat(inFile, File_simu);
-    strcat(inFile, "\\Energy_spectrum_600.txt");
-
+    const char* inFile = filename.c_str();
 
     struct stat buffer;
     exist_file = (stat(inFile, &buffer) == 0);
@@ -2283,7 +2278,7 @@ void Util::Read_EnergySpectrum() {
         pathFile.open(inFile);
     }
     else {
-        throw std::runtime_error("input energy spectrum file \"Energy_spectrum_600.txt\" not found");
+        throw std::runtime_error("input energy spectrum file \"" + filename + "\" not found");
     }
 
     if (Unit_energy == "keV")

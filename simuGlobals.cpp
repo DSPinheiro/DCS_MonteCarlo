@@ -63,6 +63,7 @@ std::vector<energy_gen> Energy_spec;
 char File_simu[1024];
 char Output_dir[1024];
 
+
 double Maxi_angl;
 double Mini_angl;
 double ang_para_pre;

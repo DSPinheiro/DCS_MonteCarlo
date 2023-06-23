@@ -36,98 +36,47 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets OpenGL Core Gui PrintSuppo
 # add_definitions(-DQT_DISABLE_DEPRECATED_BEFORE=0x060000)    # disables all the APIs deprecated before Qt 6.0.0
 
 set(SOURCE
-    CheckInputSpectrum.cpp
-    analysie_voigt.cpp
-    calculate_geo_corr.cpp
     dcs_montecarlo.cpp
     double_crystal_diffraction.cpp
-    gaussi_rockin.cpp
-    get_new_temp_for_bin.cpp
-    intensitysource.cpp
-    limits_horizontal_diverge.cpp
-    dcs_gui.cpp
-    make_graph_imageplates.cpp
     make_plot_profiles.cpp
-    make_pointcryst.cpp
-    makefitvoigt.cpp
     mask_test_c2.cpp
-    obtain_curve_responce.cpp
-    obtain_curved_hor_corr.cpp
-    obtain_data_fitting.cpp
-    obtain_energyspectrum.cpp
-    obtain_misalign.cpp
     obtain_time.cpp
-    obtainvertical.cpp
     qcustomplot.cpp
     qdcs3dvis.cpp
-    set_ang_rad.cpp
+    simuGlobals.cpp
     simulationmain.cpp
     source_complex.cpp
     source_simple.cpp
-    test_input.cpp
+    Util.cpp
 
-    Boxmuller.hh
-    CheckInputSpectrum.hh
-    FindLoc.hh
-    First_crystal_angle.hh
-    First_crystal_angle_1_Approximation.hh
-    First_crystal_angle_Full.hh
-    Obtain_d_Lattice_temp.hh
-    Obtain_ypzp.hh
-    PseuVoigt.hh
-    Reach_detector.hh
-    Second_crystal_angle.hh
-    Second_crystal_angle_Full.hh
-    Second_crystal_angle_aproximation.hh
-    TrueVoig.hh
-    analysie_voigt.hh
-    calculate_geo_corr.hh
-    covsrt.hh
-    cw.hh
-    dcs_gui.h
+    simuConsts.h
+    Util.h
+
     dcs_montecarlo.hh
     double_crystal_diffraction.hh
-    gaussi_rockin.hh
-    gaussj.hh
-    get_new_temp_for_bin.hh
-    intensitysource.hh
-    limits_horizontal_diverge.hh
-    make_graph_imageplates.hh
     make_plot_profiles.hh
-    make_pointcryst.hh
-    makefitvoigt.hh
     mask_test_c2.hh
-    mrqcof.hh
-    mrqmin.hh
-    obtain_curve_responce.hh
-    obtain_curved_hor_corr.hh
-    obtain_data_fitting.hh
-    obtain_energyspectrum.hh
-    obtain_misalign.hh
     obtain_time.hh
-    obtainvertical.hh
     qcustomplot.h
+
     qdcs3dvis.h
-    set_ang_rad.hh
     simuGlobals.hh
     simulationmain.h
+
     source_complex.hh
     source_simple.hh
-    spline.hh
-    splint.hh
-    test_input.hh
 
-    dcs_gui.ui
     dcs_gui_new.ui
     simulationmain.ui
-
-    # Wrapper
-    wrapper/sserializer.inl
-
-    configure.inl
+    input_settings_prompt.ui
+    
+    sserializer.inl
 
     dcs_gui_new.h
     dcs_gui_new.cpp
+
+    dcs_gui_input_settings.h
+    dcs_gui_input_settings.cpp
 )
 
 # We could either use this as a submodule and everything would be simpler (but not if we are using a private repo)
@@ -150,6 +99,7 @@ set(INSTALL_HEADERS
     simulationmain.h
     simuGlobals.hh
     dcs_gui_new.h
+    simuConsts.h
 )
 
 file(REAL_PATH "${CMAKE_INSTALL_PREFIX}/${INSTALL_INCLUDE_DIR}" ABS_INCLUDE_DIR)
@@ -181,7 +131,10 @@ export(PACKAGE DCSsimuWrapper)
 # Keep the original target here, in case we want to build standalone with cmake 
 # no need to use qmake (but useful if using qtcreator)
 # Keep it a console application just like in the base port qmake file
-add_executable(DCSsimu WIN32 ${SOURCE})
+add_executable(DCSsimu ${SOURCE})
+# Disable console if in release mode
+# set_target_properties(DCSsimu PROPERTIES WIN32_EXECUTABLE $<CONFIG:Release>)
+
 target_compile_definitions(DCSsimu PRIVATE -DENTRYPOINT=main)
 
 target_link_libraries(DCSsimu PRIVATE

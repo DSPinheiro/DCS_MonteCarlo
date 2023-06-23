@@ -107,7 +107,7 @@ vector<int> Obtain_time::simuTime(
         dif_time_a[2] = dif_time;
 
         if(First_call == 1){
-            if(Graph_options.MakeDislin)
+            if(GraphOptionsInput.MakeDislin)
             {
                 SimulationMain::Times times = { 1, dif_time_a[0], dif_time_a[1], dif_time_a[2] };
                 emit w->changeTimesSignal(times);

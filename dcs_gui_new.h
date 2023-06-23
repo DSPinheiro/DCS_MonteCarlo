@@ -20,11 +20,12 @@ public:
     ~GUISettingsWindow();
 
     inline SimulationMain* getSimulationWindow() { return wsimu; }
+    void setup();
+    void updateElements();
 
 private:
     SimulationMain* wsimu;
     Ui::GUISettingsWindow* ui;
-    void updateElements();
 
     QTimer* timer;
 };

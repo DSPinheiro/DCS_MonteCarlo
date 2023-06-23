@@ -1,11 +1,13 @@
 #include "dcs_gui_new.h"
 #include "ui_dcs_gui_new.h"
+#include "dcs_gui_input_settings.h"
 
 #include "simuGlobals.hh"
 #include "simulationmain.h"
-#include "wrapper/sserializer.inl"
+#include "sserializer.inl"
 #include <filesystem>
 #include <fstream>
+#include <algorithm>
 #include <QPushButton>
 #include <QCheckBox>
 #include <QRadioButton>
@@ -307,8 +309,8 @@ GUISettingsWindow::GUISettingsWindow(QWidget *parent) :
     connect(ui->src_geometry_4, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int v) { 
         switch(v)
         {
-            case 0: 
-                fullenergyspectrum.make_more_lines = 2;
+            case 0:
+                FullEnergySpectrumInput.make_more_lines = 2;
                 ui->src_aprt_55->setEnabled(false);
                 ui->src_aprt_56->setEnabled(false);
                 ui->src_aprt_57->setEnabled(false);
@@ -324,7 +326,7 @@ GUISettingsWindow::GUISettingsWindow(QWidget *parent) :
                 ui->pushButton->setEnabled(true);
                 break;
             case 1: 
-                fullenergyspectrum.make_more_lines = 1;
+                FullEnergySpectrumInput.make_more_lines = 1;
                 ui->src_aprt_55->setEnabled(true);
                 ui->src_aprt_56->setEnabled(true);
                 ui->src_aprt_57->setEnabled(true);
@@ -340,7 +342,7 @@ GUISettingsWindow::GUISettingsWindow(QWidget *parent) :
                 ui->pushButton->setEnabled(false);
                 break;
             case 2: 
-                fullenergyspectrum.make_more_lines = 0;
+                FullEnergySpectrumInput.make_more_lines = 0;
                 ui->src_aprt_55->setEnabled(true);
                 ui->src_aprt_56->setEnabled(true);
                 ui->src_aprt_57->setEnabled(false);
@@ -422,7 +424,7 @@ GUISettingsWindow::GUISettingsWindow(QWidget *parent) :
         QString filename = QFileDialog::getOpenFileName(this,
             tr("Open Simulation Settings"),
             QString(),
-            tr("DCSsimu params (*.dsp)")
+            tr("DCSsimu params (*.dsp);;DCSimu input file (*.input)")
         );
 
         if(filename.isEmpty())
@@ -430,8 +432,15 @@ GUISettingsWindow::GUISettingsWindow(QWidget *parent) :
             return;
         }
 
-        auto buffer = read_buffer_from_file(filename.toStdString());
-        deserialize_inputs(buffer);
+        if(filename.endsWith(".input"))
+        {
+            InputSettingsPrompt::configure(filename.toStdString());
+        }
+        else
+        {
+            auto buffer = read_buffer_from_file(filename.toStdString());
+            deserialize_inputs(buffer);
+        }
 
         updateElements();
 
@@ -447,13 +456,22 @@ GUISettingsWindow::GUISettingsWindow(QWidget *parent) :
     });
 
 #ifdef LIB_DEF
+    connect(ui->startSim_button, &QPushButton::clicked, wsimu, &SimulationMain::startSimulationThread);
     ui->startSim_button->setEnabled(false);
     ui->startSim_button->setStyleSheet(QString(
         "border-color: rgb(0, 0, 0);"
         "background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0,stop:0 rgba(100, 100, 100, 255), stop:1 rgba(100, 100, 100, 255));"
     ));
+    connect(ui->startSim_button, &QPushButton::clicked, this, [this]() { this->setEnabled(false); });
+#else
+    connect(ui->startSim_button, &QPushButton::clicked, wsimu, &SimulationMain::show);
+    ui->startSim_button->setEnabled(true);
+    ui->startSim_button->setStyleSheet(QString(
+        "border-color: rgb(0, 0, 0);"
+        "background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0,stop:0 rgba(0, 100, 0, 255), stop:1 rgba(0, 170, 0, 255));"
+    ));
+#endif
 
-    connect(ui->startSim_button, &QPushButton::clicked, wsimu, &SimulationMain::startSimulationThread);
     connect(ui->startSim_button, &QPushButton::clicked, this, [this]() { timer->start(100); });
     connect(timer, &QTimer::timeout, this, [this]() {
         float pct = wsimu->getPctDone();
@@ -462,7 +480,7 @@ GUISettingsWindow::GUISettingsWindow(QWidget *parent) :
             "background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0,"
             "stop:0 rgba(0, 100, 0, 255), stop:%1 rgba(0, 170, 0, 255),"
             "stop:%2 rgba(100, 100, 100, 255), stop:1 rgba(100, 100, 100, 255));"
-        ).arg(pct-0.02f).arg(pct));
+        ).arg(std::max(pct-0.02f, 0.0f)).arg(pct));
         int ipct = static_cast<int>(pct * 100.0f);
         ui->startSim_button->setText(QString::number(ipct) + "%");
 
@@ -476,7 +494,7 @@ GUISettingsWindow::GUISettingsWindow(QWidget *parent) :
             ui->startSim_button->setText("Start Simulation");
         }
     });
-
+#ifdef LIB_DEF
     // Where do we output to when using the lib?
     strcat(Output_dir, "DCSsimu_output");
     if(!std::filesystem::is_directory(Output_dir) || !std::filesystem::exists(Output_dir))
@@ -500,15 +518,18 @@ GUISettingsWindow::GUISettingsWindow(QWidget *parent) :
     {
         refra_corr = refra_corrPARIS;
     }
-
-#else
-    connect(ui->startSim_button, &QPushButton::clicked, wsimu, &SimulationMain::show);
 #endif
 }
 
 GUISettingsWindow::~GUISettingsWindow()
 {
     delete ui;
+}
+
+void GUISettingsWindow::setup()
+{
+    ui->lineEdit->setPlaceholderText(QString(File_simu) + "Energy_spectrum.txt");
+    FullEnergySpectrumInput.energy_spectrum_file = ui->lineEdit->placeholderText().toStdString();
 }
 
 void GUISettingsWindow::updateElements()
