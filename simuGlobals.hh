@@ -75,6 +75,7 @@ extern double teta_crys1;
 extern std::vector<energy_gen> Energy_spec;
 
 extern char File_simu[1024];
+extern char Output_dir[1024];
 
 
 extern double Maxi_angl;
@@ -124,3 +125,4 @@ extern bool export_prof;
 
 
 #endif /* SIMUGLOBALS_HH_ */
+

@@ -7,7 +7,9 @@
 #include <string>
 #include <fstream>
 
+#ifndef _USE_MATH_DEFINES
 #define _USE_MATH_DEFINES
+#endif
 
 #include <math.h>
 
@@ -182,6 +184,7 @@ struct fullenergyspectrum {
     double linelamda4;
     double naturalwidth4;
     bool Do_background;
+    std::string energy_spectrum_file;
 };
 
 struct Curved_Crystal {

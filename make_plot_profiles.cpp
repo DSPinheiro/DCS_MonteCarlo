@@ -85,7 +85,8 @@ void Make_plot_profiles::plotProfiles(
         if(! (n_plot == 1)){
 
             if(n_plot % 6 == 0){
-                emit w->changePlots(plot_para, plot_anti);
+                SimulationMain::Plots plots = { plot_para, plot_anti };
+                emit w->changePlotsSignal(plots);
             }
 
         }
@@ -156,7 +157,13 @@ void Make_plot_profiles::plotProfiles(
 
                 //TODO
                 //gui plotting
-                emit w->changePlates(hist_image, max_plot_z_temp, crystal);
+                SimulationMain::Plates plates;
+                plates.crystal = crystal;
+                // Not ideal (but at least does not crash)
+                // cgodinho 15/05/2023 (there is not much tought into this anyways)
+                memcpy(&plates.hist_image[0][0], &hist_image[0][0], 100 * 100 * sizeof(double));
+                plates.max_z = max_plot_z_temp;
+                emit w->changePlatesSignal(plates);
 
             }
 

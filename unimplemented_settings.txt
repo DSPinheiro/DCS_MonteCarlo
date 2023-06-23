@@ -1,0 +1,10 @@
+Graph_options
+MakeDislin=.true.						//enable dislin app
+
+
+AnalysiesCrystaltilts
+make_matrix_full=.false.				//make cycle over crystal tilts (make full simulation including crystal curvature??)
+make_graph_widths=.false.				//enable output of vertical missalignment graph
+metafile="EPS"							//output metafiles extension
+make_an_C1_ta=.false.					//something related to first crystal's fitting analisies
+make_plot_C1_table=.false.				//make a plot of first crystal's rotation with the table (uses dislin)
