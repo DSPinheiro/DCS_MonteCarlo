@@ -75,9 +75,9 @@ void SimulationMain::guiSimu(){
         logString.clear();
         logString << "Reading input energy spectrum..." << endl;
         LogLine(logString.str());
-
+        
         Util::Read_EnergySpectrum(FullEnergySpectrumInput.energy_spectrum_file);
-
+        
         logString.clear();
         logString << "Input energy spectrum read." << endl;
         LogLine(logString.str());
@@ -179,7 +179,8 @@ QImage *img, *scale;
 SimulationMain::SimulationMain(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::SimulationMain),
-    running(false)
+    running(false),
+    open(true)
 {
     ui->setupUi(this);
 
@@ -307,19 +308,17 @@ void SimulationMain::startSimulationThread()
         });
         running = true;
     }
-    else
-    {
-
-    }
 #endif
 }
 
 void SimulationMain::showEvent(QShowEvent *)
 {
-#ifndef LIB_DEF
-    if(!running){
-        t1 = std::thread([&]{
-            SimulationMain::guiSimu(); 
+#ifndef LIB_DEF    
+    open = true;
+
+    if (!running) {
+        t1 = std::thread([&] {
+            SimulationMain::guiSimu();
             emit SimulationMain::showDoneDialogSignal();
             done = true;
             running = false;
@@ -331,11 +330,22 @@ void SimulationMain::showEvent(QShowEvent *)
 
 void SimulationMain::closeEvent(QCloseEvent *){
 #ifndef LIB_DEF
+    open = false;
+    
     if(!running){
-        t1.join();
-        exit(0);
-    }else
-        throw runtime_error("Simulation ended by user input before finishing. Results are incomplete.");
+        if(t1.joinable())
+        {
+            t1.join();
+            exit(0);
+        }
+    }
+    else
+    {
+        if(t1.joinable())
+        {
+            t1.join();
+        }
+    }
 #endif
 }
 

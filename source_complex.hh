@@ -25,7 +25,7 @@
 class Source_complex{
 
 public:
-    static void run_Source(SimulationMain* w);
+    static bool run_Source(SimulationMain* w);
 };
 
 

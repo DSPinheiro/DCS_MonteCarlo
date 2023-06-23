@@ -13,7 +13,7 @@ using namespace std;
 
 
 
-void Source_complex::run_Source(SimulationMain *w){
+bool Source_complex::run_Source(SimulationMain *w){
 
     stringstream logString;
     
@@ -1029,6 +1029,22 @@ void Source_complex::run_Source(SimulationMain *w){
                 w->setPctDone(static_cast<float>(++total_current_bins) / total_expexted_bins);
             }
 
+            if (!w->isOpen())
+            {
+                gener_out << "********************************" << endl;
+                gener_out << endl;
+                gener_out << " SIMULATION TERMINATED BEFORE FINISH!!!" << endl;
+                gener_out << endl;
+                gener_out << " RESULTS ARE GARBAGE!!!" << endl;
+                gener_out << endl;
+                gener_out << "********************************" << endl;
+                gener_out << endl;
+
+                w->setPctDone(1.0f);
+
+                return false;
+            }
+
             if(GraphOptionsInput.make_image_plates){
                 emit w->changeStats(
                     SimulationMain::Stats
@@ -1145,6 +1161,21 @@ void Source_complex::run_Source(SimulationMain *w){
 
         n_rota++;
 
+        if(!w->isOpen())
+        {
+            gener_out << "********************************" << endl;
+            gener_out << endl;
+            gener_out << " SIMULATION TERMINATED BEFORE FINISH!!!" << endl;
+            gener_out << endl;
+            gener_out << " RESULTS ARE GARBAGE!!!" << endl;
+            gener_out << endl;
+            gener_out << "********************************" << endl;
+            gener_out << endl;
+
+            w->setPctDone(1.0f);
+
+            return false;
+        }
     }
 
 
@@ -1172,6 +1203,6 @@ void Source_complex::run_Source(SimulationMain *w){
         //implement gui plotting
     }
 
-
+    return true;
 
 }

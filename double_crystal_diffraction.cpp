@@ -355,50 +355,53 @@ void Double_Crystal_diffraction::Make_Simu(SimulationMain* w){
 
 
     export_prof = true;
+    bool finished = false;
 
     if (UserSettingsInput.Simple_simu) {
         Source_simple::run_Source();
     }
     else {
         Source_complex c;
-        c.run_Source(w);
+        finished = c.run_Source(w);
     }
 
-    logString.clear();
-    logString << "output of profiles in files" << endl;
-    logString << "Histogram_antiparallel" << endl;
-    logString << "Histogram_parallel" << endl;
+    if (finished)
+    {
+        logString.clear();
+        logString << "output of profiles in files" << endl;
+        logString << "Histogram_antiparallel" << endl;
+        logString << "Histogram_parallel" << endl;
 
 
-    gener_out << "output of profiles in files" << endl;
-    gener_out << "Histogram_antiparallel" << endl;
-    gener_out << "Histogram_parallel" << endl;
+        gener_out << "output of profiles in files" << endl;
+        gener_out << "Histogram_antiparallel" << endl;
+        gener_out << "Histogram_parallel" << endl;
 
 
-    logString << "General output in file" << endl;
-    logString << "general_output" << endl;
-    logString << endl;
-    emit w->LogLineSignal(logString.str());
+        logString << "General output in file" << endl;
+        logString << "general_output" << endl;
+        logString << endl;
+        emit w->LogLineSignal(logString.str());
 
-    if(UserSettingsInput.fitting){
-        if(UserSettingsInput.see_para)
-            Util::fit(true);
-        if(UserSettingsInput.see_anti)
-            Util::fit(false);
-        if(UserSettingsInput.see_para && UserSettingsInput.see_anti){}
+        if (UserSettingsInput.fitting) {
+            if (UserSettingsInput.see_para)
+                Util::fit(true);
+            if (UserSettingsInput.see_anti)
+                Util::fit(false);
+            if (UserSettingsInput.see_para && UserSettingsInput.see_anti) {}
             Util::analyse();
+        }
+
+        if (UserSettingsInput.make_mask_test)
+            Mask_test_c2::test_c2();
+
+        //old code? unimplemented because the required input is not used
+        //if(rotate_C1)
+            //Make_rotation_C1();
+
+        //gui plotting related to the unimplemented c1 rotations
+        //Make_plots_C1_table(theta_chk);
+
+        //Make_plots_anna_wid();
     }
-
-    if(UserSettingsInput.make_mask_test)
-        Mask_test_c2::test_c2();
-
-    //old code? unimplemented because the required input is not used
-    //if(rotate_C1)
-        //Make_rotation_C1();
-
-    //gui plotting related to the unimplemented c1 rotations
-    //Make_plots_C1_table(theta_chk);
-
-    //Make_plots_anna_wid();
-
 }

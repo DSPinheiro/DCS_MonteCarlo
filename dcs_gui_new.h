@@ -22,6 +22,7 @@ public:
     inline SimulationMain* getSimulationWindow() { return wsimu; }
     void setup();
     void updateElements();
+    void energyFileMissingDialog();
 
 private:
     SimulationMain* wsimu;

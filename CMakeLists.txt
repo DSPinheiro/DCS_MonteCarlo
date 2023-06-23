@@ -35,6 +35,10 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets OpenGL Core Gui PrintSuppo
 # In order to do so, uncomment the following line.
 # add_definitions(-DQT_DISABLE_DEPRECATED_BEFORE=0x060000)    # disables all the APIs deprecated before Qt 6.0.0
 
+#images for the interface
+#qt5_add_resources(RESFILES res/res.qrc)
+
+
 set(SOURCE
     dcs_montecarlo.cpp
     double_crystal_diffraction.cpp
@@ -78,6 +82,14 @@ set(SOURCE
     dcs_gui_input_settings.h
     dcs_gui_input_settings.cpp
 )
+
+if(WIN32)
+    set(app_WINRC ${CMAKE_SOURCE_DIR}/app_win32.rc)
+    set_property(SOURCE app_WINRC APPEND PROPERTY
+            OBJECT_DEPENDS ${CMAKE_SOURCE_DIR}/res/icons/simu_icon.ico
+            )
+endif()
+
 
 # We could either use this as a submodule and everything would be simpler (but not if we are using a private repo)
 # So it is better to install on the system and allow for find_package() to do its magic
@@ -131,9 +143,9 @@ export(PACKAGE DCSsimuWrapper)
 # Keep the original target here, in case we want to build standalone with cmake 
 # no need to use qmake (but useful if using qtcreator)
 # Keep it a console application just like in the base port qmake file
-add_executable(DCSsimu ${SOURCE})
+add_executable(DCSsimu ${SOURCE} ${app_WINRC})
 # Disable console if in release mode
-# set_target_properties(DCSsimu PROPERTIES WIN32_EXECUTABLE $<CONFIG:Release>)
+set_target_properties(DCSsimu PROPERTIES WIN32_EXECUTABLE $<CONFIG:Release>)
 
 target_compile_definitions(DCSsimu PRIVATE -DENTRYPOINT=main)
 
@@ -148,13 +160,13 @@ target_link_libraries(DCSsimu PRIVATE
 
 # Install aditional files into the data/ directory
 # Crystal profiles
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/simulacoesDCS/Crystal_Profiles DESTINATION ${CMAKE_INSTALL_PREFIX}/data)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/simuWorkspace/Crystal_Profiles DESTINATION ${CMAKE_INSTALL_PREFIX}/data)
 
 # OpenGL Models
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/simulacoesDCS/DCSModels DESTINATION ${CMAKE_INSTALL_PREFIX}/data)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/simuWorkspace/DCSModels DESTINATION ${CMAKE_INSTALL_PREFIX}/data)
 
 # Copy files for the build dir
 add_custom_target(copy-workspace-build ALL
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/simulacoesDCS ${CMAKE_BINARY_DIR}/simulacoesDCS
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/simuWorkspace ${CMAKE_BINARY_DIR}/simuWorkspace
 )
-# file(COPY ${CMAKE_SOURCE_DIR}/simulacoesDCS/ DESTINATION ${CMAKE_BINARY_DIR}/)
+# file(COPY ${CMAKE_SOURCE_DIR}/simuWorkspace/ DESTINATION ${CMAKE_BINARY_DIR}/)
