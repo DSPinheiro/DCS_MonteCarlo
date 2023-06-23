@@ -17,6 +17,7 @@
 #include <QString>
 #include <QFileDialog>
 #include <QTimer>
+#include <QMessageBox>
 
 extern Geometry Geometry;
 extern UserSettings UserSettings;
@@ -396,20 +397,21 @@ GUISettingsWindow::GUISettingsWindow(QWidget *parent) :
         fullenergyspectrum.energy_spectrum_file = filename.toStdString();
         ui->lineEdit->setText(QString::fromStdString(fullenergyspectrum.energy_spectrum_file));
     });
-    connect(ui->src_aprt_55, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { fullenergyspectrum.linelamda1 = v; });
-    connect(ui->src_aprt_56, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { fullenergyspectrum.naturalwidth1 = v; });
-    connect(ui->src_aprt_57, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { fullenergyspectrum.p1_ener = v; });
-    connect(ui->src_aprt_58, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { fullenergyspectrum.linelamda2 = v; });
-    connect(ui->src_aprt_59, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { fullenergyspectrum.naturalwidth2 = v; });
-    connect(ui->src_aprt_60, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { fullenergyspectrum.p2_ener = v; });
-    connect(ui->src_aprt_61, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { fullenergyspectrum.linelamda3 = v; });
-    connect(ui->src_aprt_62, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { fullenergyspectrum.naturalwidth3 = v; });
-    connect(ui->src_aprt_64, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { fullenergyspectrum.p3_ener = v; });
-    connect(ui->src_aprt_65, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { fullenergyspectrum.linelamda4 = v; });
-    connect(ui->src_aprt_66, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { fullenergyspectrum.naturalwidth4 = v; });
-    connect(ui->make_bg, &QCheckBox::stateChanged, this, [this](int s) { fullenergyspectrum.Do_background = (bool)s; });
-    connect(ui->make_pol, &QCheckBox::stateChanged, this, [this](int s) { polarization_parameters.mka_poli = (bool)s; });
-    connect(ui->src_aprt_46, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { polarization_parameters.relationP_S = v; });
+
+    connect(ui->src_aprt_55, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { FullEnergySpectrumInput.linelamda1 = v; });
+    connect(ui->src_aprt_56, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { FullEnergySpectrumInput.naturalwidth1 = v; });
+    connect(ui->src_aprt_57, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { FullEnergySpectrumInput.p1_ener = v; });
+    connect(ui->src_aprt_58, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { FullEnergySpectrumInput.linelamda2 = v; });
+    connect(ui->src_aprt_59, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { FullEnergySpectrumInput.naturalwidth2 = v; });
+    connect(ui->src_aprt_60, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { FullEnergySpectrumInput.p2_ener = v; });
+    connect(ui->src_aprt_61, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { FullEnergySpectrumInput.linelamda3 = v; });
+    connect(ui->src_aprt_62, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { FullEnergySpectrumInput.naturalwidth3 = v; });
+    connect(ui->src_aprt_64, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { FullEnergySpectrumInput.p3_ener = v; });
+    connect(ui->src_aprt_65, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { FullEnergySpectrumInput.linelamda4 = v; });
+    connect(ui->src_aprt_66, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { FullEnergySpectrumInput.naturalwidth4 = v; });
+    connect(ui->make_bg, &QCheckBox::stateChanged, this, [this](int s) { FullEnergySpectrumInput.Do_background = (bool)s; });
+    connect(ui->make_pol, &QCheckBox::stateChanged, this, [this](int s) { PolarizationParametersInput.mka_poli = (bool)s; });
+    connect(ui->src_aprt_46, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { PolarizationParametersInput.relationP_S = v; });
 
     // ================================================================================================
     // Temperature Settings
@@ -477,7 +479,19 @@ GUISettingsWindow::GUISettingsWindow(QWidget *parent) :
     });
 
 #ifdef LIB_DEF
-    connect(ui->startSim_button, &QPushButton::clicked, wsimu, &SimulationMain::startSimulationThread);
+    connect(ui->startSim_button, &QPushButton::clicked, wsimu, [this]() {
+        struct stat buffer;
+        bool exist_file = (stat(FullEnergySpectrumInput.energy_spectrum_file.c_str(), &buffer) == 0);
+
+        if (!exist_file) {
+            energyFileMissingDialog();
+            wsimu->setPctDone(1.0f);
+        }
+        else
+        {
+            wsimu->startSimulationThread();
+        }
+    });
     ui->startSim_button->setEnabled(false);
     ui->startSim_button->setStyleSheet(QString(
         "border-color: rgb(0, 0, 0);"
@@ -485,7 +499,19 @@ GUISettingsWindow::GUISettingsWindow(QWidget *parent) :
     ));
     connect(ui->startSim_button, &QPushButton::clicked, this, [this]() { this->setEnabled(false); });
 #else
-    connect(ui->startSim_button, &QPushButton::clicked, wsimu, &SimulationMain::show);
+    connect(ui->startSim_button, &QPushButton::clicked, wsimu, [this]() {
+        struct stat buffer;
+        bool exist_file = (stat(FullEnergySpectrumInput.energy_spectrum_file.c_str(), &buffer) == 0);
+
+        if (!exist_file) {
+            energyFileMissingDialog();
+            wsimu->setPctDone(1.0f);
+        }
+        else
+        {
+            wsimu->show();
+        }
+    });
     ui->startSim_button->setEnabled(true);
     ui->startSim_button->setStyleSheet(QString(
         "border-color: rgb(0, 0, 0);"
@@ -545,6 +571,19 @@ GUISettingsWindow::GUISettingsWindow(QWidget *parent) :
 GUISettingsWindow::~GUISettingsWindow()
 {
     delete ui;
+}
+
+void GUISettingsWindow::energyFileMissingDialog()
+{
+    QString message = "Could not open energy spectrum file: ";
+    message.append(QString::fromUtf8(FullEnergySpectrumInput.energy_spectrum_file.c_str()));
+
+    QMessageBox msgBox;
+    msgBox.setText(message);
+    msgBox.setInformativeText("Please check if the file still exists or has been corrupted.");
+    msgBox.setStandardButtons(QMessageBox::Close);
+    msgBox.setDefaultButton(QMessageBox::Close);
+    int ret = msgBox.exec();
 }
 
 void GUISettingsWindow::setup()

@@ -1220,6 +1220,22 @@ bool Source_complex::run_Source(SimulationInterface *w){
                 return false;
             }
 
+            if (!w->isOpen())
+            {
+                gener_out << "********************************" << endl;
+                gener_out << endl;
+                gener_out << " SIMULATION TERMINATED BEFORE FINISH!!!" << endl;
+                gener_out << endl;
+                gener_out << " RESULTS ARE GARBAGE!!!" << endl;
+                gener_out << endl;
+                gener_out << "********************************" << endl;
+                gener_out << endl;
+
+                w->setPctDone(1.0f);
+
+                return false;
+            }
+
             if(GraphOptionsInput.make_image_plates){
             emit w->changeStats(
                 SimulationInterface::Stats

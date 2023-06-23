@@ -1304,7 +1304,7 @@ void InputSettingsPrompt::loadInputConfig()
     {
         strcpy(File_simu, ui->lineEdit->placeholderText().toStdString().c_str());
     }
-    std::cout << "Path to simulation workspace: " << File_simu << "\n\n" << std::endl;
+    //std::cout << "Path to simulation workspace: " << File_simu << "\n\n" << std::endl;
 
     // Setup input config file name
     strcpy(inFile, File_simu);

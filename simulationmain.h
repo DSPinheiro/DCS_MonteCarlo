@@ -26,7 +26,8 @@ public:
     inline bool isRunning() const { return running; }
     inline float getPctDone() const { return simulation_pct.load(); }
     inline void setPctDone(float pct) { simulation_pct.store(pct); }
-
+    inline bool isOpen() const { return open; }
+    
     struct Stats
     {
         double c_sour;
@@ -68,7 +69,7 @@ signals:
     void changeTimesSignal(Times times);
     void LogLineSignal(std::string line);
     void showDoneDialogSignal();
-
+    
 public slots:
     void changeStats(Stats stats);
     void changePlots(Plots plots);
@@ -77,14 +78,15 @@ public slots:
     void LogLine(std::string line);
     void showDoneDialog();
     void startSimulationThread();
-
+    
 private:
     Ui::SimulationMain *ui;
     bool running;
+    bool open;
     std::atomic<float> simulation_pct;
 
     long int lastHistogramUpdate;
-    
+
     static inline double interpolate( double val, double y0, double x0, double y1, double x1 )
     {
       return (val-x0)*(y1-y0)/(x1-x0) + y0;
