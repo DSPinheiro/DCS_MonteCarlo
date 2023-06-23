@@ -6,11 +6,7 @@
  */
 
 #include "source_simple.hh"
-<<<<<<< HEAD
 #include "Util.h"
-=======
-#include <Util.h>
->>>>>>> d08f139 (Consolidation into Util file)
 
 
 using namespace std;

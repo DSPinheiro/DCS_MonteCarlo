@@ -76,7 +76,7 @@ void SimulationMain::guiSimu(){
         logString << "Reading input energy spectrum..." << endl;
         LogLine(logString.str());
 
-        Obtain_EnergySpectrum::Read_EnergySpectrum();
+        Util::Read_EnergySpectrum(FullEnergySpectrumInput.energy_spectrum_file);
 
         logString.clear();
         logString << "Input energy spectrum read." << endl;
@@ -178,7 +178,8 @@ QImage *img, *scale;
 
 SimulationMain::SimulationMain(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::SimulationMain)
+    ui(new Ui::SimulationMain),
+    running(false)
 {
     ui->setupUi(this);
 
@@ -264,6 +265,20 @@ SimulationMain::SimulationMain(QWidget *parent) :
             scale->setPixelColor(i, n_his_ima - 1 - j, QColor(r, g, b));
         }
     }
+
+    qRegisterMetaType<Stats>("Stats");
+    qRegisterMetaType<Plots>("Plots");
+    qRegisterMetaType<Plates>("Plates");
+    qRegisterMetaType<Times>("Times");
+    qRegisterMetaType<std::string>("std::string");
+    qRegisterMetaType<QTextCursor>("QTextCursor");
+
+    connect(this, SIGNAL(changeStatsSignal(Stats)), this, SLOT(changeStats(Stats)), Qt::QueuedConnection);
+    connect(this, SIGNAL(changePlotsSignal(Plots)), this, SLOT(changePlots(Plots)), Qt::QueuedConnection);
+    connect(this, SIGNAL(changePlatesSignal(Plates)), this, SLOT(changePlates(Plates)), Qt::QueuedConnection);
+    connect(this, SIGNAL(changeTimesSignal(Times)), this, SLOT(changeTimes(Times)), Qt::QueuedConnection);
+    connect(this, SIGNAL(LogLineSignal(std::string)), this, SLOT(LogLine(std::string)), Qt::QueuedConnection);
+    connect(this, SIGNAL(showDoneDialogSignal()), this, SLOT(showDoneDialog()), Qt::QueuedConnection);
     
     //make the logbox read only
     ui->logBox->setReadOnly(true);
@@ -273,48 +288,77 @@ SimulationMain::SimulationMain(QWidget *parent) :
 SimulationMain::~SimulationMain()
 {
     delete ui;
+#ifndef LIB_DEF
     exit(0);
+#endif
+}
+
+void SimulationMain::startSimulationThread()
+{
+#ifdef LIB_DEF
+    if(!running)
+    {
+        // Start the simulation job
+        t1 = std::thread([&]{
+            SimulationMain::guiSimu();
+            emit SimulationMain::showDoneDialogSignal();
+            done = true;
+            running = false;
+        });
+        running = true;
+    }
+    else
+    {
+
+    }
+#endif
 }
 
 void SimulationMain::showEvent(QShowEvent *)
 {
-    if(first){
-        t1 = std::thread([&]{SimulationMain::guiSimu(); done = true;});
-        first = false;
+#ifndef LIB_DEF
+    if(!running){
+        t1 = std::thread([&]{
+            SimulationMain::guiSimu(); 
+            emit SimulationMain::showDoneDialogSignal();
+            done = true;
+            running = false;
+        });
+        running = true;
     }
+#endif
 }
 
 void SimulationMain::closeEvent(QCloseEvent *){
-    if(done){
+#ifndef LIB_DEF
+    if(!running){
         t1.join();
         exit(0);
     }else
         throw runtime_error("Simulation ended by user input before finishing. Results are incomplete.");
+#endif
 }
 
-void SimulationMain::changeStats(
-    double c_sour,
-    double c_cr1,
-    double c_cr2_para,
-    double c_cr2_anti,
-    double c_detc_para,
-    double c_detc_anti,
-    double delrot,
-    std::vector<std::vector<double>> events_para,
-    std::vector<std::vector<double>> events_anti){
-    ui->Ecnts_val->setText(QString(split(to_string(c_sour), ".")[0].c_str()));
-    ui->C1cnts_val->setText(QString(split(to_string(c_cr1), ".")[0].c_str()));
-    ui->C2Pcnts_val->setText(QString(split(to_string(c_cr2_para), ".")[0].c_str()));
-    ui->DPcnts_val->setText(QString(split(to_string(c_detc_para), ".")[0].c_str()));
-    ui->C2Acnts_val->setText(QString(split(to_string(c_cr2_anti), ".")[0].c_str()));
-    ui->DAcnts_val->setText(QString(split(to_string(c_detc_anti), ".")[0].c_str()));
-    ui->currRot_val->setText(QString(to_string(delrot * convdeg).c_str()));
-    ui->GL3Dvis->setDelrot(delrot);
-    ui->GL3Dvis->setEventsToTrace(events_para, events_anti);
+void SimulationMain::showDoneDialog()
+{
+    QMessageBox::information(this, tr("DCS Simulation"), tr("Simulation Finished!"), QMessageBox::Ok);
+}
+
+void SimulationMain::changeStats(Stats stats)
+{
+    ui->Ecnts_val->setText(QString(split(to_string(stats.c_sour), ".")[0].c_str()));
+    ui->C1cnts_val->setText(QString(split(to_string(stats.c_cr1), ".")[0].c_str()));
+    ui->C2Pcnts_val->setText(QString(split(to_string(stats.c_cr2_para), ".")[0].c_str()));
+    ui->DPcnts_val->setText(QString(split(to_string(stats.c_detc_para), ".")[0].c_str()));
+    ui->C2Acnts_val->setText(QString(split(to_string(stats.c_cr2_anti), ".")[0].c_str()));
+    ui->DAcnts_val->setText(QString(split(to_string(stats.c_detc_anti), ".")[0].c_str()));
+    ui->currRot_val->setText(QString(to_string(stats.delrot * convdeg).c_str()));
+    ui->GL3Dvis->setDelrot(stats.delrot);
+    ui->GL3Dvis->setEventsToTrace(stats.events_para, stats.events_anti);
     ui->GL3Dvis->update();
 }
 
-void SimulationMain::changePlots(vector<plot> para, vector<plot> anti){
+void SimulationMain::changePlots(Plots plots){
     long int currTime = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
 
     if (currTime - lastHistogramUpdate >= 100)
@@ -322,18 +366,18 @@ void SimulationMain::changePlots(vector<plot> para, vector<plot> anti){
         lastHistogramUpdate = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
         QVector<double> qe_para, qx_para, qy_para, qe_anti, qx_anti, qy_anti, e_para, e_anti;
 
-        for(unsigned int i = 0; i < para.size(); i++){
-            qe_para << para[i].energy;
-            qx_para << para[i].x;
-            qy_para << para[i].y;
-            e_para << para[i].error;
+        for(unsigned int i = 0; i < plots.para.size(); i++){
+            qe_para << plots.para[i].energy;
+            qx_para << plots.para[i].x;
+            qy_para << plots.para[i].y;
+            e_para << plots.para[i].error;
         }
 
-        for(unsigned int i = 0; i < anti.size(); i++){
-            qe_anti << anti[i].energy;
-            qx_anti << anti[i].x;
-            qy_anti << anti[i].y;
-            e_anti << anti[i].error;
+        for(unsigned int i = 0; i < plots.anti.size(); i++){
+            qe_anti << plots.anti[i].energy;
+            qx_anti << plots.anti[i].x;
+            qy_anti << plots.anti[i].y;
+            e_anti << plots.anti[i].error;
         }
 
         //errorBars->addData(e_anti);
@@ -359,17 +403,19 @@ void SimulationMain::changePlots(vector<plot> para, vector<plot> anti){
     }
 }
 
-void SimulationMain::changePlates(double hist_image[n_his_ima][n_his_ima], double max_z, int crystal){
+void SimulationMain::changePlates(Plates plates){
     for(int i = 0; i < n_his_ima; i++){
         for(int j = 0; j < n_his_ima; j++){
-            int r = (int)(255 * red(2 * ((hist_image[i][j] / max_z) - 0.5))), g = (int)(255 * green(2 * ((hist_image[i][j] / max_z) - 0.5))), b = (int)(255 * blue(2 * ((hist_image[i][j] / max_z) - 0.5)));
+            int r = (int)(255 * red(2 * ((plates.hist_image[i][j] / plates.max_z) - 0.5)));
+            int g = (int)(255 * green(2 * ((plates.hist_image[i][j] / plates.max_z) - 0.5)));
+            int b = (int)(255 * blue(2 * ((plates.hist_image[i][j] / plates.max_z) - 0.5)));
             img->setPixelColor(i, n_his_ima - 1 - j, QColor(r, g, b));
         }
     }
 
     int w, h, ws, hs;
 
-    if(crystal == 0){
+    if(plates.crystal == 0){
         w = ui->E_ImagePlate->width();
         h = ui->E_ImagePlate->height();
 
@@ -378,8 +424,8 @@ void SimulationMain::changePlates(double hist_image[n_his_ima][n_his_ima], doubl
 
         ui->E_ImagePlate->setPixmap(QPixmap::fromImage(*img).scaled(w,h,Qt::KeepAspectRatio));
         ui->E_cScale->setPixmap(QPixmap::fromImage(*scale).scaled(ws, hs, Qt::KeepAspectRatio));
-        ui->E_vScale->setText(QString(split(to_string(max_z), ".")[0].c_str()));
-    }else if(crystal == 1){
+        ui->E_vScale->setText(QString(split(to_string(plates.max_z), ".")[0].c_str()));
+    }else if(plates.crystal == 1){
         w = ui->C1_ImagePlate->width();
         h = ui->C1_ImagePlate->height();
 
@@ -388,8 +434,8 @@ void SimulationMain::changePlates(double hist_image[n_his_ima][n_his_ima], doubl
 
         ui->C1_ImagePlate->setPixmap(QPixmap::fromImage(*img).scaled(w,h,Qt::KeepAspectRatio));
         ui->C1_cScale->setPixmap(QPixmap::fromImage(*scale).scaled(ws, hs, Qt::KeepAspectRatio));
-        ui->C1_vScale->setText(QString(split(to_string(max_z), ".")[0].c_str()));
-    }else if(crystal == 4){
+        ui->C1_vScale->setText(QString(split(to_string(plates.max_z), ".")[0].c_str()));
+    }else if(plates.crystal == 4){
         w = ui->C2A_ImagePlate->width();
         h = ui->C2A_ImagePlate->height();
 
@@ -398,8 +444,8 @@ void SimulationMain::changePlates(double hist_image[n_his_ima][n_his_ima], doubl
 
         ui->C2A_ImagePlate->setPixmap(QPixmap::fromImage(*img).scaled(w,h,Qt::KeepAspectRatio));
         ui->C2A_cScale->setPixmap(QPixmap::fromImage(*scale).scaled(ws, hs, Qt::KeepAspectRatio));
-        ui->C2A_vScale->setText(QString(split(to_string(max_z), ".")[0].c_str()));
-    }else if(crystal == 5){
+        ui->C2A_vScale->setText(QString(split(to_string(plates.max_z), ".")[0].c_str()));
+    }else if(plates.crystal == 5){
         w = ui->DA_ImagePlate->width();
         h = ui->DA_ImagePlate->height();
 
@@ -408,8 +454,8 @@ void SimulationMain::changePlates(double hist_image[n_his_ima][n_his_ima], doubl
 
         ui->DA_ImagePlate->setPixmap(QPixmap::fromImage(*img).scaled(w,h,Qt::KeepAspectRatio));
         ui->DA_cScale->setPixmap(QPixmap::fromImage(*scale).scaled(ws, hs, Qt::KeepAspectRatio));
-        ui->DA_vScale->setText(QString(split(to_string(max_z), ".")[0].c_str()));
-    }else if(crystal == 2){
+        ui->DA_vScale->setText(QString(split(to_string(plates.max_z), ".")[0].c_str()));
+    }else if(plates.crystal == 2){
         w = ui->C2P_ImagePlate->width();
         h = ui->C2P_ImagePlate->height();
 
@@ -418,8 +464,8 @@ void SimulationMain::changePlates(double hist_image[n_his_ima][n_his_ima], doubl
 
         ui->C2P_ImagePlate->setPixmap(QPixmap::fromImage(*img).scaled(w,h,Qt::KeepAspectRatio));
         ui->C2P_cScale->setPixmap(QPixmap::fromImage(*scale).scaled(ws, hs, Qt::KeepAspectRatio));
-        ui->C2P_vScale->setText(QString(split(to_string(max_z), ".")[0].c_str()));
-    }else if(crystal == 3){
+        ui->C2P_vScale->setText(QString(split(to_string(plates.max_z), ".")[0].c_str()));
+    }else if(plates.crystal == 3){
         w = ui->DP_ImagePlate->width();
         h = ui->DP_ImagePlate->height();
 
@@ -428,16 +474,16 @@ void SimulationMain::changePlates(double hist_image[n_his_ima][n_his_ima], doubl
 
         ui->DP_ImagePlate->setPixmap(QPixmap::fromImage(*img).scaled(w,h,Qt::KeepAspectRatio));
         ui->DP_cScale->setPixmap(QPixmap::fromImage(*scale).scaled(ws, hs, Qt::KeepAspectRatio));
-        ui->DP_vScale->setText(QString(split(to_string(max_z), ".")[0].c_str()));
+        ui->DP_vScale->setText(QString(split(to_string(plates.max_z), ".")[0].c_str()));
     }
 }
 
-void SimulationMain::changeTimes(int timeSlot, int h, int m, int s){
+void SimulationMain::changeTimes(Times times){
 
-    if(timeSlot == 0)
-        ui->simstart->setText(QString(("Simulation start at:      " + to_string(h) + "h    " + to_string(m) + "m     " + to_string(s) + "s").c_str()));
-    else if(timeSlot == 1)
-        ui->simremain->setText(QString(("Remaining time estimate:      " + to_string(h) + "h    " + to_string(m) + "m     " + to_string(s) + "s").c_str()));
+    if(times.timeSlot == 0)
+        ui->simstart->setText(QString(("Simulation start at:      " + to_string(times.h) + "h    " + to_string(times.m) + "m     " + to_string(times.s) + "s").c_str()));
+    else if(times.timeSlot == 1)
+        ui->simremain->setText(QString(("Remaining time estimate:      " + to_string(times.h) + "h    " + to_string(times.m) + "m     " + to_string(times.s) + "s").c_str()));
 }
 
 void SimulationMain::LogLine(std::string line) {

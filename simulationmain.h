@@ -1,5 +1,3 @@
-#pragma once
-
 #ifndef SIMULATIONMAIN_H
 #define SIMULATIONMAIN_H
 
@@ -19,36 +17,74 @@ class SimulationMain : public QMainWindow
     Q_OBJECT
 
 public:
-    SimulationMain(QWidget* parent);
-    
+    explicit SimulationMain(QWidget *parent = nullptr);
     ~SimulationMain();
     void showEvent(QShowEvent *);
     void closeEvent(QCloseEvent *event);
     void guiSimu();
 
-public slots:
-    void SimulationMain::changeStats(
-        double c_sour,
-        double c_cr1,
-        double c_cr2_para,
-        double c_cr2_anti,
-        double c_detc_para,
-        double c_detc_anti,
-        double delrot,
-        std::vector<std::vector<double>> events_para,
-        std::vector<std::vector<double>> events_anti);
+    inline bool isRunning() const { return running; }
+    inline float getPctDone() const { return simulation_pct.load(); }
+    inline void setPctDone(float pct) { simulation_pct.store(pct); }
 
-    void changePlots(std::vector<plot> para, std::vector<plot> anti);
-    void changePlates(double hist_image[n_his_ima][n_his_ima], double max_z, int crystal);
-    void changeTimes(int timeSlot, int h, int m, int s);
+    struct Stats
+    {
+        double c_sour;
+        double c_cr1;
+        double c_cr2_para;
+        double c_cr2_anti;
+        double c_detc_para;
+        double c_detc_anti;
+        double delrot;
+        std::vector<std::vector<double>> events_para;
+        std::vector<std::vector<double>> events_anti;
+    };
+
+    struct Plots
+    {
+        std::vector<plot> para;
+        std::vector<plot> anti;
+    };
+
+    struct Plates
+    {
+        double hist_image[n_his_ima][n_his_ima];
+        double max_z;
+        int crystal;
+    };
+
+    struct Times
+    {
+        int timeSlot;
+        int h;
+        int m;
+        int s;
+    };
+
+signals:
+    void changeStatsSignal(Stats stats);
+    void changePlotsSignal(Plots plots);
+    void changePlatesSignal(Plates plates);
+    void changeTimesSignal(Times times);
+    void LogLineSignal(std::string line);
+    void showDoneDialogSignal();
+
+public slots:
+    void changeStats(Stats stats);
+    void changePlots(Plots plots);
+    void changePlates(Plates plates);
+    void changeTimes(Times times);
     void LogLine(std::string line);
+    void showDoneDialog();
+    void startSimulationThread();
 
 private:
     Ui::SimulationMain *ui;
-
+    bool running;
+    std::atomic<float> simulation_pct;
 
     long int lastHistogramUpdate;
-
+    
     static inline double interpolate( double val, double y0, double x0, double y1, double x1 )
     {
       return (val-x0)*(y1-y0)/(x1-x0) + y0;

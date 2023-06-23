@@ -16,16 +16,6 @@
 
 #include "simuGlobals.hh"
 #include "source_complex.hh"
-<<<<<<< HEAD
-<<<<<<< HEAD
-
-=======
-#include "makefitvoigt.hh"
-#include "analysie_voigt.hh"
->>>>>>> cf0afa5 (Add project files.)
-=======
-
->>>>>>> d08f139 (Consolidation into Util file)
 
 class Mask_test_c2{
     public:
