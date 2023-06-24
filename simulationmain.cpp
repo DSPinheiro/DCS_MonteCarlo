@@ -332,26 +332,23 @@ void SimulationMain::closeEvent(QCloseEvent *){
 #ifndef LIB_DEF
     open = false;
     
-    if(!running){
-        if(t1.joinable())
-        {
-            t1.join();
-            exit(0);
-        }
-    }
-    else
+    if(t1.joinable())
     {
-        if(t1.joinable())
-        {
-            t1.join();
-        }
+        t1.join();
     }
 #endif
 }
 
 void SimulationMain::showDoneDialog()
 {
-    QMessageBox::information(this, tr("DCS Simulation"), tr("Simulation Finished!"), QMessageBox::Ok);
+    if(open)
+    {
+        QMessageBox::information(this, tr("DCS Simulation"), tr("Simulation Finished!"), QMessageBox::Ok);
+    }
+    else
+    {
+        QMessageBox::information(this, tr("DCS Simulation"), tr("Simulation Finished Early!!!\nDo not use the output results as they are incomplete."), QMessageBox::Ok);
+    }
 }
 
 void SimulationMain::changeStats(Stats stats)
@@ -498,4 +495,5 @@ void SimulationMain::changeTimes(Times times){
 
 void SimulationMain::LogLine(std::string line) {
     ui->logBox->appendPlainText(QString(line.c_str()));
+    ui->logBox->verticalScrollBar()->setValue(ui->logBox->verticalScrollBar()->maximum());
 }
