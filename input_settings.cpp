@@ -1,4 +1,4 @@
-#include "dcs_gui_input_settings.h"
+#include "input_settings.h"
 #include "ui_input_settings_prompt.h"
 #include <fstream>
 #include <QPushButton>

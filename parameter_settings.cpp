@@ -1,9 +1,9 @@
-#include "dcs_gui_new.h"
-#include "ui_dcs_gui_new.h"
-#include "dcs_gui_input_settings.h"
+#include "parameter_settings.h"
+#include "ui_parameter_settings.h"
+#include "input_settings.h"
 
 #include "simuGlobals.hh"
-#include "simulationmain.h"
+#include "simulation_interface.h"
 #include "sserializer.inl"
 #include <filesystem>
 #include <fstream>
@@ -183,7 +183,7 @@ static std::vector<uint8_t> read_buffer_from_file(const std::string& filename)
 GUISettingsWindow::GUISettingsWindow(QWidget *parent) : 
     QMainWindow(parent),
     ui(new Ui::GUISettingsWindow),
-    wsimu(new SimulationMain()),
+    wsimu(new SimulationInterface()),
     timer(new QTimer(this))
 {
     ui->setupUi(this);

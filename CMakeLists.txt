@@ -41,14 +41,14 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets OpenGL Core Gui PrintSuppo
 
 set(SOURCE
     dcs_montecarlo.cpp
-    double_crystal_diffraction.cpp
+    simu_starter.cpp
     make_plot_profiles.cpp
     mask_test_c2.cpp
     obtain_time.cpp
     qcustomplot.cpp
     qdcs3dvis.cpp
     simuGlobals.cpp
-    simulationmain.cpp
+    simulation_interface.cpp
     source_complex.cpp
     source_simple.cpp
     Util.cpp
@@ -57,7 +57,7 @@ set(SOURCE
     Util.h
 
     dcs_montecarlo.hh
-    double_crystal_diffraction.hh
+    simu_starter.hh
     make_plot_profiles.hh
     mask_test_c2.hh
     obtain_time.hh
@@ -65,22 +65,22 @@ set(SOURCE
 
     qdcs3dvis.h
     simuGlobals.hh
-    simulationmain.h
+    simulation_interface.h
 
     source_complex.hh
     source_simple.hh
 
-    dcs_gui_new.ui
-    simulationmain.ui
+    parameter_settings.ui
+    simulation_window.ui
     input_settings_prompt.ui
     
     sserializer.inl
 
-    dcs_gui_new.h
-    dcs_gui_new.cpp
+    parameter_settings.h
+    parameter_settings.cpp
 
-    dcs_gui_input_settings.h
-    dcs_gui_input_settings.cpp
+    input_settings.h
+    input_settings.cpp
 )
 
 if(WIN32)
@@ -108,9 +108,9 @@ endif()
 set(INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH "Installation directory for CMake files")
 
 set(INSTALL_HEADERS
-    simulationmain.h
+    simulation_interface.h
     simuGlobals.hh
-    dcs_gui_new.h
+    parameter_settings.h
     simuConsts.h
 )
 

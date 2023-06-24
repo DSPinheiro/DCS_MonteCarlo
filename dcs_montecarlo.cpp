@@ -14,7 +14,7 @@
 #include "Util.h"
 #include <QtWidgets/qmessagebox.h>
 
-#include "dcs_gui_input_settings.h" 
+#include "input_settings.h" 
 
 #include <filesystem>
 

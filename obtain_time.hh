@@ -17,7 +17,7 @@
 #include <sstream>
 
 #include "simuGlobals.hh"
-#include "simulationmain.h"
+#include "simulation_interface.h"
 
 class Obtain_time{
 public:
@@ -26,7 +26,7 @@ public:
         int process_remain,
         int int_time,
         int int_time_mili,
-        SimulationMain* w);
+        SimulationInterface* w);
 };
 
 

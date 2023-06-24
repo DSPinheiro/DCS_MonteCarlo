@@ -19,7 +19,7 @@ void Make_plot_profiles::plotProfiles(
     double angle_anti,
     int toint_anti,
     int n_plot,
-    SimulationMain *w){
+    SimulationInterface *w){
 
     bool transmi_2crys = false;
 
@@ -85,7 +85,7 @@ void Make_plot_profiles::plotProfiles(
         if(! (n_plot == 1)){
 
             if(n_plot % 6 == 0){
-                SimulationMain::Plots plots = { plot_para, plot_anti };
+                SimulationInterface::Plots plots = { plot_para, plot_anti };
                 emit w->changePlotsSignal(plots);
             }
 
@@ -157,7 +157,7 @@ void Make_plot_profiles::plotProfiles(
 
                 //TODO
                 //gui plotting
-                SimulationMain::Plates plates;
+                SimulationInterface::Plates plates;
                 plates.crystal = crystal;
                 // Not ideal (but at least does not crash)
                 // cgodinho 15/05/2023 (there is not much tought into this anyways)

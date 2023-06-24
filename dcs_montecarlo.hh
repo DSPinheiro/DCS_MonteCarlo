@@ -22,8 +22,8 @@
 #include <QApplication>
 
 #include "simuGlobals.hh"
-#include "double_crystal_diffraction.hh"
-#include "dcs_gui_new.h"
+#include "simu_starter.hh"
+#include "parameter_settings.h"
 
 
 #endif /* DCS_MONTECARLO_HH_ */

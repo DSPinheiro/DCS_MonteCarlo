@@ -13,7 +13,7 @@ using namespace std;
 
 
 
-bool Source_complex::run_Source(SimulationMain *w){
+bool Source_complex::run_Source(SimulationInterface *w){
 
     stringstream logString;
     
@@ -1047,7 +1047,7 @@ bool Source_complex::run_Source(SimulationMain *w){
 
             if(GraphOptionsInput.make_image_plates){
                 emit w->changeStats(
-                    SimulationMain::Stats
+                    SimulationInterface::Stats
                     {
                         counts_sour,
                         counts_C1,

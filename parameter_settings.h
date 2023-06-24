@@ -1,11 +1,11 @@
-#ifndef DCS_GUI_NEW_H
-#define DCS_GUI_NEW_H
+#ifndef PARAMETER_SETTINGS_H
+#define PARAMETER_SETTINGS_H
 
 #include <QMainWindow>
 #include <QTimer>
 
 #include "simuGlobals.hh"
-#include "simulationmain.h"
+#include "simulation_interface.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class GUISettingsWindow; }
@@ -19,15 +19,15 @@ public:
     GUISettingsWindow(QWidget *parent = nullptr);
     ~GUISettingsWindow();
 
-    inline SimulationMain* getSimulationWindow() { return wsimu; }
+    inline SimulationInterface* getSimulationWindow() { return wsimu; }
     void setup();
     void updateElements();
     void energyFileMissingDialog();
 
 private:
-    SimulationMain* wsimu;
+    SimulationInterface* wsimu;
     Ui::GUISettingsWindow* ui;
 
     QTimer* timer;
 };
-#endif // DCS_GUI_NEW_H
+#endif // PARAMETER_SETTINGS_H

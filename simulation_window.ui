@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>SimulationMain</class>
- <widget class="QMainWindow" name="SimulationMain">
+ <class>SimulationWindow</class>
+ <widget class="QMainWindow" name="SimulationWindow">
   <property name="windowModality">
    <enum>Qt::ApplicationModal</enum>
   </property>

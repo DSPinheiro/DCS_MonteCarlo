@@ -1,10 +1,10 @@
-#ifndef DCS_GUI_INPUT_SETTINGS_H
-#define DCS_GUI_INPUT_SETTINGS_H
+#ifndef INPUT_SETTINGS_H
+#define INPUT_SETTINGS_H
 
 #include <QWidget>
 
 #include "simuGlobals.hh"
-#include "dcs_gui_new.h"
+#include "parameter_settings.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class InputSettingsPrompt; }
@@ -27,4 +27,4 @@ private:
     Ui::InputSettingsPrompt* ui;
     GUISettingsWindow* simWindow;
 };
-#endif // DCS_GUI_INPUT_SETTINGS_H
+#endif // INPUT_SETTINGS_H

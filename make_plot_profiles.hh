@@ -13,7 +13,7 @@
 #include <iostream>
 
 #include "simuGlobals.hh"
-#include "simulationmain.h"
+#include "simulation_interface.h"
 
 
 class Make_plot_profiles{
@@ -26,7 +26,7 @@ class Make_plot_profiles{
             double angle_anti,
             int toint_anti,
             int n_plot, 
-            SimulationMain* w);
+            SimulationInterface* w);
 };
 
 

@@ -6,7 +6,7 @@
  */
 
 
-#include "double_crystal_diffraction.hh"
+#include "simu_starter.hh"
 #include "Util.h"
 
 using namespace std;
@@ -16,7 +16,7 @@ using namespace std;
 bool Make_Angle_brode, rotate_C1 = false;
 
 
-void Double_Crystal_diffraction::Make_Simu(SimulationMain* w){
+void Simu_Starter::Make_Simu(SimulationInterface* w){
     
     w->setPctDone(0.0f);
     

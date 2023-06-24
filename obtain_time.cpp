@@ -18,7 +18,7 @@ vector<int> Obtain_time::simuTime(
     int process_remain,
     int int_time,
     int int_time_mili,
-    SimulationMain *w){
+    SimulationInterface *w){
 
     int int_time_temp, int_time_mili_temp, dif_time_a[3], int_time_out, int_time_mili_out;
 
@@ -39,7 +39,7 @@ vector<int> Obtain_time::simuTime(
 
         if(GraphOptionsInput.MakeDislin)
         {
-            SimulationMain::Times times = { 0, Hour, Min, Sec };
+            SimulationInterface::Times times = { 0, Hour, Min, Sec };
             emit w->changeTimesSignal(times);
         }
 
@@ -109,7 +109,7 @@ vector<int> Obtain_time::simuTime(
         if(First_call == 1){
             if(GraphOptionsInput.MakeDislin)
             {
-                SimulationMain::Times times = { 1, dif_time_a[0], dif_time_a[1], dif_time_a[2] };
+                SimulationInterface::Times times = { 1, dif_time_a[0], dif_time_a[1], dif_time_a[2] };
                 emit w->changeTimesSignal(times);
             }
 

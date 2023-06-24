@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <algorithm>
 
-#include "simulationmain.h"
+#include "simulation_interface.h"
 
 #include "simuGlobals.hh"
 #include "obtain_time.hh"
@@ -25,7 +25,7 @@
 class Source_complex{
 
 public:
-    static bool run_Source(SimulationMain* w);
+    static bool run_Source(SimulationInterface* w);
 };
 
 
