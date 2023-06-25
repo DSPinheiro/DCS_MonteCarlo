@@ -1211,11 +1211,6 @@ bool Source_complex::run_Source(SimulationInterface *w){
         gener_out << legen_counts[5] << "\t" << counts_detc_anti_t << endl;
     }
 
-    if(make_G_function && GraphOptionsInput.MakeDislin){
-        //TODO
-        //implement gui plotting
-    }
-
     return true;
 
 }

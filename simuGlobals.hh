@@ -31,7 +31,9 @@ extern polarization_parameters PolarizationParametersInput;
 extern temperature_parameters TemperatureParametersInput;
 extern fullenergyspectrum FullEnergySpectrumInput;
 extern Curved_Crystal CurvedCrystalInput;
-extern AnalysiesCrystaltilts AnalysiesCrystaltiltsInput;
+extern ParallelSettings ParallelSettingsInput;
+//TODO: UNIMPLEMENTED ANALYSIS FEATURE
+//extern AnalysiesCrystaltilts AnalysiesCrystaltiltsInput;
 
 
 extern double reques_energ[4];

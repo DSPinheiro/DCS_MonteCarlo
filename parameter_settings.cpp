@@ -74,11 +74,7 @@ static std::vector<uint8_t> serialize_inputs()
 
     serialize_data(buffer, CurvedCrystalInput);
 
-    serialize_data(buffer, AnalysiesCrystaltiltsInput.make_matrix_full);
-    serialize_data(buffer, AnalysiesCrystaltiltsInput.make_graph_widths);
-    serialize_data(buffer, AnalysiesCrystaltiltsInput.metafile);
-    serialize_data(buffer, AnalysiesCrystaltiltsInput.make_an_C1_ta);
-    serialize_data(buffer, AnalysiesCrystaltiltsInput.make_plot_C1_table);
+    //TODO: UNIMPLEMENTED ANALYSIS FEATURE
 
     return buffer;
 }
@@ -135,11 +131,7 @@ static void deserialize_inputs(std::vector<uint8_t>& buffer)
 
     consume_buffer(buffer, CurvedCrystalInput);
 
-    consume_buffer(buffer, AnalysiesCrystaltiltsInput.make_matrix_full);
-    consume_buffer(buffer, AnalysiesCrystaltiltsInput.make_graph_widths);
-    consume_buffer(buffer, AnalysiesCrystaltiltsInput.metafile);
-    consume_buffer(buffer, AnalysiesCrystaltiltsInput.make_an_C1_ta);
-    consume_buffer(buffer, AnalysiesCrystaltiltsInput.make_plot_C1_table);
+    //TODO: UNIMPLEMENTED ANALYSIS FEATURE
 }
 
 static void write_buffer_to_file(const std::vector<uint8_t>& buffer, const std::string& filename)

@@ -100,7 +100,6 @@ consttilt2=0.0076059d0		//something related to second crystal tilt angle
 
 &Graph_options
 
-MakeDislin=.false.,						//enable dislin app
 make_graph_profile=.true.,				//enable graphical ploting
 make_image_plates=.true.,				//enable image calculation of intensity distribuition on crystals(?)
 make_imageC1_After_refle=.false.,		//calculate fist crystal's image plate after reflexion(?)
@@ -178,17 +177,6 @@ Do_background=.false.					//above spectral line proportion relative to?
 Curve_crystall=.false.,					//enable curved crystals
 R_cur_crys_1=1.0e-10,					//first crystal curvature radius
 R_cur_crys_2=1.0e-10					//second crystal curvature radius
-/
-
-&end
-
-&AnalysiesCrystaltilts
-
-make_matrix_full=.false.,				//make cycle over crystal tilts (make full simulation including crystal curvature??)
-make_graph_widths=.false.,				//enable output of vertical missalignment graph
-metafile="EPS",							//output metafiles extension
-make_an_C1_ta=.false.,					//something related to first crystal's fitting analisies
-make_plot_C1_table=.false.				//make a plot of first crystal's rotation with the table (uses dislin)
 /
 
 &end

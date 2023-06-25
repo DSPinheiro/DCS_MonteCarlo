@@ -37,15 +37,12 @@ vector<int> Obtain_time::simuTime(
         int Min    = localTime.tm_min;
         int Sec    = localTime.tm_sec;
 
-        if(GraphOptionsInput.MakeDislin)
-        {
-            SimulationInterface::Times times = { 0, Hour, Min, Sec };
-            #ifdef QT_EXISTS
-                emit w->changeTimesSignal(times);
-            #else
-                cout << "Simulation start at: " << Hour << " h " << Min << " m " << Sec << " s" << endl;
-            #endif
-        }
+        SimulationInterface::Times times = { 0, Hour, Min, Sec };
+        #ifdef QT_EXISTS
+            emit w->changeTimesSignal(times);
+        #else
+            cout << "Simulation start at: " << Hour << " h " << Min << " m " << Sec << " s" << endl;
+        #endif
 
         int_time_out = 60 * ((60 * Hour) + Min) + Sec;
         int_time_mili_out = chrono::duration_cast<chrono::milliseconds>(now.time_since_epoch()).count();
@@ -115,14 +112,11 @@ vector<int> Obtain_time::simuTime(
         dif_time_a[2] = dif_time;
 
         if(First_call == 1){
-            if(GraphOptionsInput.MakeDislin)
-            {
-                SimulationInterface::Times times = { 1, dif_time_a[0], dif_time_a[1], dif_time_a[2] };
+            SimulationInterface::Times times = { 1, dif_time_a[0], dif_time_a[1], dif_time_a[2] };
 
-                #ifdef QT_EXISTS
-                    emit w->changeTimesSignal(times);
-                #endif
-            }
+            #ifdef QT_EXISTS
+                emit w->changeTimesSignal(times);
+            #endif
 
             logString.clear();
             logString << "Remainder time estimate: " << dif_time_a[0] << " h " << dif_time_a[1] << " m " << dif_time_a[2] << " s" << endl;

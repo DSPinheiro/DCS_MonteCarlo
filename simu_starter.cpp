@@ -82,13 +82,6 @@ void Simu_Starter::Make_Simu(SimulationInterface* w){
         naturalwidth = 0.0;
     }
 
-    if(!UserSettingsInput.see_para && !UserSettingsInput.see_para){
-        //dunno y this is commented... thats how it was in the original fortran code
-        //UserSettings.fitting = false;
-        //AnalysiesCrystaltilts.make_matrix_full = false;
-        //AnalysiesCrystaltilts.make_graph_widths = false;
-    }
-
     if(GeoParametersInput.center_1cry_at > GeolengthelementsInput.z_first_crys / 2.0){
         throw runtime_error("The value for centering the spot on first crystal is higher then half of the crystal length");
     }
@@ -262,12 +255,11 @@ void Simu_Starter::Make_Simu(SimulationInterface* w){
     gener_out << "Temperature of the Crystal 2 parallel: " << TemperatureParametersInput.T_crystal_2_para << " ºC" << endl;
     gener_out << "Temperature of the Crystal 2 antiparallel: " << TemperatureParametersInput.T_crystal_2_anti << " ºC" << endl;
     gener_out << endl;
-    gener_out << "Make cycle over crystal tilts: " << (AnalysiesCrystaltiltsInput.make_matrix_full ? "True" : "False") << endl;
+    gener_out << "Make cycle over crystal tilts: " << "UNIMPLEMENTED!!!" <<endl;
     gener_out << endl;
-    gener_out << "Make graph of analysis of vertical misalignement: " << (AnalysiesCrystaltiltsInput.make_graph_widths ? "True" : "False") << endl;
+    gener_out << "Make graph of analysis of vertical misalignement: " << "UNIMPLEMENTED" << endl;
 
-    if(AnalysiesCrystaltiltsInput.make_graph_widths)
-        gener_out << "Format of graph output: " << AnalysiesCrystaltiltsInput.metafile << endl;
+    //TODO: UNIMPLEMENTED ANALYSIS FEATURE
 
     gener_out << "-------------------------------------------------------" << endl;
     gener_out << endl;

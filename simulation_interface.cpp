@@ -32,13 +32,6 @@ void SimulationInterface::headlessSimu(){
         throw runtime_error("value of 0 for no mask, 1 for mask on the bottom and 2 for mask on the top");
     }
 
-
-    if(!GraphOptionsInput.MakeDislin){
-        GraphOptionsInput.make_graph_profile = false;
-        GraphOptionsInput.make_image_plates = false;
-        AnalysiesCrystaltiltsInput.make_graph_widths = false;
-    }
-
     if(FullEnergySpectrumInput.make_more_lines == 1){
         if(!FullEnergySpectrumInput.Do_background){
             if(FullEnergySpectrumInput.p3_ener + FullEnergySpectrumInput.p2_ener + FullEnergySpectrumInput.p1_ener > 1.0){
@@ -177,12 +170,6 @@ void SimulationInterface::guiSimu(){
         throw runtime_error("value of 0 for no mask, 1 for mask on the bottom and 2 for mask on the top");
     }
 
-
-    if(!GraphOptionsInput.MakeDislin){
-        GraphOptionsInput.make_graph_profile = false;
-        GraphOptionsInput.make_image_plates = false;
-        AnalysiesCrystaltiltsInput.make_graph_widths = false;
-    }
 
     if(FullEnergySpectrumInput.make_more_lines == 1){
         if(!FullEnergySpectrumInput.Do_background){

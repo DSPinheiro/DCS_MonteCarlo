@@ -97,12 +97,6 @@ int ENTRYPOINT(int argc, char *argv[]){
 
     Unit_energy = PhysicalParametersInput.Unit_energy;
 
-    // This is my proposal (César) Just use an argument on the standalone executable instead of a .path file
-    // The new version does not require the input file
-    // However, there are a few option that need to be added to the GUI before we can remove this feature
-    // Also just leaving for compatibility is ok I believe
-    // if(!configure(argc, argv)) return 0;
-
     // DCS_GUI w;
     GUISettingsWindow w;
     InputSettingsPrompt input_window(&w);

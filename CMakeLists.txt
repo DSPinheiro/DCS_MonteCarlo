@@ -45,15 +45,17 @@ check_language(CUDA)
 
 if(CMAKE_CUDA_COMPILER)
     enable_language(CUDA)
-    message(STATUS "CUDA - found")
-else()
-    message(STATUS "CUDA - not found")
 endif()
 
 # set variable to install with or without interface
 if(OpenGL_FOUND AND (QT_FOUND OR Qt${QT_VERSION_MAJOR}_FOUND))
     set(INSTALL_GUI TRUE)
+else()
+    set(INSTALL_GUI FALSE)
+endif()
 
+
+if(INSTALL_GUI)
     set(SOURCE
         dcs_montecarlo.cpp
         simu_starter.cpp
@@ -88,7 +90,7 @@ if(OpenGL_FOUND AND (QT_FOUND OR Qt${QT_VERSION_MAJOR}_FOUND))
         parameter_settings.ui
         simulation_window.ui
         input_settings_prompt.ui
-        
+
         sserializer.inl
         configure.inl
 
@@ -99,8 +101,6 @@ if(OpenGL_FOUND AND (QT_FOUND OR Qt${QT_VERSION_MAJOR}_FOUND))
         input_settings.cpp
     )
 else()
-    set(INSTALL_GUI FALSE)
-
     set(SOURCE
         dcs_montecarlo.cpp
         simu_starter.cpp
@@ -119,7 +119,7 @@ else()
         simu_starter.hh
         mask_test_c2.hh
         obtain_time.hh
-        
+
         simuGlobals.hh
         simulation_interface.h
 
@@ -133,6 +133,8 @@ else()
         input_settings.cpp
     )
 endif()
+
+
 
 
 # You can make your code fail to compile if it uses deprecated APIs.
@@ -182,7 +184,24 @@ if(INSTALL_GUI)
 
     # Just using a static lib (improves the "portability" of the final executable)
     add_library(DCSsimuWrapper STATIC ${SOURCE})
-    target_compile_definitions(DCSsimuWrapper PRIVATE -DENTRYPOINT=dummy -DLIB_DEF -DQT_EXISTS -DLIB_DATA_DIR="${CMAKE_INSTALL_PREFIX}/${INSTALL_DATA_DIR}")
+    
+    if(CMAKE_CUDA_COMPILER)
+        if(OpenMP_CXX_FOUND)
+            message(STATUS "Compiling simulation <LIB wrapper> with OpenMP and CUDA parallelization")
+            target_compile_definitions(DCSsimuWrapper PRIVATE -DENTRYPOINT=dummy -DLIB_DEF -DQT_EXISTS -DOPENMP -DCUDA -DLIB_DATA_DIR="${CMAKE_INSTALL_PREFIX}/${INSTALL_DATA_DIR}")
+        else()
+            message(STATUS "Compiling simulation <LIB wrapper> with CUDA parallelization")
+            target_compile_definitions(DCSsimuWrapper PRIVATE -DENTRYPOINT=dummy -DLIB_DEF -DQT_EXISTS -DCUDA -DLIB_DATA_DIR="${CMAKE_INSTALL_PREFIX}/${INSTALL_DATA_DIR}")
+        endif()
+    else()
+        if(OpenMP_CXX_FOUND)
+            message(STATUS "Compiling simulation <LIB wrapper> with OpenMP parallelization")
+            target_compile_definitions(DCSsimuWrapper PRIVATE -DENTRYPOINT=dummy -DLIB_DEF -DQT_EXISTS -DOPENMP -DLIB_DATA_DIR="${CMAKE_INSTALL_PREFIX}/${INSTALL_DATA_DIR}")
+        else()
+            message(STATUS "Compiling simulation <LIB wrapper> with NO parallelization")
+            target_compile_definitions(DCSsimuWrapper PRIVATE -DENTRYPOINT=dummy -DLIB_DEF -DQT_EXISTS -DLIB_DATA_DIR="${CMAKE_INSTALL_PREFIX}/${INSTALL_DATA_DIR}")
+        endif()
+    endif()
 
     if(OpenMP_CXX_FOUND)
         target_link_libraries(DCSsimuWrapper PRIVATE
@@ -238,7 +257,23 @@ if(INSTALL_GUI)
     # Disable console if in release mode and with the interface installed
     set_target_properties(DCSsimu PROPERTIES WIN32_EXECUTABLE $<CONFIG:Release>)
 
-    target_compile_definitions(DCSsimu PRIVATE -DENTRYPOINT=main -DQT_EXISTS)
+    if(CMAKE_CUDA_COMPILER)
+        if(OpenMP_CXX_FOUND)
+            message(STATUS "Compiling simulation <GUI application> with OpenMP and CUDA parallelization")
+            target_compile_definitions(DCSsimu PRIVATE -DENTRYPOINT=main -DQT_EXISTS -DOPENMP -DCUDA)
+        else()
+            message(STATUS "Compiling simulation <GUI application> with CUDA parallelization")
+            target_compile_definitions(DCSsimu PRIVATE -DENTRYPOINT=main -DQT_EXISTS -DCUDA)
+        endif()
+    else()
+        if(OpenMP_CXX_FOUND)
+            message(STATUS "Compiling simulation <GUI application> with OpenMP parallelization")
+            target_compile_definitions(DCSsimu PRIVATE -DENTRYPOINT=main -DQT_EXISTS -DOPENMP)
+        else()
+            message(STATUS "Compiling simulation <GUI application> with NO parallelization")
+            target_compile_definitions(DCSsimu PRIVATE -DENTRYPOINT=main -DQT_EXISTS)
+        endif()
+    endif()
 
     if(OpenMP_CXX_FOUND)
         target_link_libraries(DCSsimu PRIVATE
@@ -262,6 +297,24 @@ if(INSTALL_GUI)
     endif()
 else()
     target_compile_definitions(DCSsimu PRIVATE -DENTRYPOINT=main)
+
+    if(CMAKE_CUDA_COMPILER)
+        if(OpenMP_CXX_FOUND)
+            message(STATUS "Compiling simulation <console application> with OpenMP and CUDA parallelization")
+            target_compile_definitions(DCSsimu PRIVATE -DENTRYPOINT=main -DOPENMP -DCUDA)
+        else()
+            message(STATUS "Compiling simulation <console application> with CUDA parallelization")
+            target_compile_definitions(DCSsimu PRIVATE -DENTRYPOINT=main -DCUDA)
+        endif()
+    else()
+        if(OpenMP_CXX_FOUND)
+            message(STATUS "Compiling simulation <console application> with OpenMP parallelization")
+            target_compile_definitions(DCSsimu PRIVATE -DENTRYPOINT=main -DOPENMP)
+        else()
+            message(STATUS "Compiling simulation <console application> with NO parallelization")
+            target_compile_definitions(DCSsimu PRIVATE -DENTRYPOINT=main)
+        endif()
+    endif()
 
     if(OpenMP_CXX_FOUND)
         target_link_libraries(DCSsimu PRIVATE

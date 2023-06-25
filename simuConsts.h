@@ -129,7 +129,6 @@ struct CurveVerticalTilt {
 };
 
 struct Graph_options {
-    bool MakeDislin;
     bool make_graph_profile;
     bool make_image_plates;
     bool make_imageC1_After_refle;
@@ -193,13 +192,15 @@ struct Curved_Crystal {
     double R_cur_crys_2;
 };
 
-struct AnalysiesCrystaltilts {
-    bool make_matrix_full;
-    bool make_graph_widths;
-    std::string metafile;
-    bool make_an_C1_ta;
-    bool make_plot_C1_table;
+struct ParallelSettings {
+    bool Make_GPU;
+    int OMP_threads;
 };
+
+//TODO: UNIMPLEMENTED ANALYSIS FEATURE
+// struct AnalysiesCrystaltilts {
+    
+// };
 
 
 static inline std::vector<std::string> split(std::string s, std::string delimiter)

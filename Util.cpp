@@ -1050,66 +1050,63 @@ void Util::analyse() {
     energy_obtain = energ;
 
 
-    if (!AnalysiesCrystaltiltsInput.make_an_C1_ta) {
-        gener_out << std::endl;
-        gener_out << "-----------------------------------------" << std::endl;
-        gener_out << std::endl;
-        gener_out << " Vertical correction: " << vert_div_corr << std::endl;
-        gener_out << " Refraction correction: " << refra_corr << std::endl;
-        gener_out << std::endl;
-        gener_out << "Parameter analysies " << std::endl;
-        gener_out << std::endl;
-        gener_out << "ration widths anti/para: " << FWMH_V_anti / FWMH_V_para << std::endl;
-        gener_out << std::endl;
-        gener_out << "Angular difference: " << dif << std::endl;
-        gener_out << "wavelength: " << wave << " A" << std::endl;
-        gener_out << "Energy obtain: " << energ << " eV" << std::endl;
+    gener_out << std::endl;
+    gener_out << "-----------------------------------------" << std::endl;
+    gener_out << std::endl;
+    gener_out << " Vertical correction: " << vert_div_corr << std::endl;
+    gener_out << " Refraction correction: " << refra_corr << std::endl;
+    gener_out << std::endl;
+    gener_out << "Parameter analysies " << std::endl;
+    gener_out << std::endl;
+    gener_out << "ration widths anti/para: " << FWMH_V_anti / FWMH_V_para << std::endl;
+    gener_out << std::endl;
+    gener_out << "Angular difference: " << dif << std::endl;
+    gener_out << "wavelength: " << wave << " A" << std::endl;
+    gener_out << "Energy obtain: " << energ << " eV" << std::endl;
 
-        gener_out << "Energy input: " << energy_exact << " eV" << std::endl;
-        gener_out << "difference obtain and input: " << (energ - energy_exact) * 1000 << " MeV" << std::endl;
+    gener_out << "Energy input: " << energy_exact << " eV" << std::endl;
+    gener_out << "difference obtain and input: " << (energ - energy_exact) * 1000 << " MeV" << std::endl;
 
 
-        if (FullEnergySpectrumInput.make_more_lines <= 1) {
-            logString << std::endl;
-            logString << "-----------------------------------------" << std::endl;
-            logString << std::endl;
-            logString << "Parameter analysies " << std::endl;
-            logString << std::endl;
-            logString << "ration widths anti/para: " << FWMH_V_anti / FWMH_V_para << std::endl;
-            logString << std::endl;
-            logString << "Angular difference: " << dif << std::endl;
-            logString << "wavelength: " << wave << " A" << std::endl;
-            logString << "Energy obtain: " << energ << " eV" << std::endl;
+    if (FullEnergySpectrumInput.make_more_lines <= 1) {
+        logString << std::endl;
+        logString << "-----------------------------------------" << std::endl;
+        logString << std::endl;
+        logString << "Parameter analysies " << std::endl;
+        logString << std::endl;
+        logString << "ration widths anti/para: " << FWMH_V_anti / FWMH_V_para << std::endl;
+        logString << std::endl;
+        logString << "Angular difference: " << dif << std::endl;
+        logString << "wavelength: " << wave << " A" << std::endl;
+        logString << "Energy obtain: " << energ << " eV" << std::endl;
 
-            logString << "Energy input: " << energy_exact << " eV" << std::endl;
-            logString << "difference obtain and input: " << (energ - energy_exact) * 1000 << " MeV" << std::endl;
-        }
-        else {
-            logString << std::endl;
-            logString << "-----------------------------------------" << std::endl;
-            logString << std::endl;
-            logString << "Parameter analysies (unreliable for an input energy spectrum)" << std::endl;
-            logString << std::endl;
-            logString << "ration widths anti/para: " << FWMH_V_anti / FWMH_V_para << std::endl;
-            logString << std::endl;
-            logString << "Angular difference: " << dif << std::endl;
-            logString << "wavelength: " << wave << " A" << std::endl;
-            logString << "Energy obtain: " << energ << " eV" << std::endl;
+        logString << "Energy input: " << energy_exact << " eV" << std::endl;
+        logString << "difference obtain and input: " << (energ - energy_exact) * 1000 << " MeV" << std::endl;
+    }
+    else {
+        logString << std::endl;
+        logString << "-----------------------------------------" << std::endl;
+        logString << std::endl;
+        logString << "Parameter analysies (unreliable for an input energy spectrum)" << std::endl;
+        logString << std::endl;
+        logString << "ration widths anti/para: " << FWMH_V_anti / FWMH_V_para << std::endl;
+        logString << std::endl;
+        logString << "Angular difference: " << dif << std::endl;
+        logString << "wavelength: " << wave << " A" << std::endl;
+        logString << "Energy obtain: " << energ << " eV" << std::endl;
 
-            logString << "Energy input: " << energy_exact << " eV" << std::endl;
-            logString << "difference obtain and input: " << (energ - energy_exact) * 1000 << " MeV" << std::endl;
-            
-        }
-        #ifdef QT_EXISTS
-        logBox->appendPlainText(logString.str().c_str());
-        #else
-        std::cout << logString.str();
-        #endif
+        logString << "Energy input: " << energy_exact << " eV" << std::endl;
+        logString << "difference obtain and input: " << (energ - energy_exact) * 1000 << " MeV" << std::endl;
+        
+    }
+    #ifdef QT_EXISTS
+    logBox->appendPlainText(logString.str().c_str());
+    #else
+    std::cout << logString.str();
+    #endif
 
-        if (root_script) {
-            //old script writing
-        }
-
+    if (root_script) {
+        //old script writing
     }
 
 }
@@ -1821,23 +1818,21 @@ void Util::fit(bool Parallel) {
 
     UserSettingsInput.TrueVoigt = true;
 
-    if (!AnalysiesCrystaltiltsInput.make_an_C1_ta) {
-        gener_out << "------------------------------------" << std::endl;
-        gener_out << std::endl;
-        gener_out << " Fitting analysies" << std::endl;
-        gener_out << std::endl;
+    gener_out << "------------------------------------" << std::endl;
+    gener_out << std::endl;
+    gener_out << " Fitting analysies" << std::endl;
+    gener_out << std::endl;
 
-        logString << "------------------------------------" << std::endl;
-        logString << std::endl;
-        logString << " Fitting analysies" << std::endl;
-        logString << std::endl;
+    logString << "------------------------------------" << std::endl;
+    logString << std::endl;
+    logString << " Fitting analysies" << std::endl;
+    logString << std::endl;
 
-        #ifdef QT_EXISTS
-        logBox->appendPlainText(logString.str().c_str());
-        #else
-        std::cout << logString.str();
-        #endif
-    }
+    #ifdef QT_EXISTS
+    logBox->appendPlainText(logString.str().c_str());
+    #else
+    std::cout << logString.str();
+    #endif
 
     if (Parallel) {
         for (int i = 0; i < PlotParametersInput.nubins; i++) {

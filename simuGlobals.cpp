@@ -15,7 +15,9 @@ polarization_parameters PolarizationParametersInput;
 temperature_parameters TemperatureParametersInput;
 fullenergyspectrum FullEnergySpectrumInput;
 Curved_Crystal CurvedCrystalInput;
-AnalysiesCrystaltilts AnalysiesCrystaltiltsInput;
+ParallelSettings ParallelSettingsInput;
+//TODO: UNIMPLEMENTED ANALYSIS FEATURE
+//AnalysiesCrystaltilts AnalysiesCrystaltiltsInput;
 
 
 double reques_energ[4];

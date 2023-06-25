@@ -1,7 +1,3 @@
-Graph_options
-MakeDislin=.true.						//enable dislin app
-
-
 AnalysiesCrystaltilts
 make_matrix_full=.false.				//make cycle over crystal tilts (make full simulation including crystal curvature??)
 make_graph_widths=.false.				//enable output of vertical missalignment graph

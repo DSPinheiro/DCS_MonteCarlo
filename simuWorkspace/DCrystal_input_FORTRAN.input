@@ -18,7 +18,7 @@
 &CurveVerticalTilt make_CurveTilt=.false., phas_tilt1=3.95194d0, phas_tilt2=28.073d0,
  offsettilt1=0.010577d0, offsettilt2=-0.02571d0, consttilt1=0.01036d0, consttilt2=0.0076059d0/
 &end
-&Graph_options MakeDislin=.false., make_graph_profile=.true., make_image_plates=.true.,
+&Graph_options make_graph_profile=.true., make_image_plates=.true.,
  make_imageC1_After_refle=.false., make_imageC2_After_refle=.false./ 
 &end
 &plotparameters delta_angl=0.15,  shift_disp_window=0.0d0,  nubins=400/
@@ -34,7 +34,4 @@
  linelamda3=4000.148d0, naturalwidth3=0.30d0, p3_ener=0.25d0, linelamda4=4000.10d0, naturalwidth4=0.30d0, Do_background=.false./
 &end
 &Curved_Crystal Curve_crystall=.false., R_cur_crys_1=1.0e-10, R_cur_crys_2=1.0e-10/
-&end
-&AnalysiesCrystaltilts make_matrix_full=.false., make_graph_widths=.false., metafile="EPS",
- make_an_C1_ta=.false., make_plot_C1_table=.false./
 &end
