@@ -1,11 +1,14 @@
 #include "input_settings.h"
-#include "ui_input_settings_prompt.h"
 #include <fstream>
+#include <filesystem>
+#include <iostream>
+
+#ifdef QT_EXISTS
+#include "ui_input_settings_prompt.h"
 #include <QPushButton>
 #include <QFileDialog>
 #include <QMessageBox>
-#include <filesystem>
-#include <iostream>
+#endif
 
 using namespace std;
 
@@ -23,6 +26,7 @@ int InputSettingsPrompt::configure(const std::string& inFile)
         string currStruct = "";
 
         if(strcmp(firstChar, "&") == 181){
+        #ifdef QT_EXISTS
             QString message = "Path to simulation workspace: ";
             message.append(File_simu);
 
@@ -37,7 +41,9 @@ int InputSettingsPrompt::configure(const std::string& inFile)
             if (ret == QMessageBox::No) {
                 return ret;
             }
-
+        #else
+            cout << "An input file with the FORTRAN configuration model has been found." << endl;
+        #endif
 
             while (getline(inputFile, line)){
                 if(line.find("&Geometry") != string::npos)
@@ -718,6 +724,7 @@ int InputSettingsPrompt::configure(const std::string& inFile)
                 }
             }
         }else{
+        #ifdef QT_EXISTS
             QString message = "Path to simulation workspace: ";
             message.append(File_simu);
 
@@ -732,6 +739,9 @@ int InputSettingsPrompt::configure(const std::string& inFile)
             if (ret == QMessageBox::No) {
                 return ret;
             }
+        #else
+            cout << "An input file with the C++ configuration model has been found." << endl;
+        #endif
 
             while (getline(inputFile, line)){
                 if (line.size() < 1) continue;
@@ -1223,6 +1233,7 @@ int InputSettingsPrompt::configure(const std::string& inFile)
             }
         }
     }else{
+    #ifdef QT_EXISTS
         QString message = "Could not open input file: ";
         message.append(QString::fromUtf8(inFile.c_str()));
 
@@ -1234,6 +1245,9 @@ int InputSettingsPrompt::configure(const std::string& inFile)
         int ret = msgBox.exec();
 
         return ret;
+    #else
+        cout << "Could not open input file: " << inFile << endl;
+    #endif
     }
     inputFile.close();
     //cout << "Input file read." << endl;
@@ -1252,6 +1266,7 @@ int InputSettingsPrompt::configure(const std::string& inFile)
     return 0; // Dirty workaround
 }
 
+#ifdef QT_EXISTS
 InputSettingsPrompt::InputSettingsPrompt(GUISettingsWindow* simWindow, QWidget *parent) : ui(new Ui::InputSettingsPrompt), simWindow(simWindow)
 {
     ui->setupUi(this);
@@ -1355,3 +1370,4 @@ void InputSettingsPrompt::loadInputConfig()
         QCoreApplication::exit(1);
     }
 }
+#endif

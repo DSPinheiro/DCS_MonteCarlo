@@ -40,7 +40,11 @@ vector<int> Obtain_time::simuTime(
         if(GraphOptionsInput.MakeDislin)
         {
             SimulationInterface::Times times = { 0, Hour, Min, Sec };
-            emit w->changeTimesSignal(times);
+            #ifdef QT_EXISTS
+                emit w->changeTimesSignal(times);
+            #else
+                cout << "Simulation start at: " << Hour << " h " << Min << " m " << Sec << " s" << endl;
+            #endif
         }
 
         int_time_out = 60 * ((60 * Hour) + Min) + Sec;
@@ -51,8 +55,12 @@ vector<int> Obtain_time::simuTime(
             logString << endl;
             logString << "Simulation start at: " << Hour << " h " << Min << " m " << Sec << " s" << endl;
             logString << endl;
-            emit w->LogLineSignal(logString.str());
 
+            #ifdef QT_EXISTS
+                emit w->LogLineSignal(logString.str());
+            #else
+                cout << logString.str();
+            #endif
         }
 
         gener_out << endl;
@@ -110,13 +118,21 @@ vector<int> Obtain_time::simuTime(
             if(GraphOptionsInput.MakeDislin)
             {
                 SimulationInterface::Times times = { 1, dif_time_a[0], dif_time_a[1], dif_time_a[2] };
-                emit w->changeTimesSignal(times);
+
+                #ifdef QT_EXISTS
+                    emit w->changeTimesSignal(times);
+                #endif
             }
 
             logString.clear();
-            logString << "remainder time estimate: " << dif_time_a[0] << " h " << dif_time_a[1] << " m " << dif_time_a[2] << " s" << endl;
+            logString << "Remainder time estimate: " << dif_time_a[0] << " h " << dif_time_a[1] << " m " << dif_time_a[2] << " s" << endl;
             logString << endl;
-            emit w->LogLineSignal(logString.str());
+
+            #ifdef QT_EXISTS
+                emit w->LogLineSignal(logString.str());
+            #else
+                cout << logString.str();
+            #endif
 
             //TODO implement gui
             //if(Graph_options.make_image_plates){
@@ -132,7 +148,12 @@ vector<int> Obtain_time::simuTime(
             logString << endl;
             logString << "Total time of simulation: " << dif_time_a[0] << " h " << dif_time_a[1] << " m " << dif_time_a[2] << " s" << endl;
             logString << endl;
-            emit w->LogLineSignal(logString.str());
+
+            #ifdef QT_EXISTS
+                emit w->LogLineSignal(logString.str());
+            #else
+                cout << logString.str();
+            #endif
 
             gener_out << "Simulation end at: " << Hour << " h " << Min << " m " << Sec << " s" << endl;
             gener_out << endl;

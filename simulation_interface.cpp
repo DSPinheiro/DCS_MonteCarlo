@@ -3,13 +3,15 @@
 #include <thread>
 
 #include "simulation_interface.h"
-#include "ui_simulation_window.h"
 
 #include "simu_starter.hh"
 #include "Util.h"
 
-using namespace std;
+#ifdef QT_EXISTS
+#include "ui_simulation_window.h"
+#endif
 
+using namespace std;
 
 
 bool first = true;
@@ -18,7 +20,145 @@ thread t1;
 
 std::atomic<bool> done(false);
 
+#ifndef QT_EXISTS
+void SimulationInterface::headlessSimu(){
+    if(UserSettingsInput.mask_C1 < 0 || UserSettingsInput.mask_C1 > 2){
+        cout << "bad input for first crystal mask: " << UserSettingsInput.mask_C1 << endl;
+        throw runtime_error("value of 0 for no mask, 1 for mask on the bottom and 2 for mask on the top");
+    }
 
+    if(UserSettingsInput.mask_C2 < 0 || UserSettingsInput.mask_C2 > 2){
+        cout << "bad input for second crystal mask: " << UserSettingsInput.mask_C2 << endl;
+        throw runtime_error("value of 0 for no mask, 1 for mask on the bottom and 2 for mask on the top");
+    }
+
+
+    if(!GraphOptionsInput.MakeDislin){
+        GraphOptionsInput.make_graph_profile = false;
+        GraphOptionsInput.make_image_plates = false;
+        AnalysiesCrystaltiltsInput.make_graph_widths = false;
+    }
+
+    if(FullEnergySpectrumInput.make_more_lines == 1){
+        if(!FullEnergySpectrumInput.Do_background){
+            if(FullEnergySpectrumInput.p3_ener + FullEnergySpectrumInput.p2_ener + FullEnergySpectrumInput.p1_ener > 1.0){
+                throw runtime_error("bad input for lines proportion: " + to_string(FullEnergySpectrumInput.p1_ener) + " + " + to_string(FullEnergySpectrumInput.p2_ener) + " + " + to_string(FullEnergySpectrumInput.p3_ener) + " is greater than 1");
+            }
+        }
+
+        reques_energ[0] = FullEnergySpectrumInput.linelamda1;
+        reques_energ[1] = FullEnergySpectrumInput.linelamda2;
+        reques_energ[2] = FullEnergySpectrumInput.linelamda3;
+        reques_energ[3] = FullEnergySpectrumInput.linelamda4;
+
+        reques_width[0] = FullEnergySpectrumInput.naturalwidth1;
+        reques_width[1] = FullEnergySpectrumInput.naturalwidth2;
+        reques_width[2] = FullEnergySpectrumInput.naturalwidth3;
+        reques_width[3] = FullEnergySpectrumInput.naturalwidth4;
+
+    }else if(FullEnergySpectrumInput.make_more_lines == 0){
+        reques_energ[0] = linelamda;
+        reques_energ[1] = FullEnergySpectrumInput.linelamda2;
+        reques_energ[2] = FullEnergySpectrumInput.linelamda3;
+        reques_energ[3] = FullEnergySpectrumInput.linelamda4;
+
+        reques_width[0] = naturalwidth;
+        reques_width[1] = FullEnergySpectrumInput.naturalwidth2;
+        reques_width[2] = FullEnergySpectrumInput.naturalwidth3;
+        reques_width[3] = FullEnergySpectrumInput.naturalwidth4;
+    }else{
+        cout << "Reading input energy spectrum..." << endl;
+        
+        Util::Read_EnergySpectrum(FullEnergySpectrumInput.energy_spectrum_file);
+        
+        cout << "Input energy spectrum read." << endl;
+    }
+
+    if(GeometryInput.crystal_Si){
+        d_lat = a_si_para / sqrt(pow(GeometryInput.imh, 2) + pow(GeometryInput.imk, 2) + pow(GeometryInput.iml, 2));
+    }else{
+        d_lat = a_Ge_para / sqrt(pow(GeometryInput.imh, 2) + pow(GeometryInput.imk, 2) + pow(GeometryInput.iml, 2));
+    }
+
+    if(FullEnergySpectrumInput.make_more_lines == 0 || FullEnergySpectrumInput.make_more_lines == 1){
+        if(PhysicalParametersInput.Unit_energy == evv[0]){
+            for(int i = 0; i < 4; i++){
+                if(reques_energ[i] < 10.0){
+                    throw runtime_error("bad input on the energies. requested energy less than 10 eV");
+                }
+            }
+        }else if(PhysicalParametersInput.Unit_energy == "A"){
+            for(int i = 0; i < 4; i++){
+                if(reques_energ[i] > 10.0){
+                    throw runtime_error("bad input on the energies. requested energy more than 10 A");
+                }
+            }
+        }else{
+            throw runtime_error("bad input on the energy unit: " + PhysicalParametersInput.Unit_energy);
+        }
+    }else{
+        bool usable;
+        if(PhysicalParametersInput.Unit_energy == "keV"){
+            usable = Util::CheckSpectrum("eV");
+
+            if(! usable){
+                throw runtime_error("bad input on the energies. requested energy spectrum will not be visible in output");
+            }
+        }else if(PhysicalParametersInput.Unit_energy == "eV"){
+            usable = Util::CheckSpectrum("eV");
+
+            if(! usable){
+                throw runtime_error("bad input on the energies. requested energy spectrum will not be visible in output");
+            }
+        }else if(PhysicalParametersInput.Unit_energy == "A"){
+            usable = Util::CheckSpectrum("A");
+
+            if(! usable){
+                throw runtime_error("bad input on the energies. requested energy spectrum will not be visible in output");
+            }
+        }else{
+            throw runtime_error("bad input on the energy unit: " + PhysicalParametersInput.Unit_energy);
+        }
+    }
+
+
+    if(FullEnergySpectrumInput.make_more_lines == 1){
+        for(int i = 0; i < 4; i++){
+            reques_width[i] /= 2.0;
+
+            if(PhysicalParametersInput.Unit_energy == evv[0]){
+                picks[i].lamda = Convert_Ag_minusone_eV / reques_energ[i];
+                picks[i].natural_varia = Convert_Ag_minusone_eV * reques_width[i] / (pow(reques_energ[i], 2) - pow(reques_width[i], 2));
+            }else{
+                picks[i].lamda = reques_energ[i];
+                picks[i].natural_varia = reques_width[i];
+            }
+        }
+    }else if(FullEnergySpectrumInput.make_more_lines == 0){
+        reques_width[1] = reques_width[1] / 2.0;
+
+        if(PhysicalParametersInput.Unit_energy == evv[0]){
+            picks[1].lamda = Convert_Ag_minusone_eV / reques_energ[1];
+            picks[1].natural_varia = Convert_Ag_minusone_eV * reques_width[1] / (pow(reques_energ[1], 2) - pow(reques_width[1], 2));
+        }else{
+            picks[1].lamda = reques_energ[1];
+            picks[1].natural_varia = reques_width[1];
+        }
+    }
+
+
+    gauss_Doop_ev = PhysicalParametersInput.gauss_Doop;
+    PhysicalParametersInput.gauss_Doop = Convert_Ag_minusone_eV * PhysicalParametersInput.gauss_Doop / (pow(reques_energ[1], 2) - pow(PhysicalParametersInput.gauss_Doop, 2));
+
+
+    if(GeometryInput.mode_bragg_geo){
+        Simu_Starter::Make_Simu(nullptr);
+    }else{
+        cout << "unimplemented transmission mode" << endl;
+    }
+}
+
+#else
 void SimulationInterface::guiSimu(){
     
     stringstream logString;
@@ -495,5 +635,5 @@ void SimulationInterface::changeTimes(Times times){
 
 void SimulationInterface::LogLine(std::string line) {
     ui->logBox->appendPlainText(QString(line.c_str()));
-    ui->logBox->verticalScrollBar()->setValue(ui->logBox->verticalScrollBar()->maximum());
 }
+#endif

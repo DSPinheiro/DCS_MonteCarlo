@@ -29,7 +29,9 @@ double request_width[4], request_energy[4];
 
 pick picks[5];
 
+#ifdef QT_EXISTS
 QPlainTextEdit* logBox = nullptr;
+#endif
 
 std::ofstream gener_out;
 std::ofstream hist_para;

@@ -18,7 +18,9 @@ bool Make_Angle_brode, rotate_C1 = false;
 
 void Simu_Starter::Make_Simu(SimulationInterface* w){
     
-    w->setPctDone(0.0f);
+    #ifdef QT_EXISTS
+        w->setPctDone(0.0f);
+    #endif
     
     double center_2cry_at_temp, sin_t, theta_b, line_ener, termFW;
 
@@ -99,14 +101,16 @@ void Simu_Starter::Make_Simu(SimulationInterface* w){
         center_2cry_at_temp = (GeoParapathlengthsInput.dist_T_Cr1 + GeoParapathlengthsInput.dist_Cr1_Cr2) * (GeoParametersInput.center_1cry_at / GeoParapathlengthsInput.dist_T_Cr1) - GeolengthelementsInput.S_shi_ver_A * GeoParapathlengthsInput.dist_Cr1_Cr2 / GeoParapathlengthsInput.dist_T_Cr1;
         sin_t = sin(M_PI / 2.0 - teta_crys1 * M_PI / 180.0);
 
+        GeoParametersInput.tilt_C1 = (GeoParametersInput.center_2cry_at - center_2cry_at_temp) * 180.0 / (2.0 * GeoParapathlengthsInput.dist_Cr1_Cr2*sin_t) / M_PI;
 
         logString << center_2cry_at_temp << "\t" << sin_t << "\t" << teta_crys1 << endl;
-
-        GeoParametersInput.tilt_C1 = (GeoParametersInput.center_2cry_at - center_2cry_at_temp) * 180.0 / (2.0 * GeoParapathlengthsInput.dist_Cr1_Cr2*sin_t) / M_PI;
-        
         logString << GeoParametersInput.tilt_C1 << endl;
-        emit w->LogLineSignal(logString.str());
-
+        
+        #ifdef QT_EXISTS
+            emit w->LogLineSignal(logString.str());
+        #else
+            cout << logString.str();
+        #endif
     }
 
     if(linelamda < 2 * d_lat){
@@ -117,14 +121,18 @@ void Simu_Starter::Make_Simu(SimulationInterface* w){
 
     line_ener = Convert_Ag_minusone_eV / linelamda;
     theta_chk = 90 - theta_b;
-
+    
     logString.clear();
     logString << "Theta bragg = " << theta_b << endl;
     logString << "Experimental first crystal angle = " << teta_crys1 << endl;
     logString << "Glancing angle for central ray = " << 90 - teta_crys1 << endl;
     logString << "theoretical = " << theta_chk << endl;
-    emit w->LogLineSignal(logString.str());
-
+    
+    #ifdef QT_EXISTS
+        emit w->LogLineSignal(logString.str());
+    #else
+        cout << logString.str();
+    #endif
 
     theta_b = 2.0 * theta_b + teta_crys1 - 180.0;
 
@@ -172,7 +180,12 @@ void Simu_Starter::Make_Simu(SimulationInterface* w){
     else{
         logString.clear();
         logString << GeoParapathlengthsInput.type_source << endl;
-        emit w->LogLineSignal(logString.str());
+        
+        #ifdef QT_EXISTS
+            emit w->LogLineSignal(logString.str());
+        #else
+            cout << logString.str();
+        #endif
         
         throw runtime_error("Bad input for type_souce");
     }
@@ -302,7 +315,11 @@ void Simu_Starter::Make_Simu(SimulationInterface* w){
     logString << "Temperature first crystal = " << TemperatureParametersInput.T_crystal_1_para << " ºC; Temperature second crystal = " << TemperatureParametersInput.T_crystal_2_para << " ºC" << endl;
     logString << "Vertical tilt first crystal = " << GeoParametersInput.tilt_C1 << " deg; Vertical tilt second crystal = " << GeoParametersInput.tilt_C2 << " deg" << endl;
     
-    emit w->LogLineSignal(logString.str());
+    #ifdef QT_EXISTS
+        emit w->LogLineSignal(logString.str());
+    #else
+        cout << logString.str();
+    #endif
 
 
     hist_para << "# Line wavelength							= " << linelamda << " Ang" << endl;
@@ -381,7 +398,12 @@ void Simu_Starter::Make_Simu(SimulationInterface* w){
         logString << "General output in file" << endl;
         logString << "general_output" << endl;
         logString << endl;
-        emit w->LogLineSignal(logString.str());
+
+        #ifdef QT_EXISTS
+            emit w->LogLineSignal(logString.str());
+        #else
+            cout << logString.str();
+        #endif
 
         if (UserSettingsInput.fitting) {
             if (UserSettingsInput.see_para)

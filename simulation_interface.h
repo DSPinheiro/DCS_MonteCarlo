@@ -4,9 +4,10 @@
 #include <algorithm>
 #include <chrono>
 
-#include <QMainWindow>
-
 #include "simuGlobals.hh"
+
+#ifdef QT_EXISTS
+#include <QMainWindow>
 
 namespace Ui {
 class SimulationWindow;
@@ -22,6 +23,7 @@ public:
     void showEvent(QShowEvent *);
     void closeEvent(QCloseEvent *event);
     void guiSimu();
+    static void headlessSimu();
 
     inline bool isRunning() const { return running; }
     inline float getPctDone() const { return simulation_pct.load(); }
@@ -124,5 +126,58 @@ private:
     }
 
 };
+#else
+class SimulationInterface
+{
+public:
+    static void headlessSimu();
 
+
+    struct Times
+    {
+        int timeSlot;
+        int h;
+        int m;
+        int s;
+    };
+    
+private:
+    static inline double interpolate( double val, double y0, double x0, double y1, double x1 )
+    {
+      return (val-x0)*(y1-y0)/(x1-x0) + y0;
+    }
+    static inline double blue( double grayscale )
+    {
+      if ( grayscale < -0.33 )
+          return 0.0;
+      else if ( grayscale < 0.33 )
+          return interpolate( grayscale, 1.0, -0.33, 0.0, 0.33 );
+      else
+          return 0.0;
+    }
+    static inline double green( double grayscale )
+    {
+      if ( grayscale < -1.0 )
+          return 0.0; // unexpected grayscale value
+      if  ( grayscale < -0.33 )
+          return interpolate( grayscale, 0.0, -1.0, 1.0, -0.33 );
+      else if ( grayscale < 0.33 )
+          return 1.0;
+      else if ( grayscale <= 1.0 )
+          return interpolate( grayscale, 1.0, 0.33, 0.0, 1.0 );
+      else
+          return 1.0; // unexpected grayscale value
+    }
+    static inline double red( double grayscale )
+    {
+      if ( grayscale < -0.33 )
+          return 0.0;
+      else if ( grayscale < 0.33 )
+          return interpolate( grayscale, 0.0, -0.33, 1.0, 0.33 );
+      else
+          return 1.0;
+    }
+
+};
+#endif
 #endif // SIMULATION_INTERFACE_H

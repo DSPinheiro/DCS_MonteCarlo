@@ -19,11 +19,13 @@
 #include <cctype>
 #include <locale>
 
+#ifdef QT_EXISTS
 #include <QApplication>
+#include "parameter_settings.h"
+#endif
 
 #include "simuGlobals.hh"
 #include "simu_starter.hh"
-#include "parameter_settings.h"
 
 
 #endif /* DCS_MONTECARLO_HH_ */

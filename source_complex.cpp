@@ -337,7 +337,12 @@ bool Source_complex::run_Source(SimulationInterface *w){
 
                 logString << "tw_1: " << d_lat1_para << endl;
                 logString << "tw_2: " << d_lat2_para << endl;
-                emit w->LogLineSignal(logString.str());
+                
+                #ifdef QT_EXISTS
+                    emit w->LogLineSignal(logString.str());
+                #else
+                    cout << logString.str();
+                #endif
 
             }
 
@@ -1026,26 +1031,29 @@ bool Source_complex::run_Source(SimulationInterface *w){
 
                 I++;
 
-                w->setPctDone(static_cast<float>(++total_current_bins) / total_expexted_bins);
+                #ifdef QT_EXITS
+                    w->setPctDone(static_cast<float>(++total_current_bins) / total_expexted_bins);
+                #endif
             }
 
-            if (!w->isOpen())
-            {
-                gener_out << "********************************" << endl;
-                gener_out << endl;
-                gener_out << " SIMULATION TERMINATED BEFORE FINISH!!!" << endl;
-                gener_out << endl;
-                gener_out << " RESULTS ARE GARBAGE!!!" << endl;
-                gener_out << endl;
-                gener_out << "********************************" << endl;
-                gener_out << endl;
+            #ifdef QT_EXISTS
+                if (!w->isOpen())
+                {
+                    gener_out << "********************************" << endl;
+                    gener_out << endl;
+                    gener_out << " SIMULATION TERMINATED BEFORE FINISH!!!" << endl;
+                    gener_out << endl;
+                    gener_out << " RESULTS ARE GARBAGE!!!" << endl;
+                    gener_out << endl;
+                    gener_out << "********************************" << endl;
+                    gener_out << endl;
 
-                w->setPctDone(1.0f);
+                    w->setPctDone(1.0f);
 
-                return false;
-            }
+                    return false;
+                }
 
-            if(GraphOptionsInput.make_image_plates){
+                if(GraphOptionsInput.make_image_plates){
                 emit w->changeStats(
                     SimulationInterface::Stats
                     {
@@ -1060,7 +1068,8 @@ bool Source_complex::run_Source(SimulationInterface *w){
                         eventsToTrace_anti
                     }
                 );
-            }
+                }
+            #endif
 
 
             toint_para_total[numbins - 1] += toint_para;
@@ -1080,17 +1089,19 @@ bool Source_complex::run_Source(SimulationInterface *w){
             }
 
 
-            if(GraphOptionsInput.make_graph_profile){
-                Make_plot_profiles::plotProfiles(
-                    energy_sum_para[numbins - 1] / total_para,
-                    angle_para,
-                    total_para,
-                    energy_sum_anti[numbins - 1] / total_anti,
-                    angle_anti,
-                    total_anti,
-                    numbins,
-                    w);
-            }
+            #ifdef QT_EXITS
+                if(GraphOptionsInput.make_graph_profile){
+                    Make_plot_profiles::plotProfiles(
+                        energy_sum_para[numbins - 1] / total_para,
+                        angle_para,
+                        total_para,
+                        energy_sum_anti[numbins - 1] / total_anti,
+                        angle_anti,
+                        total_anti,
+                        numbins,
+                        w);
+                }
+            #endif
 
 
             if(n_rota == NumberRaysInput.number_rotati){
@@ -1161,21 +1172,23 @@ bool Source_complex::run_Source(SimulationInterface *w){
 
         n_rota++;
 
-        if(!w->isOpen())
-        {
-            gener_out << "********************************" << endl;
-            gener_out << endl;
-            gener_out << " SIMULATION TERMINATED BEFORE FINISH!!!" << endl;
-            gener_out << endl;
-            gener_out << " RESULTS ARE GARBAGE!!!" << endl;
-            gener_out << endl;
-            gener_out << "********************************" << endl;
-            gener_out << endl;
+        #ifdef QT_EXISTS
+            if(!w->isOpen())
+            {
+                gener_out << "********************************" << endl;
+                gener_out << endl;
+                gener_out << " SIMULATION TERMINATED BEFORE FINISH!!!" << endl;
+                gener_out << endl;
+                gener_out << " RESULTS ARE GARBAGE!!!" << endl;
+                gener_out << endl;
+                gener_out << "********************************" << endl;
+                gener_out << endl;
 
-            w->setPctDone(1.0f);
+                w->setPctDone(1.0f);
 
-            return false;
-        }
+                return false;
+            }
+        #endif
     }
 
 

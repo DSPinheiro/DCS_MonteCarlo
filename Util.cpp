@@ -1100,8 +1100,11 @@ void Util::analyse() {
             logString << "difference obtain and input: " << (energ - energy_exact) * 1000 << " MeV" << std::endl;
             
         }
+        #ifdef QT_EXISTS
         logBox->appendPlainText(logString.str().c_str());
-
+        #else
+        std::cout << logString.str();
+        #endif
 
         if (root_script) {
             //old script writing
@@ -1263,7 +1266,11 @@ bool Util::CheckSpectrum(std::string unit) {
     }
 
     logString << Energy_spec[0].lamda << "\t" << Energy_spec[Energy_spec.size() - 1].lamda << std::endl;
+    #ifdef QT_EXISTS
     logBox->appendPlainText(logString.str().c_str());
+    #else
+    std::cout << logString.str();
+    #endif
 
     if (Energy_spec[0].lamda <= start1_para) {
         if (Energy_spec[Energy_spec.size() - 1].lamda >= start1_para + delta_para) {
@@ -1447,7 +1454,11 @@ double Util::getNewTemp(int bin_tem, int& bin_fas, double& pha_tem) {
 
     if (TemperatureParametersInput.TT_tempera == 0) {
         logString << "Warning: Value for TT:tempera is 0" << std::endl;
+        #ifdef QT_EXISTS
         logBox->appendPlainText(logString.str().c_str());
+        #else
+        std::cout << logString.str();
+        #endif
     }
 
     return TemperatureParametersInput.AA_tempera * cos(2 * M_PI * bin_tem / TemperatureParametersInput.TT_tempera + pha_tem);
@@ -1821,7 +1832,11 @@ void Util::fit(bool Parallel) {
         logString << " Fitting analysies" << std::endl;
         logString << std::endl;
 
+        #ifdef QT_EXISTS
         logBox->appendPlainText(logString.str().c_str());
+        #else
+        std::cout << logString.str();
+        #endif
     }
 
     if (Parallel) {
@@ -1931,8 +1946,11 @@ void Util::fit(bool Parallel) {
         
         a_error_anti_voig[i] = sqrt(covar[i][i] * npt_m_deg);
     }
+    #ifdef QT_EXISTS
     logBox->appendPlainText(logString.str().c_str());
-
+    #else
+    std::cout << logString.str();
+    #endif
 
     FWMH_V = c1 * a[2] + sqrt(c2 * pow(a[2], 2) + pow(a[0], 2));
     if (UserSettingsInput.TrueVoigt) {
@@ -1954,8 +1972,11 @@ void Util::fit(bool Parallel) {
     logString.clear();
     logString << "FWMH-\t" << FWMH_V << std::endl;
     logString << std::endl;
+    #ifdef QT_EXISTS
     logBox->appendPlainText(logString.str().c_str());
-
+    #else
+    std::cout << logString.str();
+    #endif
 
     gener_out << std::endl;
     gener_out << "Reduced Chi-squared:\t" << chisq / npt_m_deg << std::endl;
@@ -2035,8 +2056,11 @@ void Util::Read_CurveResponce() {
         }
 
     }
+    #ifdef QT_EXISTS
     logBox->appendPlainText(logString.str().c_str());
-
+    #else
+    std::cout << logString.str();
+    #endif
 
     double cel_re1, cel_re2;
 
@@ -2060,8 +2084,12 @@ void Util::Read_CurveResponce() {
         else {
             logString.clear();
             logString << "File " << inFile_p << " does not exist" << std::endl;
+            #ifdef QT_EXISTS
             logBox->appendPlainText(logString.str().c_str());
-            
+            #else
+            std::cout << logString.str();
+            #endif
+
             throw std::runtime_error("Expected a crystall responce from XOP in bragg geometry for energy" + ener);
         }
 
@@ -2099,8 +2127,12 @@ void Util::Read_CurveResponce() {
         else {
             logString.clear();
             logString << "File " << inFile_s << " does not exist" << std::endl;
+            #ifdef QT_EXISTS
             logBox->appendPlainText(logString.str().c_str());
-            
+            #else
+            std::cout << logString.str();
+            #endif
+
             throw std::runtime_error("Expected a crystall responce from XOP in bragg geometry for energy" + ener);
         }
 
@@ -2512,8 +2544,9 @@ void Util::test_In() {
         logString << " in parallel is:					" << ang_para_pre << " deg" << std::endl;
         logString << " or, in turn of reference angle:	" << -esti_para << " deg" << std::endl;
         logString << std::endl;
+        #ifdef QT_EXISTS
         logBox->appendPlainText(logString.str().c_str());
-
+        #endif
     }
 
     if (UserSettingsInput.see_anti) {
@@ -2534,8 +2567,9 @@ void Util::test_In() {
         logString << " in antiparallel is:				" << ang_anti_pre << " deg" << std::endl;
         logString << " or, in turn of reference angle:	" << -esti_anti << " deg" << std::endl;
         logString << std::endl;
+        #ifdef QT_EXISTS
         logBox->appendPlainText(logString.str().c_str());
-
+        #endif
     }
 
 
@@ -2593,8 +2627,9 @@ void Util::test_In() {
 
         logString << " Checking common range to observe parallel peak -> " << low_bound_angl_para << " deg; " << high_bound_angl_para << " deg; peak: " << ang_para_pre << " deg" << std::endl;
         logString << " Checking common range to observe antiparallel peak -> " << low_bound_angl_anti << " deg; " << high_bound_angl_anti << " deg; peak: " << ang_anti_pre << " deg" << std::endl;
+        #ifdef QT_EXISTS
         logBox->appendPlainText(logString.str().c_str());
-
+        #endif
     }
     else
         throw std::runtime_error(" Error in test_input: ang_para_pre <= 0");
@@ -2678,8 +2713,9 @@ void Util::test_In() {
             NumberRaysInput.nbeams = 2011;
         }
     }
+    #ifdef QT_EXISTS
     logBox->appendPlainText(logString.str().c_str());
-
+    #endif
 
     logString.clear();
     if (GeoParapathlengthsInput.type_source == "P") {
@@ -2708,7 +2744,11 @@ void Util::test_In() {
         logString << std::endl;
     }
 
+    #ifdef QT_EXISTS
     logBox->appendPlainText(logString.str().c_str());
+    #else
+    std::cout << logString.str();
+    #endif
 
     gener_out << "----------------------------------------" << std::endl;
 

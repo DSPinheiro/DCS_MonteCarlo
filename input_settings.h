@@ -1,10 +1,12 @@
 #ifndef INPUT_SETTINGS_H
 #define INPUT_SETTINGS_H
 
+#include "simuGlobals.hh"
+
+#ifdef QT_EXISTS
+#include "parameter_settings.h"
 #include <QWidget>
 
-#include "simuGlobals.hh"
-#include "parameter_settings.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class InputSettingsPrompt; }
@@ -27,4 +29,11 @@ private:
     Ui::InputSettingsPrompt* ui;
     GUISettingsWindow* simWindow;
 };
+#else
+class InputSettingsPrompt
+{
+public:
+    static int configure(const std::string& filename);
+};
+#endif
 #endif // INPUT_SETTINGS_H

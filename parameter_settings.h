@@ -1,11 +1,12 @@
 #ifndef PARAMETER_SETTINGS_H
 #define PARAMETER_SETTINGS_H
 
+#include "simuGlobals.hh"
+#include "simulation_interface.h"
+
 #include <QMainWindow>
 #include <QTimer>
 
-#include "simuGlobals.hh"
-#include "simulation_interface.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class GUISettingsWindow; }
