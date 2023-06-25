@@ -43,7 +43,8 @@ protected:
     void mousePressEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent *event);
     void wheelEvent(QWheelEvent *event);
-
+    // void resizeEvent(QResizeEvent *event);
+    
     void setXRotation(int angle);
     void setYRotation(int angle);
     void setZRotation(int angle);
@@ -67,6 +68,19 @@ private:
 
     void drawParallelEvents(QMatrix4x4& m);
     void drawAntiparallelEvents(QMatrix4x4& m);
+
+    void applyAspectRatio();
+
+    float ratio = 1.0f;
+    float mult = 0.6f;
+    QWidget* reference;
+
+    float left = -0.5f;
+    float right = 0.5f;
+    float bottom = 0.5f;
+    float top = -0.5f;
+    float nearPlane = 50.0f;
+    float farPlane = -50.0f;
 
     int xRot;
     int yRot;
@@ -118,7 +132,7 @@ private:
     QPoint lastPos;
 
     QOpenGLBuffer _vbo1_index;
-
+    
     GLuint baseCubeModelVertexBuffer;
     GLuint baseCubeModelUVBuffer;
     GLuint baseCubeModelTexture;

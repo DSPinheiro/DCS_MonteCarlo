@@ -1031,7 +1031,7 @@ bool Source_complex::run_Source(SimulationInterface *w){
 
                 I++;
 
-                #ifdef QT_EXITS
+                #ifdef QT_EXISTS
                     w->setPctDone(static_cast<float>(++total_current_bins) / total_expexted_bins);
                 #endif
             }
@@ -1089,7 +1089,7 @@ bool Source_complex::run_Source(SimulationInterface *w){
             }
 
 
-            #ifdef QT_EXITS
+            #ifdef QT_EXISTS
                 if(GraphOptionsInput.make_graph_profile){
                     Make_plot_profiles::plotProfiles(
                         energy_sum_para[numbins - 1] / total_para,

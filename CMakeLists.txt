@@ -7,7 +7,7 @@
 # Its sole porpose is to create a bridge to the official C++ port both for the simulation 
 # and configure windows
 
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.12)
 
 project(DCSsimu VERSION 1.0)
 
@@ -35,6 +35,20 @@ list(APPEND CMAKE_PREFIX_PATH "C:/Qt/5.15.2/msvc2019_64")
 find_package(OpenGL)
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets OpenGL Core Gui PrintSupport)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets OpenGL Core Gui PrintSupport)
+
+# load the openMP package for multiprocessing
+find_package(OpenMP)
+
+# load CUDA for GPU processing
+include(CheckLanguage)
+check_language(CUDA)
+
+if(CMAKE_CUDA_COMPILER)
+    enable_language(CUDA)
+    message(STATUS "CUDA - found")
+else()
+    message(STATUS "CUDA - not found")
+endif()
 
 # set variable to install with or without interface
 if(OpenGL_FOUND AND (QT_FOUND OR Qt${QT_VERSION_MAJOR}_FOUND))
@@ -170,14 +184,26 @@ if(INSTALL_GUI)
     add_library(DCSsimuWrapper STATIC ${SOURCE})
     target_compile_definitions(DCSsimuWrapper PRIVATE -DENTRYPOINT=dummy -DLIB_DEF -DQT_EXISTS -DLIB_DATA_DIR="${CMAKE_INSTALL_PREFIX}/${INSTALL_DATA_DIR}")
 
-    target_link_libraries(DCSsimuWrapper PRIVATE
-        Qt${QT_VERSION_MAJOR}::Widgets
-        Qt${QT_VERSION_MAJOR}::Core
-        Qt${QT_VERSION_MAJOR}::Gui
-        Qt${QT_VERSION_MAJOR}::OpenGL
-        Qt${QT_VERSION_MAJOR}::PrintSupport
-        "${OPENGL_LIBRARIES}"
-    )
+    if(OpenMP_CXX_FOUND)
+        target_link_libraries(DCSsimuWrapper PRIVATE
+            Qt${QT_VERSION_MAJOR}::Widgets
+            Qt${QT_VERSION_MAJOR}::Core
+            Qt${QT_VERSION_MAJOR}::Gui
+            Qt${QT_VERSION_MAJOR}::OpenGL
+            Qt${QT_VERSION_MAJOR}::PrintSupport
+            "${OPENGL_LIBRARIES}"
+            OpenMP::OpenMP_CXX
+        )
+    else()
+        target_link_libraries(DCSsimuWrapper PRIVATE
+            Qt${QT_VERSION_MAJOR}::Widgets
+            Qt${QT_VERSION_MAJOR}::Core
+            Qt${QT_VERSION_MAJOR}::Gui
+            Qt${QT_VERSION_MAJOR}::OpenGL
+            Qt${QT_VERSION_MAJOR}::PrintSupport
+            "${OPENGL_LIBRARIES}"
+        )
+    endif()
 
     install(TARGETS DCSsimuWrapper EXPORT DCSsimuWrapper DESTINATION ${INSTALL_LIB_DIR})
     install(FILES ${CMAKE_SOURCE_DIR}/${INSTALL_HEADERS} DESTINATION ${INSTALL_INCLUDE_DIR}/DCSsimu)
@@ -214,14 +240,32 @@ if(INSTALL_GUI)
 
     target_compile_definitions(DCSsimu PRIVATE -DENTRYPOINT=main -DQT_EXISTS)
 
-    target_link_libraries(DCSsimu PRIVATE
-    Qt${QT_VERSION_MAJOR}::Widgets
-    Qt${QT_VERSION_MAJOR}::Core
-    Qt${QT_VERSION_MAJOR}::Gui
-    Qt${QT_VERSION_MAJOR}::OpenGL
-    Qt${QT_VERSION_MAJOR}::PrintSupport
-    "${OPENGL_LIBRARIES}"
-    )
+    if(OpenMP_CXX_FOUND)
+        target_link_libraries(DCSsimu PRIVATE
+            Qt${QT_VERSION_MAJOR}::Widgets
+            Qt${QT_VERSION_MAJOR}::Core
+            Qt${QT_VERSION_MAJOR}::Gui
+            Qt${QT_VERSION_MAJOR}::OpenGL
+            Qt${QT_VERSION_MAJOR}::PrintSupport
+            "${OPENGL_LIBRARIES}"
+            OpenMP::OpenMP_CXX
+        )
+    else()
+        target_link_libraries(DCSsimu PRIVATE
+            Qt${QT_VERSION_MAJOR}::Widgets
+            Qt${QT_VERSION_MAJOR}::Core
+            Qt${QT_VERSION_MAJOR}::Gui
+            Qt${QT_VERSION_MAJOR}::OpenGL
+            Qt${QT_VERSION_MAJOR}::PrintSupport
+            "${OPENGL_LIBRARIES}"
+        )
+    endif()
 else()
     target_compile_definitions(DCSsimu PRIVATE -DENTRYPOINT=main)
+
+    if(OpenMP_CXX_FOUND)
+        target_link_libraries(DCSsimu PRIVATE
+            OpenMP::OpenMP_CXX
+        )
+    endif()
 endif()

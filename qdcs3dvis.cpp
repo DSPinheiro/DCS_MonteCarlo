@@ -16,6 +16,8 @@ QDCS3Dvis::QDCS3Dvis(QWidget* parent)
     
     delrot = 0.0f;
     tetaref = 90 - teta_crys1;
+
+    reference = parent;
 }
 
 QDCS3Dvis::~QDCS3Dvis()
@@ -46,6 +48,36 @@ QDCS3Dvis::~QDCS3Dvis()
     glDeleteTextures(1, &AntiTextModelTexture);
 
     glDeleteProgram(programShader->programId());
+}
+
+// void QDCS3Dvis::resizeEvent(QResizeEvent *event)
+// {
+//     // applyAspectRatio();
+    
+//     // if(QOpenGLFunctions::isInitialized(QOpenGLFunctions::d_ptr))
+//     // {
+//     //    resizeGL(this->width(), this->height());
+//     // }
+// }
+
+void QDCS3Dvis::applyAspectRatio()
+{
+    int w = reference->width();
+    int h = reference->height();
+    double aspect = static_cast<double>(h)/static_cast<double>(w);
+
+    if(aspect < ratio) // parent is too wide
+    {
+        int target_width = static_cast<int>(static_cast<double>(h * mult)/ratio);
+        this->setMaximumWidth(target_width);
+        this->setMaximumHeight(h * mult);
+    }
+    else // parent is too high
+    {
+        int target_heigth = static_cast<int>(static_cast<double>(w * mult)*ratio);
+        this->setMaximumHeight(target_heigth);
+        this->setMaximumWidth(w * mult);
+    }
 }
 
 QSize QDCS3Dvis::minimumSizeHint() const
@@ -600,7 +632,10 @@ void QDCS3Dvis::paintGL()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     QMatrix4x4 m;
-    m.ortho(-0.5f, 0.5f, 0.5f, -0.5f, 50.0f, -50.0f);
+
+    float aspect = static_cast<float>(this->width())/static_cast<float>(this->height());
+
+    m.ortho(left * aspect, right * aspect, bottom, top, nearPlane, farPlane);
     m.translate(xPan, yPan, -10.0);
     m.scale(uScale);
     m.rotate(xRot, 1.0, 0.0, 0.0);
@@ -624,17 +659,20 @@ void QDCS3Dvis::paintGL()
 
 void QDCS3Dvis::resizeGL(int width, int height)
 {
-    int side = qMin(width, height);
-    glViewport((width - side) / 2, (height - side) / 2, side, side);
+    //int side = qMin(width, height);
+    //glViewport((width - side) / 2, (height - side) / 2, side, side);
+    glViewport(0, 0, width, height);
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
+    float aspect = static_cast<float>(width)/static_cast<float>(height);
+
+    // glMatrixMode(GL_PROJECTION);
+    // glLoadIdentity();
 #ifdef QT_OPENGL_ES_1
-    glOrthof(-2, +2, -2, +2, 1.0, 15.0);
+    glOrthof(left * 4, right * 4, bottom * 4, top * 4, nearPlane, farPlane);
 #else
-    glOrtho(-0.5, +0.5, -0.5, +0.5, 4.0, 15.0);
+    glOrtho(left * aspect, right * aspect, bottom, top, nearPlane, farPlane);
 #endif
-    glMatrixMode(GL_MODELVIEW);
+    // glMatrixMode(GL_MODELVIEW);
 }
 
 void QDCS3Dvis::mousePressEvent(QMouseEvent *event)
