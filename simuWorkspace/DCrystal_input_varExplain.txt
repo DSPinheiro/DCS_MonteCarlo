@@ -172,6 +172,7 @@ consttilt2=0.0076059d0		//something related to second crystal tilt angle
 
 &Graph_options
 
+<<<<<<< HEAD
 <<<<<<< HEAD:simuWorkspace/DCrystal_input_varExplain.txt
 ========
 
@@ -183,6 +184,8 @@ MakeDislin=.false.,						//enable dislin app
 =======
 MakeDislin=.false.,						//enable dislin app
 >>>>>>> d9b63b1 (Added the folder with simulation inputs):simulacoesDCS/DCrystal_input_varExplain.txt
+=======
+>>>>>>> 79bd1da (Clean up and parallel settings reading from input)
 make_graph_profile=.true.,				//enable graphical ploting
 make_image_plates=.true.,				//enable image calculation of intensity distribuition on crystals(?)
 make_imageC1_After_refle=.false.,		//calculate fist crystal's image plate after reflexion(?)
@@ -354,6 +357,7 @@ AnalysiesCrystaltilts
 /
 
 &end
+<<<<<<< HEAD
 
 &AnalysiesCrystaltilts
 >>>>>>> d9b63b1 (Added the folder with simulation inputs):simulacoesDCS/DCrystal_input_varExplain.txt
@@ -370,3 +374,5 @@ make_plot_C1_table=.false.				//make a plot of first crystal's rotation with the
 
 &end
 >>>>>>> d9b63b1 (Added the folder with simulation inputs):simulacoesDCS/DCrystal_input_varExplain.txt
+=======
+>>>>>>> 79bd1da (Clean up and parallel settings reading from input)
