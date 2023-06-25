@@ -1,5 +1,3 @@
-#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
-
 //============================================================================
 // Name        : DCS_MonteCarlo.cpp
 // Author      : Daniel Pinheiro, Pedro Amaro, César Godinho

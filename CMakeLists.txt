@@ -90,7 +90,6 @@ if(INSTALL_GUI)
         parameter_settings.ui
         simulation_window.ui
         input_settings_prompt.ui
-
         sserializer.inl
         configure.inl
 
@@ -119,7 +118,6 @@ else()
         simu_starter.hh
         mask_test_c2.hh
         obtain_time.hh
-
         simuGlobals.hh
         simulation_interface.h
 
