@@ -905,10 +905,18 @@ bool Source_complex::run_Source(SimulationInterface *w){
                                     else {
                                         if (GraphOptionsInput.make_image_plates) {
                                             //If the event does not reach the detector then only add when we have less than maxEventNum
+                                            #ifdef OPENMP
+                                            #pragma omp critical
+                                            {
+                                            #endif
                                             if (eventsToTrace_para.size() < NumberRaysInput.number_events && tmpEvent.size() >= 6) {
                                                 eventsToTrace_para.push_back(tmpEvent);
                                             }
+                                            #ifdef OPENMP
+                                            }
+                                            #endif
                                         }
+
                                     }
 
                                 }
@@ -930,9 +938,16 @@ bool Source_complex::run_Source(SimulationInterface *w){
                                 else {
                                     if (GraphOptionsInput.make_image_plates) {
                                         //If the event does not reach the detector then only add when we have less than maxEventNum
+                                        #ifdef OPENMP
+                                        #pragma omp critical
+                                        {
+                                        #endif
                                         if (eventsToTrace_para.size() < NumberRaysInput.number_events && tmpEvent.size() >= 6) {
                                             eventsToTrace_para.push_back(tmpEvent);
                                         }
+                                        #ifdef OPENMP
+                                        }
+                                        #endif
                                     }
                                 }
 
@@ -1140,9 +1155,16 @@ bool Source_complex::run_Source(SimulationInterface *w){
                                     else {
                                         if (GraphOptionsInput.make_image_plates) {
                                             //If the event does not reach the detector then only add when we have less than maxEventNum
+                                            #ifdef OPENMP
+                                            #pragma omp critical
+                                            {
+                                            #endif
                                             if (eventsToTrace_anti.size() < NumberRaysInput.number_events && tmpEvent.size() >= 6) {
                                                 eventsToTrace_anti.push_back(tmpEvent);
                                             }
+                                            #ifdef OPENMP
+                                            }
+                                            #endif
                                         }
                                     }
 
@@ -1220,6 +1242,11 @@ bool Source_complex::run_Source(SimulationInterface *w){
                 return false;
             }
 
+            #ifdef OPENMP
+            #pragma omp atomic
+            #endif
+            I++;
+
             #ifdef QT_EXISTS
                 if (!w->isOpen())
                 {
@@ -1236,6 +1263,23 @@ bool Source_complex::run_Source(SimulationInterface *w){
 
                     return false;
                 }
+
+            if(GraphOptionsInput.make_image_plates){
+            emit w->changeStats(
+                SimulationInterface::Stats
+                {
+                    counts_sour,
+                    counts_C1,
+                    counts_C2_para,
+                    counts_C2_anti,
+                    counts_detc_para,
+                    counts_detc_anti,
+                    delrot,
+                    eventsToTrace_para,
+                    eventsToTrace_anti
+                }
+            );
+            }
 
             if(GraphOptionsInput.make_image_plates){
             emit w->changeStats(
