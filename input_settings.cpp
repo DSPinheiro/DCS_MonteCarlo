@@ -10,20 +10,23 @@
 #include <QMessageBox>
 #endif
 
-using namespace std;
+#ifdef OPENMP
+#include <omp.h>
+#include <thread>
+#endif
 
 int InputSettingsPrompt::configure(const std::string& inFile)
 {
     // Parse the input file
-    ifstream inputFile(inFile);
-    string line;
+    std::ifstream inputFile(inFile);
+    std::string line;
     if(inputFile.is_open()){
         char str[1];
         char* firstChar = str;
         inputFile.read(firstChar, 1);
         inputFile.seekg(0);
 
-        string currStruct = "";
+        std::string currStruct = "";
 
         #ifdef QT_EXISTS
 
@@ -38,45 +41,45 @@ int InputSettingsPrompt::configure(const std::string& inFile)
             if (line.size() < 1) continue;
             if(line[0] != '/' && line[1] != '/'){
 
-                if(line.find("Geometry") != string::npos)
+                if(line.find("Geometry") != std::string::npos)
                     currStruct = "Geometry";
-                else if(line.find("UserSettings") != string::npos)
+                else if(line.find("UserSettings") != std::string::npos)
                     currStruct = "UserSettings";
-                else if(line.find("GeoParapathlenghts") != string::npos)
+                else if(line.find("GeoParapathlenghts") != std::string::npos)
                     currStruct = "GeoParapathlenghts";
-                else if(line.find("Geolenghtelemets") != string::npos)
+                else if(line.find("Geolenghtelemets") != std::string::npos)
                     currStruct = "Geolenghtelemets";
-                else if(line.find("GeoParameters") != string::npos)
+                else if(line.find("GeoParameters") != std::string::npos)
                     currStruct = "GeoParameters";
-                else if(line.find("CurveVerticalTilt") != string::npos)
+                else if(line.find("CurveVerticalTilt") != std::string::npos)
                     currStruct = "CurveVerticalTilt";
-                else if(line.find("Graph_options") != string::npos)
+                else if(line.find("Graph_options") != std::string::npos)
                     currStruct = "Graph_options";
-                else if(line.find("plotparameters") != string::npos)
+                else if(line.find("plotparameters") != std::string::npos)
                     currStruct = "plotparameters";
-                else if(line.find("numberrays") != string::npos)
+                else if(line.find("numberrays") != std::string::npos)
                     currStruct = "numberrays";
-                else if(line.find("physical_parameters") != string::npos)
+                else if(line.find("physical_parameters") != std::string::npos)
                     currStruct = "physical_parameters";
-                else if(line.find("polarization_parameters") != string::npos)
+                else if(line.find("polarization_parameters") != std::string::npos)
                     currStruct = "polarization_parameters";
-                else if(line.find("temperature_parameters") != string::npos)
+                else if(line.find("temperature_parameters") != std::string::npos)
                     currStruct = "temperature_parameters";
-                else if(line.find("fullenergyspectrum") != string::npos)
+                else if(line.find("fullenergyspectrum") != std::string::npos)
                     currStruct = "fullenergyspectrum";
-                else if(line.find("Curved_Crystal") != string::npos)
+                else if(line.find("Curved_Crystal") != std::string::npos)
                     currStruct = "Curved_Crystal";
-                else if(line.find("ParallelSettings") != string::npos)
+                else if(line.find("ParallelSettings") != std::string::npos)
                     currStruct = "ParallelSettings";
-                else if(line.find("AnalysiesCrystaltilts") != string::npos)
+                else if(line.find("AnalysiesCrystaltilts") != std::string::npos)
                     currStruct = "AnalysiesCrystaltilts";
 
 
 
                 if(currStruct == "Geometry"){
 
-                    string elem = split(line, "//")[0];
-                    vector<string> items = split(elem, "=");
+                    std::string elem = split(line, "//")[0];
+                    std::vector<std::string> items = split(elem, "=");
 
                     trim(items[0]);
 
@@ -85,13 +88,13 @@ int InputSettingsPrompt::configure(const std::string& inFile)
                         GeometryInput.mode_bragg_geo = (items[1] == ".true.");
                     }else if(items[0] == "imh"){
                         trim(items[1]);
-                        GeometryInput.imh = stoi(items[1]);
+                        GeometryInput.imh = std::stoi(items[1]);
                     }else if(items[0] == "imk"){
                         trim(items[1]);
-                        GeometryInput.imk = stoi(items[1]);
+                        GeometryInput.imk = std::stoi(items[1]);
                     }else if(items[0] == "iml"){
                         trim(items[1]);
-                        GeometryInput.iml = stoi(items[1]);
+                        GeometryInput.iml = std::stoi(items[1]);
                     }else if(items[0] == "crystal_Si"){
                         trim(items[1]);
                         GeometryInput.crystal_Si = (items[1] == ".true.");
@@ -99,8 +102,8 @@ int InputSettingsPrompt::configure(const std::string& inFile)
 
                 }else if(currStruct == "UserSettings"){
 
-                    string elem = split(line, "//")[0];
-                    vector<string> items = split(elem, "=");
+                    std::string elem = split(line, "//")[0];
+                    std::vector<std::string> items = split(elem, "=");
 
                     trim(items[0]);
 
@@ -118,7 +121,7 @@ int InputSettingsPrompt::configure(const std::string& inFile)
                         UserSettingsInput.Make_Horizontal = (items[1] == ".true.");
                     }else if(items[0] == "angle_aprox"){
                         trim(items[1]);
-                        UserSettingsInput.angle_aprox = stoi(items[1]);
+                        UserSettingsInput.angle_aprox = std::stoi(items[1]);
                     }else if(items[0] == "fitting"){
                         trim(items[1]);
                         UserSettingsInput.fitting = (items[1] == ".true.");
@@ -136,10 +139,10 @@ int InputSettingsPrompt::configure(const std::string& inFile)
                         UserSettingsInput.center_2crys = (items[1] == ".true.");
                     }else if(items[0] == "mask_C1"){
                         trim(items[1]);
-                        UserSettingsInput.mask_C1 = stoi(items[1]);
+                        UserSettingsInput.mask_C1 = std::stoi(items[1]);
                     }else if(items[0] == "mask_C2"){
                         trim(items[1]);
-                        UserSettingsInput.mask_C2 = stoi(items[1]);
+                        UserSettingsInput.mask_C2 = std::stoi(items[1]);
                     }else if(items[0] == "print_scan"){
                         trim(items[1]);
                         UserSettingsInput.print_scan = (items[1] == ".true.");
@@ -153,8 +156,8 @@ int InputSettingsPrompt::configure(const std::string& inFile)
 
                 }else if(currStruct == "GeoParapathlenghts"){
 
-                    string elem = split(line, "//")[0];
-                    vector<string> items = split(elem, "=");
+                    std::string elem = split(line, "//")[0];
+                    std::vector<std::string> items = split(elem, "=");
 
                     trim(items[0]);
 
@@ -163,121 +166,121 @@ int InputSettingsPrompt::configure(const std::string& inFile)
                         GeoParapathlengthsInput.type_source = split(items[1], "\"")[1];
                     }else if(items[0] == "LT_aper"){
                         trim(items[1]);
-                        GeoParapathlengthsInput.LT_aper = stod(split(items[1], "d0")[0]);
+                        GeoParapathlengthsInput.LT_aper = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "dist_T_Cr1"){
                         trim(items[1]);
-                        GeoParapathlengthsInput.dist_T_Cr1 = stod(split(items[1], "d0")[0]);
+                        GeoParapathlengthsInput.dist_T_Cr1 = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "dist_Cr1_Cr2"){
                         trim(items[1]);
-                        GeoParapathlengthsInput.dist_Cr1_Cr2 = stod(split(items[1], "d0")[0]);
+                        GeoParapathlengthsInput.dist_Cr1_Cr2 = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "dist_Cr2_Det"){
                         trim(items[1]);
-                        GeoParapathlengthsInput.dist_Cr2_Det = stod(split(items[1], "d0")[0]);
+                        GeoParapathlengthsInput.dist_Cr2_Det = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "dist_aper_det"){
                         trim(items[1]);
-                        GeoParapathlengthsInput.dist_aper_det = stod(split(items[1], "d0")[0]);
+                        GeoParapathlengthsInput.dist_aper_det = std::stod(split(items[1], "d0")[0]);
                     }
 
                 }else if(currStruct == "Geolenghtelemets"){
 
-                    string elem = split(line, "//")[0];
-                    vector<string> items = split(elem, "=");
+                    std::string elem = split(line, "//")[0];
+                    std::vector<std::string> items = split(elem, "=");
 
                     trim(items[0]);
 
                     if(items[0] == "S_aper"){
                         trim(items[1]);
-                        GeolengthelementsInput.S_aper = stod(split(items[1], "d0")[0]);
+                        GeolengthelementsInput.S_aper = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "S_aper_var"){
                         trim(items[1]);
-                        GeolengthelementsInput.S_aper_var = stod(split(items[1], "d0")[0]);
+                        GeolengthelementsInput.S_aper_var = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "S_sour"){
                         trim(items[1]);
-                        GeolengthelementsInput.S_sour = stod(split(items[1], "d0")[0]);
+                        GeolengthelementsInput.S_sour = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "y_sour"){
                         trim(items[1]);
-                        GeolengthelementsInput.y_sour = stod(split(items[1], "d0")[0]);
+                        GeolengthelementsInput.y_sour = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "z_sour"){
                         trim(items[1]);
-                        GeolengthelementsInput.z_sour = stod(split(items[1], "d0")[0]);
+                        GeolengthelementsInput.z_sour = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "y_aper"){
                         trim(items[1]);
-                        GeolengthelementsInput.y_aper = stod(split(items[1], "d0")[0]);
+                        GeolengthelementsInput.y_aper = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "z_aper"){
                         trim(items[1]);
-                        GeolengthelementsInput.z_aper = stod(split(items[1], "d0")[0]);
+                        GeolengthelementsInput.z_aper = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "S_shi_hor_B"){
                         trim(items[1]);
-                        GeolengthelementsInput.S_shi_hor_B = stod(split(items[1], "d0")[0]);
+                        GeolengthelementsInput.S_shi_hor_B = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "S_shi_hor_A"){
                         trim(items[1]);
-                        GeolengthelementsInput.S_shi_hor_A = stod(split(items[1], "d0")[0]);
+                        GeolengthelementsInput.S_shi_hor_A = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "S_shi_ver_B"){
                         trim(items[1]);
-                        GeolengthelementsInput.S_shi_ver_B = stod(split(items[1], "d0")[0]);
+                        GeolengthelementsInput.S_shi_ver_B = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "S_shi_ver_A"){
                         trim(items[1]);
-                        GeolengthelementsInput.S_shi_ver_A = stod(split(items[1], "d0")[0]);
+                        GeolengthelementsInput.S_shi_ver_A = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "y_first_crys"){
                         trim(items[1]);
-                        GeolengthelementsInput.y_first_crys = stod(split(items[1], "d0")[0]);
+                        GeolengthelementsInput.y_first_crys = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "z_first_crys"){
                         trim(items[1]);
-                        GeolengthelementsInput.z_first_crys = stod(split(items[1], "d0")[0]);
+                        GeolengthelementsInput.z_first_crys = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "ydetc"){
                         trim(items[1]);
-                        GeolengthelementsInput.ydetc = stod(split(items[1], "d0")[0]);
+                        GeolengthelementsInput.ydetc = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "zdetc"){
                         trim(items[1]);
-                        GeolengthelementsInput.zdetc = stod(split(items[1], "d0")[0]);
+                        GeolengthelementsInput.zdetc = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "shift_det_ver"){
                         trim(items[1]);
-                        GeolengthelementsInput.shift_det_ver = stod(split(items[1], "d0")[0]);
+                        GeolengthelementsInput.shift_det_ver = std::stod(split(items[1], "d0")[0]);
                     }
 
                 }else if(currStruct == "GeoParameters"){
 
-                    string elem = split(line, "//")[0];
-                    vector<string> items = split(elem, "=");
+                    std::string elem = split(line, "//")[0];
+                    std::vector<std::string> items = split(elem, "=");
 
                     trim(items[0]);
 
                     if(items[0] == "Exp_crys1"){
                         trim(items[1]);
-                        GeoParametersInput.Exp_crys1 = stod(split(items[1], "d0")[0]);
+                        GeoParametersInput.Exp_crys1 = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "teta_table"){
                         trim(items[1]);
-                        GeoParametersInput.teta_table = stod(split(items[1], "d0")[0]);
+                        GeoParametersInput.teta_table = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "OffsetRotCry1"){
                         trim(items[1]);
-                        GeoParametersInput.OffsetRotCry1 = stod(split(items[1], "d0")[0]);
+                        GeoParametersInput.OffsetRotCry1 = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "teta_detec_para"){
                         trim(items[1]);
-                        GeoParametersInput.teta_detec_para = stod(split(items[1], "d0")[0]);
+                        GeoParametersInput.teta_detec_para = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "teta_detec_anti"){
                         trim(items[1]);
-                        GeoParametersInput.teta_detec_anti = stod(split(items[1], "d0")[0]);
+                        GeoParametersInput.teta_detec_anti = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "tilt_C1"){
                         trim(items[1]);
-                        GeoParametersInput.tilt_C1 = stod(split(items[1], "d0")[0]);
+                        GeoParametersInput.tilt_C1 = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "tilt_C2"){
                         trim(items[1]);
-                        GeoParametersInput.tilt_C2 = stod(split(items[1], "d0")[0]);
+                        GeoParametersInput.tilt_C2 = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "xsi"){
                         trim(items[1]);
-                        GeoParametersInput.xsi = stod(split(items[1], "d0")[0]);
+                        GeoParametersInput.xsi = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "center_1cry_at"){
                         trim(items[1]);
-                        GeoParametersInput.center_1cry_at = stod(split(items[1], "d0")[0]);
+                        GeoParametersInput.center_1cry_at = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "S_shi_ver_B"){
                         trim(items[1]);
-                        GeoParametersInput.center_2cry_at = stod(split(items[1], "d0")[0]);
+                        GeoParametersInput.center_2cry_at = std::stod(split(items[1], "d0")[0]);
                     }
 
                 }else if(currStruct == "CurveVerticalTilt"){
 
-                    string elem = split(line, "//")[0];
-                    vector<string> items = split(elem, "=");
+                    std::string elem = split(line, "//")[0];
+                    std::vector<std::string> items = split(elem, "=");
 
                     trim(items[0]);
 
@@ -286,28 +289,28 @@ int InputSettingsPrompt::configure(const std::string& inFile)
                         CurveVerticalTiltInput.make_CurveTilt = (items[1] == ".true.");
                     }else if(items[0] == "phas_tilt1"){
                         trim(items[1]);
-                        CurveVerticalTiltInput.phas_tilt1 = stod(split(items[1], "d0")[0]);
+                        CurveVerticalTiltInput.phas_tilt1 = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "phas_tilt2"){
                         trim(items[1]);
-                        CurveVerticalTiltInput.phas_tilt2 = stod(split(items[1], "d0")[0]);
+                        CurveVerticalTiltInput.phas_tilt2 = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "offsettilt1"){
                         trim(items[1]);
-                        CurveVerticalTiltInput.offsettilt1 = stod(split(items[1], "d0")[0]);
+                        CurveVerticalTiltInput.offsettilt1 = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "offsettilt2"){
                         trim(items[1]);
-                        CurveVerticalTiltInput.offsettilt2 = stod(split(items[1], "d0")[0]);
+                        CurveVerticalTiltInput.offsettilt2 = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "consttilt1"){
                         trim(items[1]);
-                        CurveVerticalTiltInput.consttilt1 = stod(split(items[1], "d0")[0]);
+                        CurveVerticalTiltInput.consttilt1 = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "consttilt2"){
                         trim(items[1]);
-                        CurveVerticalTiltInput.consttilt2 = stod(split(items[1], "d0")[0]);
+                        CurveVerticalTiltInput.consttilt2 = std::stod(split(items[1], "d0")[0]);
                     }
 
                 }else if(currStruct == "Graph_options"){
 
-                    string elem = split(line, "//")[0];
-                    vector<string> items = split(elem, "=");
+                    std::string elem = split(line, "//")[0];
+                    std::vector<std::string> items = split(elem, "=");
 
                     trim(items[0]);
 
@@ -327,44 +330,44 @@ int InputSettingsPrompt::configure(const std::string& inFile)
 
                 }else if(currStruct == "plotparameters"){
 
-                    string elem = split(line, "//")[0];
-                    vector<string> items = split(elem, "=");
+                    std::string elem = split(line, "//")[0];
+                    std::vector<std::string> items = split(elem, "=");
 
                     trim(items[0]);
 
                     if(items[0] == "delta_angl"){
                         trim(items[1]);
-                        PlotParametersInput.delta_angl = stod(split(items[1], "d0")[0]);
+                        PlotParametersInput.delta_angl = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "shift_disp_window"){
                         trim(items[1]);
-                        PlotParametersInput.shift_disp_window = stod(split(items[1], "d0")[0]);
+                        PlotParametersInput.shift_disp_window = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "nubins"){
                         trim(items[1]);
-                        PlotParametersInput.nubins = stoi(items[1]);
+                        PlotParametersInput.nubins = std::stoi(items[1]);
                     }
 
                 }else if(currStruct == "numberrays"){
 
-                    string elem = split(line, "//")[0];
-                    vector<string> items = split(elem, "=");
+                    std::string elem = split(line, "//")[0];
+                    std::vector<std::string> items = split(elem, "=");
 
                     trim(items[0]);
 
                     if(items[0] == "nbeams"){
                         trim(items[1]);
-                        NumberRaysInput.nbeams = stoi(items[1]);
+                        NumberRaysInput.nbeams = std::stoi(items[1]);
                     }else if(items[0] == "number_rotati"){
                         trim(items[1]);
-                        NumberRaysInput.number_rotati = stoi(items[1]);
+                        NumberRaysInput.number_rotati = std::stoi(items[1]);
                     }else if (items[0] == "number_graph_events") {
                         trim(items[1]);
-                        NumberRaysInput.number_events = stoi(items[1]);
+                        NumberRaysInput.number_events = std::stoi(items[1]);
                     }
 
                 }else if(currStruct == "physical_parameters"){
 
-                    string elem = split(line, "//")[0];
-                    vector<string> items = split(elem, "=");
+                    std::string elem = split(line, "//")[0];
+                    std::vector<std::string> items = split(elem, "=");
 
                     trim(items[0]);
 
@@ -373,19 +376,19 @@ int InputSettingsPrompt::configure(const std::string& inFile)
                         PhysicalParametersInput.Unit_energy = split(items[1], "\"")[1];
                     }else if(items[0] == "linelamda"){
                         trim(items[1]);
-                        PhysicalParametersInput.linelamda = stod(split(items[1], "d0")[0]);
+                        PhysicalParametersInput.linelamda = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "naturalwidth"){
                         trim(items[1]);
-                        PhysicalParametersInput.naturalwidth = stod(split(items[1], "d0")[0]);
+                        PhysicalParametersInput.naturalwidth = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "gauss_Doop"){
                         trim(items[1]);
-                        PhysicalParametersInput.gauss_Doop = stod(split(items[1], "d0")[0]);
+                        PhysicalParametersInput.gauss_Doop = std::stod(split(items[1], "d0")[0]);
                     }
 
                 }else if(currStruct == "polarization_parameters"){
 
-                    string elem = split(line, "//")[0];
-                    vector<string> items = split(elem, "=");
+                    std::string elem = split(line, "//")[0];
+                    std::vector<std::string> items = split(elem, "=");
 
                     trim(items[0]);
 
@@ -394,82 +397,82 @@ int InputSettingsPrompt::configure(const std::string& inFile)
                         PolarizationParametersInput.mka_poli = (items[1] == ".true.");
                     }else if(items[0] == "relationP_S"){
                         trim(items[1]);
-                        PolarizationParametersInput.relationP_S = stod(split(items[1], "d0")[0]);
+                        PolarizationParametersInput.relationP_S = std::stod(split(items[1], "d0")[0]);
                     }
 
                 }else if(currStruct == "temperature_parameters"){
 
-                    string elem = split(line, "//")[0];
-                    vector<string> items = split(elem, "=");
+                    std::string elem = split(line, "//")[0];
+                    std::vector<std::string> items = split(elem, "=");
 
                     trim(items[0]);
 
                     if(items[0] == "T_crystal_1_para"){
                         trim(items[1]);
-                        TemperatureParametersInput.T_crystal_1_para = stod(split(items[1], "d0")[0]);
+                        TemperatureParametersInput.T_crystal_1_para = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "T_crystal_1_anti"){
                         trim(items[1]);
-                        TemperatureParametersInput.T_crystal_1_anti = stod(split(items[1], "d0")[0]);
+                        TemperatureParametersInput.T_crystal_1_anti = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "T_crystal_2_para"){
                         trim(items[1]);
-                        TemperatureParametersInput.T_crystal_2_para = stod(split(items[1], "d0")[0]);
+                        TemperatureParametersInput.T_crystal_2_para = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "T_crystal_2_anti"){
                         trim(items[1]);
-                        TemperatureParametersInput.T_crystal_2_anti = stod(split(items[1], "d0")[0]);
+                        TemperatureParametersInput.T_crystal_2_anti = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "mk_temp_bin"){
                         trim(items[1]);
                         TemperatureParametersInput.mk_temp_bin = (items[1] == ".true.");
                     }else if(items[0] == "AA_tempera"){
                         trim(items[1]);
-                        TemperatureParametersInput.AA_tempera = stod(split(items[1], "d0")[0]);
+                        TemperatureParametersInput.AA_tempera = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "TT_tempera"){
                         trim(items[1]);
-                        TemperatureParametersInput.TT_tempera = stod(split(items[1], "d0")[0]);
+                        TemperatureParametersInput.TT_tempera = std::stod(split(items[1], "d0")[0]);
                     }
 
                 }else if(currStruct == "fullenergyspectrum"){
 
-                    string elem = split(line, "//")[0];
-                    vector<string> items = split(elem, "=");
+                    std::string elem = split(line, "//")[0];
+                    std::vector<std::string> items = split(elem, "=");
 
                     trim(items[0]);
 
                     if(items[0] == "make_more_lines"){
                         trim(items[1]);
-                        FullEnergySpectrumInput.make_more_lines = stoi(items[1]);
+                        FullEnergySpectrumInput.make_more_lines = std::stoi(items[1]);
                     }else if(items[0] == "linelamda1"){
                         trim(items[1]);
-                        FullEnergySpectrumInput.linelamda1 = stod(split(items[1], "d0")[0]);
+                        FullEnergySpectrumInput.linelamda1 = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "naturalwidth1"){
                         trim(items[1]);
-                        FullEnergySpectrumInput.naturalwidth1 = stod(split(items[1], "d0")[0]);
+                        FullEnergySpectrumInput.naturalwidth1 = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "p1_ener"){
                         trim(items[1]);
-                        FullEnergySpectrumInput.p1_ener = stod(split(items[1], "d0")[0]);
+                        FullEnergySpectrumInput.p1_ener = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "linelamda2"){
                         trim(items[1]);
                         FullEnergySpectrumInput.linelamda2 = (items[1] == ".true.");
                     }else if(items[0] == "naturalwidth2"){
                         trim(items[1]);
-                        FullEnergySpectrumInput.naturalwidth2 = stod(split(items[1], "d0")[0]);
+                        FullEnergySpectrumInput.naturalwidth2 = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "p2_ener"){
                         trim(items[1]);
-                        FullEnergySpectrumInput.p2_ener = stod(split(items[1], "d0")[0]);
+                        FullEnergySpectrumInput.p2_ener = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "linelamda3"){
                         trim(items[1]);
-                        FullEnergySpectrumInput.linelamda3 = stod(split(items[1], "d0")[0]);
+                        FullEnergySpectrumInput.linelamda3 = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "naturalwidth3"){
                         trim(items[1]);
-                        FullEnergySpectrumInput.naturalwidth3 = stod(split(items[1], "d0")[0]);
+                        FullEnergySpectrumInput.naturalwidth3 = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "p3_ener"){
                         trim(items[1]);
-                        FullEnergySpectrumInput.p3_ener = stod(split(items[1], "d0")[0]);
+                        FullEnergySpectrumInput.p3_ener = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "linelamda4"){
                         trim(items[1]);
-                        FullEnergySpectrumInput.linelamda4 = stod(split(items[1], "d0")[0]);
+                        FullEnergySpectrumInput.linelamda4 = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "naturalwidth4"){
                         trim(items[1]);
-                        FullEnergySpectrumInput.naturalwidth4 = stod(split(items[1], "d0")[0]);
+                        FullEnergySpectrumInput.naturalwidth4 = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "Do_background"){
                         trim(items[1]);
                         FullEnergySpectrumInput.Do_background = (items[1] == ".true.");
@@ -477,8 +480,8 @@ int InputSettingsPrompt::configure(const std::string& inFile)
 
                 }else if(currStruct == "Curved_Crystal"){
 
-                    string elem = split(line, "//")[0];
-                    vector<string> items = split(elem, "=");
+                    std::string elem = split(line, "//")[0];
+                    std::vector<std::string> items = split(elem, "=");
 
                     trim(items[0]);
 
@@ -487,17 +490,17 @@ int InputSettingsPrompt::configure(const std::string& inFile)
                         CurvedCrystalInput.Curve_crystall = (items[1] == ".true.");
                     }else if(items[0] == "R_cur_crys_1"){
                         trim(items[1]);
-                        CurvedCrystalInput.R_cur_crys_1 = stod(split(items[1], "d0")[0]);
+                        CurvedCrystalInput.R_cur_crys_1 = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "R_cur_crys_2"){
                         trim(items[1]);
-                        CurvedCrystalInput.R_cur_crys_2 = stod(split(items[1], "d0")[0]);
+                        CurvedCrystalInput.R_cur_crys_2 = std::stod(split(items[1], "d0")[0]);
                     }
 
                 }else if(currStruct == "ParallelSettings"){
                     
                     
-                    string elem = split(line, "//")[0];
-                    vector<string> items = split(elem, "=");
+                    std::string elem = split(line, "//")[0];
+                    std::vector<std::string> items = split(elem, "=");
 
                     trim(items[0]);
 
@@ -506,14 +509,14 @@ int InputSettingsPrompt::configure(const std::string& inFile)
                         ParallelSettingsInput.Make_GPU = (items[1] == ".true.");
                     }else if(items[0] == "OMP_threads"){
                         trim(items[1]);
-                        ParallelSettingsInput.OMP_threads = stoi(items[1]);
+                        ParallelSettingsInput.OMP_threads = std::stoi(items[1]);
                     }
 
                 }else if(currStruct == "AnalysiesCrystaltilts"){
                     
                     
-                    string elem = split(line, "//")[0];
-                    vector<string> items = split(elem, "=");
+                    std::string elem = split(line, "//")[0];
+                    std::vector<std::string> items = split(elem, "=");
 
                     trim(items[0]);
 
@@ -539,6 +542,7 @@ int InputSettingsPrompt::configure(const std::string& inFile)
         cout << "Could not open input file: " << inFile << endl;
     #endif
     }
+    
     inputFile.close();
     //cout << "Input file read." << endl;
 
@@ -552,6 +556,29 @@ int InputSettingsPrompt::configure(const std::string& inFile)
     {
         refra_corr = refra_corrPARIS;
     }
+
+    #ifdef OPENMP
+        ParallelSettingsInput.system_max_threads = std::thread::hardware_concurrency();;
+
+        if(ParallelSettingsInput.OMP_threads > ParallelSettingsInput.system_max_threads)
+        {
+            ParallelSettingsInput.OMP_threads = ParallelSettingsInput.system_max_threads;
+
+            QString message = "The user specified number of threads to use in the simulation is more than the system's logic processor count: ";
+            message.append(std::to_string(ParallelSettingsInput.OMP_threads).c_str());
+            message.append("\nSetting this number to the logic processor count.");
+            QMessageBox::warning(nullptr, tr("Too Many OpenMP Threads!"), message, QMessageBox::Ok);
+        }
+        else
+        {
+            QString message = "Starting the simulation with the maximum thread count: ";
+            message.append(std::to_string(ParallelSettingsInput.OMP_threads).c_str());
+            message.append(" out of ");
+            message.append(std::to_string(ParallelSettingsInput.system_max_threads).c_str());
+            message.append(" maximum threads.");
+            QMessageBox::information(nullptr, tr("OpenMP Maximum Thread Count"), message, QMessageBox::Ok);
+        }
+    #endif
 
     return 0; // Dirty workaround
 }
@@ -643,9 +670,9 @@ void InputSettingsPrompt::loadInputConfig()
         strcat(Output_dir, ui->lineEdit_3->placeholderText().toStdString().c_str());
     }
 
-    if(!filesystem::is_directory(Output_dir) || !filesystem::exists(Output_dir))
+    if(!std::filesystem::is_directory(Output_dir) || !std::filesystem::exists(Output_dir))
     {
-        filesystem::create_directories(Output_dir);
+        std::filesystem::create_directories(Output_dir);
     }
 
     if(configure(inFile) == 0)

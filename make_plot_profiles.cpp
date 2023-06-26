@@ -19,14 +19,25 @@ void Make_plot_profiles::plotProfiles(
     double angle_anti,
     int toint_anti,
     int n_plot,
+    int &counts_sour,
+    int &counts_C1,
+    int &counts_C2_para,
+    int &counts_detc_para,
+    int &counts_C2_anti,
+    int &counts_detc_anti,
     SimulationInterface *w){
 
     bool transmi_2crys = false;
 
+    plot emptyPlot = {0.0,0.0,0.0,0.0};
     if(plot_para.size() < (unsigned int)PlotParametersInput.nubins)
-        plot_para.resize(PlotParametersInput.nubins);
+    {
+        plot_para.resize(PlotParametersInput.nubins, emptyPlot);
+    }
     if(plot_anti.size() < (unsigned int)PlotParametersInput.nubins)
-        plot_anti.resize(PlotParametersInput.nubins);
+    {
+        plot_anti.resize(PlotParametersInput.nubins, emptyPlot);
+    }
 
     double hist_image[n_his_ima][n_his_ima];
 
@@ -64,9 +75,6 @@ void Make_plot_profiles::plotProfiles(
     plot_anti.at(n_plot - 1).error = sqrt((double)toint_anti);
 
 
-    //TODO
-    //gui stuff
-
     for(int i = 0; i < 2; i++){
         if(i == 0)
             temp = plot_para.at(n_plot - 1).y + plot_para.at(n_plot - 1).error;
@@ -97,9 +105,6 @@ void Make_plot_profiles::plotProfiles(
     if(n_plot % 6 == 0){
 
         if(!UserSettingsInput.Simple_simu && GraphOptionsInput.make_image_plates){
-            //TODO
-            //gui stuff
-
             for(int crystal = 0; crystal < 6; crystal++){
                 max_plot_x_temp = max_plot_x[crystal];
                 max_plot_y_temp = max_plot_y[crystal];
@@ -140,11 +145,6 @@ void Make_plot_profiles::plotProfiles(
                 }
 
 
-
-                //TODO
-                //gui reports
-
-
                 if(max_hist[crystal] == 0)
                     max_plot_z_temp = 1;
                 else
@@ -155,8 +155,6 @@ void Make_plot_profiles::plotProfiles(
                 step_y_hist = max_plot_y_temp * 0.4;
                 step_z_hist = max_plot_z_temp / 5;
 
-                //TODO
-                //gui plotting
                 SimulationInterface::Plates plates;
                 plates.crystal = crystal;
                 // Not ideal (but at least does not crash)
@@ -166,11 +164,6 @@ void Make_plot_profiles::plotProfiles(
                 emit w->changePlatesSignal(plates);
 
             }
-
-            //TODO
-            //if(UserSettings.print_scan)
-                //gui
-
         }
     }
 

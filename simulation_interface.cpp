@@ -501,17 +501,23 @@ void SimulationInterface::changePlots(Plots plots){
         QVector<double> qe_para, qx_para, qy_para, qe_anti, qx_anti, qy_anti, e_para, e_anti;
 
         for(unsigned int i = 0; i < plots.para.size(); i++){
-            qe_para << plots.para[i].energy;
-            qx_para << plots.para[i].x;
-            qy_para << plots.para[i].y;
-            e_para << plots.para[i].error;
+            if(plots.para[i].x != 0.0)
+            {
+                qe_para << plots.para[i].energy;
+                qx_para << plots.para[i].x;
+                qy_para << plots.para[i].y;
+                e_para << plots.para[i].error;
+            }
         }
 
         for(unsigned int i = 0; i < plots.anti.size(); i++){
-            qe_anti << plots.anti[i].energy;
-            qx_anti << plots.anti[i].x;
-            qy_anti << plots.anti[i].y;
-            e_anti << plots.anti[i].error;
+            if(plots.anti[i].x != 0.0)
+            {
+                qe_anti << plots.anti[i].energy;
+                qx_anti << plots.anti[i].x;
+                qy_anti << plots.anti[i].y;
+                e_anti << plots.anti[i].error;
+            }
         }
 
         //errorBars->addData(e_anti);

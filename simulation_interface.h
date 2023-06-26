@@ -32,12 +32,12 @@ public:
     
     struct Stats
     {
-        double c_sour;
-        double c_cr1;
-        double c_cr2_para;
-        double c_cr2_anti;
-        double c_detc_para;
-        double c_detc_anti;
+        int c_sour;
+        int c_cr1;
+        int c_cr2_para;
+        int c_cr2_anti;
+        int c_detc_para;
+        int c_detc_anti;
         double delrot;
         std::vector<std::vector<double>> events_para;
         std::vector<std::vector<double>> events_anti;

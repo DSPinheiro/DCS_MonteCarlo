@@ -14,6 +14,7 @@
 #include <vector>
 #include <string>
 
+#include <random>
 
 namespace Util {
 
@@ -42,12 +43,12 @@ namespace Util {
     void geo_corre();
     bool CheckSpectrum(std::string unit);
     double ObtainVert(int crystal, double angle);
-    bool getReflection(double angle, double tetabra, double lamda, bool type_crystal, bool poli_p);
+    bool getReflection(double angle, double tetabra, double lamda, bool type_crystal, bool poli_p = false);
     double getNewTemp(int bin_tem, int& bin_fas, double& pha_tem);
     double getEnergy(double a_lamds_uni, double db_lamds_uni, double tw_d);
     std::vector<double> getLims(double tetaref, double delrot_min, double delrot_max, double fi_max, double teta_max, double teta_min);
     void initPlates();
-    void Make(int crystal, double y, double z);
+    void Make(int crystal, double y, double z, int &counts_sour, int &counts_C1, int &counts_C2_para, int &counts_detc_para, int &counts_C2_anti, int &counts_detc_anti);
     void fit(bool Parallel);
     void Read_CurveResponce();
     std::vector<double> horCorr(double y_pro_C1, double y_max_C1, double z_pro_C1, double z_max_C1, bool type_c);

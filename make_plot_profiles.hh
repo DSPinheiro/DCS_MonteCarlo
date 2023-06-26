@@ -25,7 +25,13 @@ class Make_plot_profiles{
             double energy_anti,
             double angle_anti,
             int toint_anti,
-            int n_plot, 
+            int n_plot,
+            int &counts_sour,
+            int &counts_C1,
+            int &counts_C2_para,
+            int &counts_detc_para,
+            int &counts_C2_anti,
+            int &counts_detc_anti, 
             SimulationInterface* w);
 };
 

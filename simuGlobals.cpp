@@ -94,13 +94,6 @@ double hist_image_plate_crystal2_anti[n_his_ima][n_his_ima];
 double hist_image_plate_detc_para[n_his_ima][n_his_ima];
 double hist_image_plate_detc_anti[n_his_ima][n_his_ima];
 
-double counts_sour;
-double counts_C1;
-double counts_C2_para;
-double counts_detc_para;
-double counts_C2_anti;
-double counts_detc_anti;
-
 
 double theta_chk;
 

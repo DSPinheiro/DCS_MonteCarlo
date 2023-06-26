@@ -195,6 +195,7 @@ struct Curved_Crystal {
 struct ParallelSettings {
     bool Make_GPU;
     int OMP_threads;
+    int system_max_threads;
 };
 
 //TODO: UNIMPLEMENTED ANALYSIS FEATURE

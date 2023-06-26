@@ -108,12 +108,7 @@ extern double hist_image_plate_crystal2_anti[n_his_ima][n_his_ima];
 extern double hist_image_plate_detc_para[n_his_ima][n_his_ima];
 extern double hist_image_plate_detc_anti[n_his_ima][n_his_ima];
 
-extern double counts_sour;
-extern double counts_C1;
-extern double counts_C2_para;
-extern double counts_detc_para;
-extern double counts_C2_anti;
-extern double counts_detc_anti;
+
 
 
 extern double theta_chk;

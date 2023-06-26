@@ -153,3 +153,9 @@ Curved_Crystal
 Curve_crystall=.false.					//enable curved crystals
 R_cur_crys_1=1.0e-10					//first crystal curvature radius
 R_cur_crys_2=1.0e-10					//second crystal curvature radius
+
+
+ParallelSettings
+
+Make_GPU=.false.
+OMP_threads=4

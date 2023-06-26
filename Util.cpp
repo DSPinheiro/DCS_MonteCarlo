@@ -20,9 +20,11 @@
 
 #include <string>
 
+#ifdef OPENMP
+#include <omp.h>
+#endif
 
 using namespace Util;
-
 
 /// <summary>
 /// Function to generate a random radius value according to a circular gaussian distribution.
@@ -40,9 +42,27 @@ using namespace Util;
 double Util::GaussianBox(double sta_dev, double mean) {
     double fac, rsq, v1, v2;
 
+    typedef std::mt19937 generator;
+    generator rng;
+    unsigned seed;
+
+    std::uniform_int_distribution<uint32_t> uniform(0, RAND_MAX);
+
+
+    std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
+    auto duration = now.time_since_epoch();
+    #ifdef OPENMP
+    // random seed for this event if we have openMP enabled
+    seed = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count() + 17 * omp_get_thread_num();
+    #else
+    seed = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
+    #endif
+
+    rng.seed(seed);
+
     while (true) {
-        v1 = 2 * ((double)rand() / RAND_MAX) - 1;
-        v2 = 2 * ((double)rand() / RAND_MAX) - 1;
+        v1 = 2 * ((double)uniform(rng) / RAND_MAX) - 1;
+        v2 = 2 * ((double)uniform(rng) / RAND_MAX) - 1;
         rsq = pow(v1, 2) + pow(v2, 2);
 
         if (!(rsq >= 1 || rsq == 0))
@@ -1323,6 +1343,24 @@ bool Util::getReflection(double angle, double tetabra, double lamda, bool type_c
         index++;
     }
 
+    typedef std::mt19937 generator;
+    generator rng;
+    unsigned seed;
+
+    std::uniform_int_distribution<uint32_t> uniform(0, RAND_MAX);
+
+
+    std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
+    auto duration = now.time_since_epoch();
+    #ifdef OPENMP
+    // random seed for this event if we have openMP enabled
+    seed = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count() + 17 * omp_get_thread_num();
+    #else
+    seed = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
+    #endif
+
+    rng.seed(seed);
+
 
     double energy_min_angle_resp, energy_max_angle_resp;
     energy_min_angle_resp = std::max(min_angle_resp[energy_resp_index], min_angle_resp[energy_resp_index + 1]);
@@ -1405,7 +1443,7 @@ bool Util::getReflection(double angle, double tetabra, double lamda, bool type_c
                 inte = ((inte2 - inte1) / (available_energies[energy_resp_index + 1] - available_energies[energy_resp_index])) * (energy - available_energies[energy_resp_index]) + inte1;
             }
 
-            p = ((double)rand() / RAND_MAX);
+            p = ((double)uniform(rng) / RAND_MAX);
 
             if (p < inte)
                 return true;
@@ -1441,8 +1479,26 @@ double Util::getNewTemp(int bin_tem, int& bin_fas, double& pha_tem) {
 
     std::stringstream logString;
 
+    typedef std::mt19937 generator;
+    generator rng;
+    unsigned seed;
+
+    std::uniform_int_distribution<uint32_t> uniform(0, RAND_MAX);
+
+
+    std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
+    auto duration = now.time_since_epoch();
+    #ifdef OPENMP
+    // random seed for this event if we have openMP enabled
+    seed = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count() + 17 * omp_get_thread_num();
+    #else
+    seed = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
+    #endif
+
+    rng.seed(seed);
+
     if (bin_fas > TemperatureParametersInput.TT_tempera) {
-        pha_tem = 2 * M_PI * ((double)rand() / RAND_MAX);
+        pha_tem = 2 * M_PI * ((double)uniform(rng) / RAND_MAX);
         bin_fas = 0;
     }
     else
@@ -1483,6 +1539,25 @@ double Util::getEnergy(double a_lamds_uni, double db_lamds_uni, double tw_d) {
     double p1, p2, natur_li, pm1, pm2, pm3, pm4, hit, rnd_inten, energy_t;
     int I_picks;
 
+    typedef std::mt19937 generator;
+    generator rng;
+    unsigned seed;
+
+    std::uniform_int_distribution<uint32_t> uniform(0, RAND_MAX);
+
+
+    std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
+    auto duration = now.time_since_epoch();
+    #ifdef OPENMP
+    // random seed for this event if we have openMP enabled
+    seed = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count() + 17 * omp_get_thread_num();
+    #else
+    seed = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
+    #endif
+
+    rng.seed(seed);
+
+
     if (FullEnergySpectrumInput.make_more_lines == 0)
         I_picks = 2;
     else if (FullEnergySpectrumInput.make_more_lines == 1) {
@@ -1500,7 +1575,7 @@ double Util::getEnergy(double a_lamds_uni, double db_lamds_uni, double tw_d) {
         }
 
 
-        p1 = ((double)rand() / RAND_MAX);
+        p1 = ((double)uniform(rng) / RAND_MAX);
 
 
         if (p1 < pm1)
@@ -1521,7 +1596,7 @@ double Util::getEnergy(double a_lamds_uni, double db_lamds_uni, double tw_d) {
         }
     }
     else {
-        rnd_inten = (double)rand() / RAND_MAX;
+        rnd_inten = (double)uniform(rng) / RAND_MAX;
         std::vector<double> x, y, x2;
 
         for (unsigned int i = 0; i < Energy_spec.size(); i++) {
@@ -1538,14 +1613,14 @@ double Util::getEnergy(double a_lamds_uni, double db_lamds_uni, double tw_d) {
 
     if (FullEnergySpectrumInput.make_more_lines == 0 || FullEnergySpectrumInput.make_more_lines == 1) {
         if (I_picks == 5) {
-            p2 = ((double)rand() / RAND_MAX);
+            p2 = ((double)uniform(rng) / RAND_MAX);
             return a_lamds_uni + db_lamds_uni * p2;
         }
         else {
             hit = -1;
 
             while (hit < 0 || hit > tw_d) {
-                p1 = ((double)rand() / RAND_MAX) * M_PI;
+                p1 = ((double)uniform(rng) / RAND_MAX) * M_PI;
 
                 natur_li = picks[I_picks - 1].natural_varia;
 
@@ -1707,7 +1782,13 @@ void Util::initPlates() {
 /// <param name="z">
 /// z value of the projected event position.
 /// </param>
-void Util::Make(int crystal, double y, double z) {
+void Util::Make(int crystal, double y, double z,
+                int &counts_sour,
+                int &counts_C1,
+                int &counts_C2_para,
+                int &counts_detc_para,
+                int &counts_C2_anti,
+                int &counts_detc_anti) {
 
     double max_plot_x_temp, max_plot_y_temp;
     int nx, ny;
