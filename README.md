@@ -19,6 +19,10 @@ cmake --build . --config Release --target install
 
 ## Changelog
 
+**26/06/2023**\
+Added OpenMP support for event generation.\
+The user can now specify a number of threads to use for the simulation.\
+
 **23/06/2023**\
 Merge standalone and library branches.\
 Small fixes.\
