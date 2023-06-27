@@ -42,12 +42,10 @@ using namespace Util;
 double Util::GaussianBox(double sta_dev, double mean) {
     double fac, rsq, v1, v2;
 
-    typedef std::mt19937 generator;
-    generator rng;
     unsigned seed;
 
+    static thread_local std::mt19937 generator;
     std::uniform_int_distribution<uint32_t> uniform(0, RAND_MAX);
-
 
     std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
     auto duration = now.time_since_epoch();
@@ -58,11 +56,11 @@ double Util::GaussianBox(double sta_dev, double mean) {
     seed = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
     #endif
 
-    rng.seed(seed);
+    generator.seed(seed);
 
     while (true) {
-        v1 = 2 * ((double)uniform(rng) / RAND_MAX) - 1;
-        v2 = 2 * ((double)uniform(rng) / RAND_MAX) - 1;
+        v1 = 2 * ((double)uniform(generator) / RAND_MAX) - 1;
+        v2 = 2 * ((double)uniform(generator) / RAND_MAX) - 1;
         rsq = pow(v1, 2) + pow(v2, 2);
 
         if (!(rsq >= 1 || rsq == 0))
@@ -1343,12 +1341,10 @@ bool Util::getReflection(double angle, double tetabra, double lamda, bool type_c
         index++;
     }
 
-    typedef std::mt19937 generator;
-    generator rng;
     unsigned seed;
 
+    static thread_local std::mt19937 generator;
     std::uniform_int_distribution<uint32_t> uniform(0, RAND_MAX);
-
 
     std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
     auto duration = now.time_since_epoch();
@@ -1359,7 +1355,7 @@ bool Util::getReflection(double angle, double tetabra, double lamda, bool type_c
     seed = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
     #endif
 
-    rng.seed(seed);
+    generator.seed(seed);
 
 
     double energy_min_angle_resp, energy_max_angle_resp;
@@ -1443,7 +1439,7 @@ bool Util::getReflection(double angle, double tetabra, double lamda, bool type_c
                 inte = ((inte2 - inte1) / (available_energies[energy_resp_index + 1] - available_energies[energy_resp_index])) * (energy - available_energies[energy_resp_index]) + inte1;
             }
 
-            p = ((double)uniform(rng) / RAND_MAX);
+            p = ((double)uniform(generator) / RAND_MAX);
 
             if (p < inte)
                 return true;
@@ -1479,12 +1475,10 @@ double Util::getNewTemp(int bin_tem, int& bin_fas, double& pha_tem) {
 
     std::stringstream logString;
 
-    typedef std::mt19937 generator;
-    generator rng;
     unsigned seed;
 
+    static thread_local std::mt19937 generator;
     std::uniform_int_distribution<uint32_t> uniform(0, RAND_MAX);
-
 
     std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
     auto duration = now.time_since_epoch();
@@ -1495,10 +1489,10 @@ double Util::getNewTemp(int bin_tem, int& bin_fas, double& pha_tem) {
     seed = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
     #endif
 
-    rng.seed(seed);
+    generator.seed(seed);
 
     if (bin_fas > TemperatureParametersInput.TT_tempera) {
-        pha_tem = 2 * M_PI * ((double)uniform(rng) / RAND_MAX);
+        pha_tem = 2 * M_PI * ((double)uniform(generator) / RAND_MAX);
         bin_fas = 0;
     }
     else
@@ -1539,12 +1533,10 @@ double Util::getEnergy(double a_lamds_uni, double db_lamds_uni, double tw_d) {
     double p1, p2, natur_li, pm1, pm2, pm3, pm4, hit, rnd_inten, energy_t;
     int I_picks;
 
-    typedef std::mt19937 generator;
-    generator rng;
     unsigned seed;
 
+    static thread_local std::mt19937 generator;
     std::uniform_int_distribution<uint32_t> uniform(0, RAND_MAX);
-
 
     std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
     auto duration = now.time_since_epoch();
@@ -1555,7 +1547,7 @@ double Util::getEnergy(double a_lamds_uni, double db_lamds_uni, double tw_d) {
     seed = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
     #endif
 
-    rng.seed(seed);
+    generator.seed(seed);
 
 
     if (FullEnergySpectrumInput.make_more_lines == 0)
@@ -1575,7 +1567,7 @@ double Util::getEnergy(double a_lamds_uni, double db_lamds_uni, double tw_d) {
         }
 
 
-        p1 = ((double)uniform(rng) / RAND_MAX);
+        p1 = ((double)uniform(generator) / RAND_MAX);
 
 
         if (p1 < pm1)
@@ -1596,7 +1588,7 @@ double Util::getEnergy(double a_lamds_uni, double db_lamds_uni, double tw_d) {
         }
     }
     else {
-        rnd_inten = (double)uniform(rng) / RAND_MAX;
+        rnd_inten = (double)uniform(generator) / RAND_MAX;
         std::vector<double> x, y, x2;
 
         for (unsigned int i = 0; i < Energy_spec.size(); i++) {
@@ -1613,14 +1605,14 @@ double Util::getEnergy(double a_lamds_uni, double db_lamds_uni, double tw_d) {
 
     if (FullEnergySpectrumInput.make_more_lines == 0 || FullEnergySpectrumInput.make_more_lines == 1) {
         if (I_picks == 5) {
-            p2 = ((double)uniform(rng) / RAND_MAX);
+            p2 = ((double)uniform(generator) / RAND_MAX);
             return a_lamds_uni + db_lamds_uni * p2;
         }
         else {
             hit = -1;
 
             while (hit < 0 || hit > tw_d) {
-                p1 = ((double)uniform(rng) / RAND_MAX) * M_PI;
+                p1 = ((double)uniform(generator) / RAND_MAX) * M_PI;
 
                 natur_li = picks[I_picks - 1].natural_varia;
 
@@ -2537,6 +2529,8 @@ void Util::Set_angs() {
         GeoParametersInput.OffsetRotCry1 *= convrad;
 
         GeoParametersInput.teta_table *= convrad;
+        GeoParametersInput.table_resolution *= convrad;
+        
         GeoParametersInput.teta_detec_para *= convrad;
         GeoParametersInput.teta_detec_anti *= convrad;
 

@@ -107,7 +107,7 @@ background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgb
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>0</y>
+              <y>-449</y>
               <width>343</width>
               <height>690</height>
              </rect>
@@ -983,9 +983,9 @@ background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgb
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>0</y>
+              <y>-156</y>
               <width>343</width>
-              <height>560</height>
+              <height>611</height>
              </rect>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -1243,6 +1243,40 @@ background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgb
                </item>
                <item>
                 <widget class="QDoubleSpinBox" name="src_aprt_32">
+                 <property name="suffix">
+                  <string>deg</string>
+                 </property>
+                 <property name="decimals">
+                  <number>5</number>
+                 </property>
+                 <property name="minimum">
+                  <double>-9999.000000000000000</double>
+                 </property>
+                 <property name="maximum">
+                  <double>9999.000000000000000</double>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="make_img_plates_7">
+               <property name="text">
+                <string>Make Gaussian Noise for Table Angle</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_45">
+               <item>
+                <widget class="QLabel" name="sg_label_41">
+                 <property name="text">
+                  <string>Table Angle Resolution</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QDoubleSpinBox" name="src_aprt_39">
                  <property name="suffix">
                   <string>deg</string>
                  </property>
@@ -1678,7 +1712,7 @@ background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgb
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>-655</y>
+              <y>0</y>
               <width>343</width>
               <height>871</height>
              </rect>

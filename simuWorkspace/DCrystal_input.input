@@ -71,6 +71,8 @@ tilt_C2=-0.0d0			//initial angle of the second crystal with respect to the table
 xsi=0.0d0			//effective missalignment between crystals (only works or simple simu)
 center_1cry_at= 0.0d0		//center first crystal incident spot at (effectively an offset ?)
 center_2cry_at= -0.60d0		//center second crystal incident spot at (effectively an offset ?)
+make_table_angleNoise=.false.	//Add a gaussian noise to the table angle
+table_resolution=0.001d0		//Resolution of the table angle encoder (effectively the FWHM of the gaussian noise)
 
 
 CurveVerticalTilt

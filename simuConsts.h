@@ -116,6 +116,8 @@ struct GeoParameters {
     double xsi;
     double center_1cry_at;
     double center_2cry_at;
+    bool make_table_noise;
+    double table_resolution;
 };
 
 struct CurveVerticalTilt {

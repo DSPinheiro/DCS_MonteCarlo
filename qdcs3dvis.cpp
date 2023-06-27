@@ -163,6 +163,11 @@ void QDCS3Dvis::setDelrot(float rot)
     delrot = rot;
 }
 
+void QDCS3Dvis::setTetaTable(double teta)
+{
+    teta_table = teta;
+}
+
 void QDCS3Dvis::setEventsToTrace(std::vector<std::vector<double>> events_para, std::vector<std::vector<double>> events_anti)
 {
     eventsToTrace_para = events_para;
@@ -731,7 +736,7 @@ void QDCS3Dvis::drawParallel(QMatrix4x4 &m)
     m.translate(-ap_posx, -ap_posy, -ap_posz);
     
 
-    table_angle = GeoParametersInput.teta_table + 90;
+    table_angle = teta_table + 90;
     c1_angle = GeoParametersInput.Exp_crys1 - GeoParametersInput.OffsetRotCry1;
     c2_angle_para = - table_angle - c1_angle + delrot * convdeg + 90;
     detec_angle_para = GeoParametersInput.teta_detec_para;
@@ -868,7 +873,7 @@ void QDCS3Dvis::drawAntiParallel(QMatrix4x4 &m)
     m.translate(-ap_posx, -ap_posy, -ap_posz);
 
 
-    table_angle = GeoParametersInput.teta_table + 90;
+    table_angle = teta_table + 90;
     c1_angle = GeoParametersInput.Exp_crys1 - GeoParametersInput.OffsetRotCry1;
     c2_angle_anti = table_angle + c1_angle + delrot * convdeg + 90;
     detec_angle_anti = GeoParametersInput.teta_detec_anti;
@@ -1017,7 +1022,7 @@ void QDCS3Dvis::drawParallelText(QMatrix4x4 &m)
     m.translate(-ap_posx, -ap_posy, -ap_posz);
 
 
-    table_angle = GeoParametersInput.teta_table + 90;
+    table_angle = teta_table + 90;
     c1_angle = GeoParametersInput.Exp_crys1 - GeoParametersInput.OffsetRotCry1;
     c2_angle_para = -90 - c1_angle + delrot * convdeg;
     detec_angle_para = GeoParametersInput.teta_detec_para;
@@ -1158,7 +1163,7 @@ void QDCS3Dvis::drawAntiParallelText(QMatrix4x4 &m)
     m.translate(-ap_posx, -ap_posy, -ap_posz);
 
 
-    table_angle = GeoParametersInput.teta_table + 90;
+    table_angle = teta_table + 90;
     c1_angle = GeoParametersInput.Exp_crys1 - GeoParametersInput.OffsetRotCry1;
     c2_angle_anti =  2 * table_angle + c1_angle + delrot * convdeg - 90;
     detec_angle_anti = GeoParametersInput.teta_detec_anti;
@@ -1296,7 +1301,7 @@ void QDCS3Dvis::drawObject(std::vector<QVector3D> vertices, GLuint vbo, GLuint u
 
 
 void QDCS3Dvis::drawParallelEvents(QMatrix4x4& m) {
-    table_angle = GeoParametersInput.teta_table + 90;
+    table_angle = teta_table + 90;
     c1_angle = GeoParametersInput.Exp_crys1 - GeoParametersInput.OffsetRotCry1;
     c2_angle_para = -table_angle - c1_angle + delrot * convdeg + 90;
     detec_angle_para = GeoParametersInput.teta_detec_para;
@@ -1392,7 +1397,7 @@ void QDCS3Dvis::drawAntiparallelEvents(QMatrix4x4& m) {
     table_posz -= 30.0f;
 
     
-    table_angle = GeoParametersInput.teta_table + 90;
+    table_angle = teta_table + 90;
     c1_angle = GeoParametersInput.Exp_crys1 - GeoParametersInput.OffsetRotCry1;
     c2_angle_anti = table_angle + c1_angle + delrot * convdeg + 90;
     detec_angle_anti = GeoParametersInput.teta_detec_anti;

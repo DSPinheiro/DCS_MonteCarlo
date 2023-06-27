@@ -260,6 +260,8 @@ GUISettingsWindow::GUISettingsWindow(QWidget *parent) :
     connect(ui->src_aprt_30, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { GeoParametersInput.xsi = v; });
     connect(ui->src_aprt_31, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { GeoParametersInput.center_1cry_at = v; });
     connect(ui->src_aprt_32, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { GeoParametersInput.center_2cry_at = v; });
+    connect(ui->make_img_plates_7, &QCheckBox::stateChanged, this, [this](int s) { GeoParametersInput.make_table_noise = (bool)s; });
+    connect(ui->src_aprt_39, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { GeoParametersInput.table_resolution = v; });
     connect(ui->src_aprt_33, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { CurveVerticalTiltInput.phas_tilt1 = v; });
     connect(ui->src_aprt_34, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { CurveVerticalTiltInput.phas_tilt2 = v; });
     connect(ui->src_aprt_35, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { CurveVerticalTiltInput.offsettilt1 = v; });
@@ -651,6 +653,8 @@ void GUISettingsWindow::updateElements()
     ui->src_aprt_30->setValue(GeoParametersInput.xsi);
     ui->src_aprt_31->setValue(GeoParametersInput.center_1cry_at);
     ui->src_aprt_32->setValue(GeoParametersInput.center_2cry_at);
+    ui->src_aprt_39->setValue(GeoParametersInput.table_resolution);
+    ui->make_img_plates_7->setChecked(GeoParametersInput.make_table_noise);
     ui->src_aprt_33->setValue(CurveVerticalTiltInput.phas_tilt1);
     ui->src_aprt_34->setValue(CurveVerticalTiltInput.phas_tilt2);
     ui->src_aprt_35->setValue(CurveVerticalTiltInput.offsettilt1);

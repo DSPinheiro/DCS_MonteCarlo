@@ -70,6 +70,7 @@ signals:
     void changePlatesSignal(Plates plates);
     void changeTimesSignal(Times times);
     void LogLineSignal(std::string line);
+    void setTetaTableSignal(double teta);
     void showDoneDialogSignal();
     
 public slots:
@@ -78,6 +79,7 @@ public slots:
     void changePlates(Plates plates);
     void changeTimes(Times times);
     void LogLine(std::string line);
+    void setTetaTable(double teta);
     void showDoneDialog();
     void startSimulationThread();
     

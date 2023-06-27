@@ -275,6 +275,12 @@ int InputSettingsPrompt::configure(const std::string& inFile)
                     }else if(items[0] == "S_shi_ver_B"){
                         trim(items[1]);
                         GeoParametersInput.center_2cry_at = std::stod(split(items[1], "d0")[0]);
+                    }else if(items[0] == "make_table_angleNoise"){
+                        trim(items[1]);
+                        GeoParametersInput.make_table_noise = (items[1] == ".true.");
+                    }else if(items[0] == "table_resolution"){
+                        trim(items[1]);
+                        GeoParametersInput.table_resolution = std::stod(split(items[1], "d0")[0]);
                     }
 
                 }else if(currStruct == "CurveVerticalTilt"){

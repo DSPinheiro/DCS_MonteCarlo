@@ -39,11 +39,8 @@ bool Source_complex::run_Source(SimulationInterface *w){
     double y_pro_C1, z_pro_C1, Costeta_CHC, Sinteta_CHC, rx_rot, ry_rot, cos_fidirtilt2_para, cos_fidirtilt2_anti, corr_dis, sin_tetatab_del_dir, rx_rot_sec, ry_rot_sec;
     double tetadir_det, tan_tetadir_det, cos_tetadir_det, fidir_det, tan_fidir_det, cos_fidir_det, corr_dis_d_pa, y_pro_C1_d_pa, cos_tetap_det, sin_tetap_det, z_det, y_det, r_det;
     
-    typedef std::mt19937 generator;
-    generator rng;
+    
     unsigned seed;
-
-    uniform_int_distribution<uint32_t> uniform(0, RAND_MAX);
 
 
     vector<int> int_time_out;
@@ -154,8 +151,16 @@ bool Source_complex::run_Source(SimulationInterface *w){
 
     if(FullEnergySpectrumInput.make_more_lines == 0){
         auxBragg = asin(picks[1].lamda / tw_d1_para);
-        teta_max_L = min(M_PI / 2 + GeoParametersInput.teta_table * M_PI / 180 + GeoParametersInput.Exp_crys1 * M_PI / 180 - auxBragg + limitReflec, teta_max_L);
-        teta_min_L = max(M_PI / 2 + GeoParametersInput.teta_table * M_PI / 180 + GeoParametersInput.Exp_crys1 * M_PI / 180 - auxBragg - limitReflec, teta_min_L);
+        if(GeoParametersInput.make_table_noise)
+        {
+            teta_max_L = min(M_PI / 2 + (GeoParametersInput.teta_table + GeoParametersInput.table_resolution) * M_PI / 180 + GeoParametersInput.Exp_crys1 * M_PI / 180 - auxBragg + limitReflec, teta_max_L);
+            teta_min_L = max(M_PI / 2 + (GeoParametersInput.teta_table - GeoParametersInput.table_resolution) * M_PI / 180 + GeoParametersInput.Exp_crys1 * M_PI / 180 - auxBragg - limitReflec, teta_min_L);
+        }
+        else
+        {
+            teta_max_L = min(M_PI / 2 + GeoParametersInput.teta_table * M_PI / 180 + GeoParametersInput.Exp_crys1 * M_PI / 180 - auxBragg + limitReflec, teta_max_L);
+            teta_min_L = max(M_PI / 2 + GeoParametersInput.teta_table * M_PI / 180 + GeoParametersInput.Exp_crys1 * M_PI / 180 - auxBragg - limitReflec, teta_min_L);
+        }
     }
 
 
@@ -292,6 +297,8 @@ bool Source_complex::run_Source(SimulationInterface *w){
     energy_sum_anti.resize(PlotParametersInput.nubins);
     
     
+    double teta_table_thread = GeoParametersInput.teta_table;
+
     while(numbins < PlotParametersInput.nubins){
         numbins++;
 
@@ -375,7 +382,7 @@ bool Source_complex::run_Source(SimulationInterface *w){
         double energy_sum_para_thread;
         double energy_sum_anti_thread;    
 
-        #pragma omp parallel firstprivate(seed, rng,\
+        #pragma omp parallel firstprivate(seed, teta_table_thread,\
                                         p, tetadir, sin_tetadir, cos_tetadir, tan_tetadir, cos_tetadirCry1,\
                                         fidir, sin_fidir, cos_fidir, tan_fidir, cos_fidirtilt,\
                                         z, y, r, tetap, sin_tetap, cos_tetap, var_temp,\
@@ -404,7 +411,14 @@ bool Source_complex::run_Source(SimulationInterface *w){
             seed = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
             #endif
 
-            rng.seed(seed);
+            static thread_local std::mt19937 generator;
+            uniform_int_distribution<uint32_t> uniform(0, RAND_MAX);
+            
+            // Density function -> https://cplusplus.com/reference/random/normal_distribution/
+            normal_distribution<double> table_noise(0, (GeoParametersInput.table_resolution / 2.355) / 3.0);
+
+
+            generator.seed(seed);
             
             //Temporary event to show in the 3D view
             //If we have less than maxEventNum we just append otherwise we see
@@ -414,7 +428,7 @@ bool Source_complex::run_Source(SimulationInterface *w){
             vector<double> tmpEvent;
 
             if(UserSettingsInput.Make_Horizontal){
-                p = del_teta_L * ((double)uniform(rng) / RAND_MAX) + teta_min_L;
+                p = del_teta_L * ((double)uniform(generator) / RAND_MAX) + teta_min_L;
                 
                 tetadir = p;
             }else
@@ -424,11 +438,31 @@ bool Source_complex::run_Source(SimulationInterface *w){
             sin_tetadir = sin(tetadir);
             cos_tetadir = cos(tetadir);
             tan_tetadir = sin_tetadir / cos_tetadir;
-            cos_tetadirCry1 = cos(tetadir + GeoParametersInput.teta_table * convrad);
+
+            if(GeoParametersInput.make_table_noise)
+            {
+                teta_table_thread = GeoParametersInput.teta_table;
+                teta_table_thread += table_noise(generator);
+                
+                #ifdef QT_EXISTS
+                
+                #ifdef OPENMP
+                #pragma omp critical
+                {
+                #endif
+                    emit w->setTetaTableSignal(teta_table_thread);
+                #ifdef OPENMP
+                }
+                #endif
+
+                #endif
+            }
+
+            cos_tetadirCry1 = cos(tetadir + teta_table_thread * convrad);
 
 
             if(UserSettingsInput.Make_Vertical){
-                p = del_fi_L * ((double)uniform(rng) / RAND_MAX) + fi_min_L;
+                p = del_fi_L * ((double)uniform(generator) / RAND_MAX) + fi_min_L;
                 fidir = p;
             }else
                 fidir = GeoParametersInput.xsi * convrad;
@@ -465,8 +499,8 @@ bool Source_complex::run_Source(SimulationInterface *w){
             }else if(GeoParapathlengthsInput.type_source == "UC"){
                 r = S_sour_2 + 1;
                 while(r > S_sour_2){
-                    z = ((double)uniform(rng) / RAND_MAX) * GeolengthelementsInput.S_sour - S_sour_2;
-                    y = ((double)uniform(rng) / RAND_MAX) * GeolengthelementsInput.S_sour - S_sour_2;
+                    z = ((double)uniform(generator) / RAND_MAX) * GeolengthelementsInput.S_sour - S_sour_2;
+                    y = ((double)uniform(generator) / RAND_MAX) * GeolengthelementsInput.S_sour - S_sour_2;
                     r = sqrt(pow(z, 2) + pow(y, 2));
                 }
 
@@ -489,7 +523,7 @@ bool Source_complex::run_Source(SimulationInterface *w){
                     cos_tetap = - 1 / sqrt(1 + pow(var_temp, 2));
                 }
             }else if(GeoParapathlengthsInput.type_source == "G"){
-                p = 2 * M_PI * ((double)uniform(rng) / RAND_MAX);
+                p = 2 * M_PI * ((double)uniform(generator) / RAND_MAX);
                 tetap = p;
                 sin_tetap = sin(tetap);
                 cos_tetap = cos(tetap);
@@ -514,8 +548,8 @@ bool Source_complex::run_Source(SimulationInterface *w){
                 }
 
             }else if(GeoParapathlengthsInput.type_source == "UR"){
-                z = ((double)uniform(rng) / RAND_MAX) * GeolengthelementsInput.z_sour - z_sour_2;
-                y = ((double)uniform(rng) / RAND_MAX) * GeolengthelementsInput.y_sour - y_sour_2;
+                z = ((double)uniform(generator) / RAND_MAX) * GeolengthelementsInput.z_sour - z_sour_2;
+                y = ((double)uniform(generator) / RAND_MAX) * GeolengthelementsInput.y_sour - y_sour_2;
 
                 z += GeolengthelementsInput.S_shi_ver_B;
                 y += GeolengthelementsInput.S_shi_hor_B;
@@ -629,7 +663,7 @@ bool Source_complex::run_Source(SimulationInterface *w){
 
                     if(PolarizationParametersInput.mka_poli)
                     {
-                        if(((double)uniform(rng) / RAND_MAX) < PolarizationParametersInput.relationP_S)
+                        if(((double)uniform(generator) / RAND_MAX) < PolarizationParametersInput.relationP_S)
                             poliP = true;
                         else
                             poliP = false;
@@ -1282,7 +1316,7 @@ bool Source_complex::run_Source(SimulationInterface *w){
             }
 
             if(GraphOptionsInput.make_image_plates){
-            emit w->changeStats(
+            emit w->changeStatsSignal(
                 SimulationInterface::Stats
                 {
                     counts_sour,
@@ -1366,11 +1400,11 @@ bool Source_complex::run_Source(SimulationInterface *w){
         if (numbins % 5 == 0) {
             int_time_out = Obtain_time::simuTime(
                 1,
-                #ifdef OPENMP
-                (int)(((PlotParametersInput.nubins - numbins) / 5) / ParallelSettingsInput.OMP_threads),
-                #else
+                // #ifdef OPENMP
+                // (int)(((PlotParametersInput.nubins - numbins) / 5) / ParallelSettingsInput.OMP_threads),
+                // #else
                 (int)((PlotParametersInput.nubins - numbins) / 5),
-                #endif
+                // #endif
                 int_time_out[0],
                 int_time_out[1],
                 w);

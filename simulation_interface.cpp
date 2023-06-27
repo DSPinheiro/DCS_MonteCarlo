@@ -406,6 +406,7 @@ SimulationInterface::SimulationInterface(QWidget *parent) :
     connect(this, SIGNAL(changePlatesSignal(Plates)), this, SLOT(changePlates(Plates)), Qt::QueuedConnection);
     connect(this, SIGNAL(changeTimesSignal(Times)), this, SLOT(changeTimes(Times)), Qt::QueuedConnection);
     connect(this, SIGNAL(LogLineSignal(std::string)), this, SLOT(LogLine(std::string)), Qt::QueuedConnection);
+    connect(this, SIGNAL(setTetaTableSignal(double)), this, SLOT(setTetaTable(double)), Qt::QueuedConnection);
     connect(this, SIGNAL(showDoneDialogSignal()), this, SLOT(showDoneDialog()), Qt::QueuedConnection);
     
     //make the logbox read only
@@ -629,4 +630,9 @@ void SimulationInterface::changeTimes(Times times){
 void SimulationInterface::LogLine(std::string line) {
     ui->logBox->appendPlainText(QString(line.c_str()));
 }
+
+void SimulationInterface::setTetaTable(double teta) {
+    ui->GL3Dvis->setTetaTable(teta);
+}
+
 #endif

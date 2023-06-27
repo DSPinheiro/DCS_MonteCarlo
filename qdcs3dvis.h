@@ -28,6 +28,7 @@ public:
     ~QDCS3Dvis();
 
     void setDelrot(float rot);
+    void setTetaTable(double teta);
     void setEventsToTrace(std::vector<std::vector<double>> events_para, std::vector<std::vector<double>> events_anti);
 signals:
 
@@ -123,6 +124,8 @@ private:
     float table_posz;
 
     float delrot;
+
+    double teta_table = GeoParametersInput.teta_table;
 
     float eventLineSize = 0.05f;
 
