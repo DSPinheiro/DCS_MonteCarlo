@@ -77,6 +77,7 @@ extern bool root_script;
 extern double teta_crys1;
 
 extern std::vector<energy_gen> Energy_spec;
+extern energy_vecs Energy_Spectrum_Vectors;
 
 extern char File_simu[1024];
 extern char Output_dir[1024];
@@ -90,6 +91,7 @@ extern double ang_anti_pre;
 
 extern std::vector<double> available_energies;
 extern std::vector<std::vector<plotresponc>> plotresponce_mide;
+extern std::vector<plotresponc_vecs> Crystal_Responces;
 
 extern std::vector<double> min_angle_resp, max_angle_resp;
 
@@ -121,6 +123,8 @@ extern bool never_set_angle;
 extern double gauss_Doop_ev;
 
 extern bool export_prof;
+
+extern double ochisq;
 
 
 #endif /* SIMUGLOBALS_HH_ */

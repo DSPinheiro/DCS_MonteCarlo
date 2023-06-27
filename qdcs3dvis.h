@@ -125,7 +125,7 @@ private:
 
     float delrot;
 
-    double teta_table = GeoParametersInput.teta_table;
+    double teta_table;
 
     float eventLineSize = 0.05f;
 

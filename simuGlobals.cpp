@@ -63,6 +63,7 @@ bool root_script;
 double teta_crys1;
 
 std::vector<energy_gen> Energy_spec;
+energy_vecs Energy_Spectrum_Vectors;
 
 char File_simu[1024];
 char Output_dir[1024];
@@ -76,6 +77,7 @@ double ang_anti_pre;
 
 std::vector<double> available_energies;
 std::vector<std::vector<plotresponc>> plotresponce_mide;
+std::vector<plotresponc_vecs> Crystal_Responces;
 
 std::vector<double> min_angle_resp, max_angle_resp;
 
@@ -105,3 +107,5 @@ bool never_set_angle;
 double gauss_Doop_ev;
 
 bool export_prof;
+
+double ochisq;

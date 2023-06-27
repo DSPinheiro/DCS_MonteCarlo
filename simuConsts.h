@@ -34,6 +34,14 @@ struct energy_gen {
     double lambda_two_deriv;
 };
 
+struct energy_vecs {
+    std::vector<double> lamdas;
+    std::vector<double> intensities;
+    std::vector<double> cum_ints;
+    std::vector<double> intensity_two_derivs;
+    std::vector<double> lamda_two_derivs;
+};
+
 struct plotresponc {
     double degree;
     double reflecti_total;
@@ -42,6 +50,16 @@ struct plotresponc {
     double reflecti_two_deriv_p;
     double reflecti_total_s;
     double reflecti_two_deriv_s;
+};
+
+struct plotresponc_vecs {
+    std::vector<double> degrees;
+    std::vector<double> reflecti_totals;
+    std::vector<double> reflecti_two_derivs;
+    std::vector<double> reflecti_total_ps;
+    std::vector<double> reflecti_two_deriv_ps;
+    std::vector<double> reflecti_total_ss;
+    std::vector<double> reflecti_two_deriv_ss;
 };
 
 struct plot {

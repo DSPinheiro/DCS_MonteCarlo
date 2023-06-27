@@ -298,6 +298,9 @@ bool Source_complex::run_Source(SimulationInterface *w){
     
     
     double teta_table_thread = GeoParametersInput.teta_table;
+    #ifdef QT_EXISTS
+    emit w->setTetaTableSignal(teta_table_thread);
+    #endif
 
     while(numbins < PlotParametersInput.nubins){
         numbins++;

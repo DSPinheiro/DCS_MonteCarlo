@@ -535,7 +535,7 @@ void Util::mrq_min(std::vector<double> x, std::vector<double> y, std::vector<dou
 
     const int MMAX = 20;
 
-    double ochisq, atry[MMAX], beta[MMAX], da[MMAX];
+    double atry[MMAX], beta[MMAX], da[MMAX];
 
     if (alamda < 0) {
         mfit = 0;
@@ -1371,46 +1371,54 @@ bool Util::getReflection(double angle, double tetabra, double lamda, bool type_c
                 if (poli_p) {
                     std::vector<double> x1, y1, y12;
 
-                    for (unsigned int i = 0; i < plotresponce_mide.size(); i++) {
-                        x1.push_back(plotresponce_mide[energy_resp_index][i].degree);
-                        y1.push_back(plotresponce_mide[energy_resp_index][i].reflecti_total_p);
-                        y12.push_back(plotresponce_mide[energy_resp_index][i].reflecti_two_deriv_p);
-                    }
+                    // for (unsigned int i = 0; i < plotresponce_mide.size(); i++) {
+                    //     x1.push_back(plotresponce_mide[energy_resp_index][i].degree);
+                    //     y1.push_back(plotresponce_mide[energy_resp_index][i].reflecti_total_p);
+                    //     y12.push_back(plotresponce_mide[energy_resp_index][i].reflecti_two_deriv_p);
+                    // }
 
-                    inte1 = Util::splint_te(x1, y1, y12, dif);
+                    inte1 = Util::splint_te(Crystal_Responces[energy_resp_index].degrees,
+                                            Crystal_Responces[energy_resp_index].reflecti_total_ps,
+                                            Crystal_Responces[energy_resp_index].reflecti_two_deriv_ps, dif);
 
                     std::vector<double> x2, y2, y22;
 
-                    for (unsigned int i = 0; i < plotresponce_mide.size(); i++) {
-                        x2.push_back(plotresponce_mide[energy_resp_index + 1][i].degree);
-                        y2.push_back(plotresponce_mide[energy_resp_index + 1][i].reflecti_total_p);
-                        y22.push_back(plotresponce_mide[energy_resp_index + 1][i].reflecti_two_deriv_p);
-                    }
+                    // for (unsigned int i = 0; i < plotresponce_mide.size(); i++) {
+                    //     x2.push_back(plotresponce_mide[energy_resp_index + 1][i].degree);
+                    //     y2.push_back(plotresponce_mide[energy_resp_index + 1][i].reflecti_total_p);
+                    //     y22.push_back(plotresponce_mide[energy_resp_index + 1][i].reflecti_two_deriv_p);
+                    // }
 
-                    inte2 = Util::splint_te(x2, y2, y22, dif);
+                    inte2 = Util::splint_te(Crystal_Responces[energy_resp_index + 1].degrees,
+                                            Crystal_Responces[energy_resp_index + 1].reflecti_total_ps,
+                                            Crystal_Responces[energy_resp_index + 1].reflecti_total_ps, dif);
 
                     inte = ((inte2 - inte1) / (available_energies[energy_resp_index + 1] - available_energies[energy_resp_index])) * (energy - available_energies[energy_resp_index]) + inte1;
                 }
                 else {
                     std::vector<double> x1, y1, y12;
 
-                    for (unsigned int i = 0; i < plotresponce_mide.size(); i++) {
-                        x1.push_back(plotresponce_mide[energy_resp_index][i].degree);
-                        y1.push_back(plotresponce_mide[energy_resp_index][i].reflecti_total_s);
-                        y12.push_back(plotresponce_mide[energy_resp_index][i].reflecti_two_deriv_s);
-                    }
+                    // for (unsigned int i = 0; i < plotresponce_mide.size(); i++) {
+                    //     x1.push_back(plotresponce_mide[energy_resp_index][i].degree);
+                    //     y1.push_back(plotresponce_mide[energy_resp_index][i].reflecti_total_s);
+                    //     y12.push_back(plotresponce_mide[energy_resp_index][i].reflecti_two_deriv_s);
+                    // }
 
-                    inte1 = Util::splint_te(x1, y1, y12, dif);
+                    inte1 = Util::splint_te(Crystal_Responces[energy_resp_index].degrees,
+                                            Crystal_Responces[energy_resp_index].reflecti_total_ss,
+                                            Crystal_Responces[energy_resp_index].reflecti_two_deriv_ss, dif);
 
                     std::vector<double> x2, y2, y22;
 
-                    for (unsigned int i = 0; i < plotresponce_mide.size(); i++) {
-                        x2.push_back(plotresponce_mide[energy_resp_index + 1][i].degree);
-                        y2.push_back(plotresponce_mide[energy_resp_index + 1][i].reflecti_total_s);
-                        y22.push_back(plotresponce_mide[energy_resp_index + 1][i].reflecti_two_deriv_s);
-                    }
+                    // for (unsigned int i = 0; i < plotresponce_mide.size(); i++) {
+                    //     x2.push_back(plotresponce_mide[energy_resp_index + 1][i].degree);
+                    //     y2.push_back(plotresponce_mide[energy_resp_index + 1][i].reflecti_total_s);
+                    //     y22.push_back(plotresponce_mide[energy_resp_index + 1][i].reflecti_two_deriv_s);
+                    // }
 
-                    inte2 = Util::splint_te(x2, y2, y22, dif);
+                    inte2 = Util::splint_te(Crystal_Responces[energy_resp_index + 1].degrees,
+                                            Crystal_Responces[energy_resp_index + 1].reflecti_total_ss,
+                                            Crystal_Responces[energy_resp_index + 1].reflecti_two_deriv_ss, dif);
 
                     inte = ((inte2 - inte1) / (available_energies[energy_resp_index + 1] - available_energies[energy_resp_index])) * (energy - available_energies[energy_resp_index]) + inte1;
                 }
@@ -1418,23 +1426,27 @@ bool Util::getReflection(double angle, double tetabra, double lamda, bool type_c
             else {
                 std::vector<double> x1, y1, y12;
 
-                for (unsigned int i = 0; i < plotresponce_mide[energy_resp_index].size(); i++) {
-                    x1.push_back(plotresponce_mide[energy_resp_index][i].degree);
-                    y1.push_back(plotresponce_mide[energy_resp_index][i].reflecti_total);
-                    y12.push_back(plotresponce_mide[energy_resp_index][i].reflecti_two_deriv);
-                }
+                // for (unsigned int i = 0; i < plotresponce_mide[energy_resp_index].size(); i++) {
+                //     x1.push_back(plotresponce_mide[energy_resp_index][i].degree);
+                //     y1.push_back(plotresponce_mide[energy_resp_index][i].reflecti_total);
+                //     y12.push_back(plotresponce_mide[energy_resp_index][i].reflecti_two_deriv);
+                // }
 
-                inte1 = Util::splint_te(x1, y1, y12, dif);
+                inte1 = Util::splint_te(Crystal_Responces[energy_resp_index].degrees,
+                                        Crystal_Responces[energy_resp_index].reflecti_totals,
+                                        Crystal_Responces[energy_resp_index].reflecti_two_derivs, dif);
 
                 std::vector<double> x2, y2, y22;
 
-                for (unsigned int i = 0; i < plotresponce_mide[energy_resp_index + 1].size(); i++) {
-                    x2.push_back(plotresponce_mide[energy_resp_index + 1][i].degree);
-                    y2.push_back(plotresponce_mide[energy_resp_index + 1][i].reflecti_total);
-                    y22.push_back(plotresponce_mide[energy_resp_index + 1][i].reflecti_two_deriv);
-                }
+                // for (unsigned int i = 0; i < plotresponce_mide[energy_resp_index + 1].size(); i++) {
+                //     x2.push_back(plotresponce_mide[energy_resp_index + 1][i].degree);
+                //     y2.push_back(plotresponce_mide[energy_resp_index + 1][i].reflecti_total);
+                //     y22.push_back(plotresponce_mide[energy_resp_index + 1][i].reflecti_two_deriv);
+                // }
 
-                inte2 = Util::splint_te(x2, y2, y22, dif);
+                inte2 = Util::splint_te(Crystal_Responces[energy_resp_index + 1].degrees,
+                                        Crystal_Responces[energy_resp_index + 1].reflecti_totals,
+                                        Crystal_Responces[energy_resp_index + 1].reflecti_two_derivs, dif);
 
                 inte = ((inte2 - inte1) / (available_energies[energy_resp_index + 1] - available_energies[energy_resp_index])) * (energy - available_energies[energy_resp_index]) + inte1;
             }
@@ -1591,13 +1603,13 @@ double Util::getEnergy(double a_lamds_uni, double db_lamds_uni, double tw_d) {
         rnd_inten = (double)uniform(generator) / RAND_MAX;
         std::vector<double> x, y, x2;
 
-        for (unsigned int i = 0; i < Energy_spec.size(); i++) {
-            x.push_back(Energy_spec[i].lamda);
-            y.push_back(Energy_spec[i].cum_int);
-            x2.push_back(Energy_spec[i].lambda_two_deriv);
-        }
+        // for (unsigned int i = 0; i < Energy_spec.size(); i++) {
+        //     x.push_back(Energy_spec[i].lamda);
+        //     y.push_back(Energy_spec[i].cum_int);
+        //     x2.push_back(Energy_spec[i].lambda_two_deriv);
+        // }
 
-        energy_t = Util::splint_te(y, x, x2, rnd_inten);
+        energy_t = Util::splint_te(Energy_Spectrum_Vectors.cum_ints, Energy_Spectrum_Vectors.lamdas, Energy_Spectrum_Vectors.lamda_two_derivs, rnd_inten);
 
         return Convert_Ag_minusone_eV / energy_t;
 
@@ -2274,10 +2286,33 @@ void Util::Read_CurveResponce() {
             plotresponce_mide[energyIndex][i].reflecti_two_deriv_p = y2_p[i];
         }
 
+
+        std::vector<double> degrees, reflecti_totals, reflecti_two_derivs, reflecti_total_ps, reflecti_two_deriv_ps, reflecti_total_ss, reflecti_two_deriv_ss;
+
+        for (unsigned int i = 0; i < plotresponce_mide[energyIndex].size(); i++) {
+            degrees.push_back(plotresponce_mide[energyIndex][i].degree);
+            reflecti_totals.push_back(plotresponce_mide[energyIndex][i].reflecti_total);
+            reflecti_two_derivs.push_back(plotresponce_mide[energyIndex][i].reflecti_two_deriv);
+            reflecti_total_ps.push_back(plotresponce_mide[energyIndex][i].reflecti_total_p);
+            reflecti_two_deriv_ps.push_back(plotresponce_mide[energyIndex][i].reflecti_two_deriv_p);
+            reflecti_total_ss.push_back(plotresponce_mide[energyIndex][i].reflecti_total_s);
+            reflecti_two_deriv_ss.push_back(plotresponce_mide[energyIndex][i].reflecti_two_deriv_s);
+        }
+
+        plotresponc_vecs responce_vecs = {
+            degrees,
+            reflecti_totals,
+            reflecti_two_derivs,
+            reflecti_total_ps,
+            reflecti_two_deriv_ps,
+            reflecti_total_ss,
+            reflecti_two_deriv_ss
+        };
+
+        Crystal_Responces.push_back(responce_vecs);
+
         energyIndex++;
-
     }
-
 }
 
 
@@ -2437,6 +2472,24 @@ void Util::Read_EnergySpectrum(const std::string& filename) {
         Energy_spec[i].intensity_two_deriv = y2[i];
         Energy_spec[i].lambda_two_deriv = x2[i];
     }
+
+    std::vector<double> lamdas, intensities, cum_ints, intensity_two_derivs, lamda_two_derivs;
+
+    for (unsigned int i = 0; i < Energy_spec.size(); i++) {
+        lamdas.push_back(Energy_spec[i].lamda);
+        intensities.push_back(Energy_spec[i].cum_int);
+        cum_ints.push_back(Energy_spec[i].cum_int);
+        intensity_two_derivs.push_back(Energy_spec[i].intensity_two_deriv);
+        lamda_two_derivs.push_back(Energy_spec[i].lambda_two_deriv);
+    }
+
+    Energy_Spectrum_Vectors = {
+        lamdas,
+        intensities,
+        cum_ints,
+        intensity_two_derivs,
+        lamda_two_derivs
+    };
 
 }
 

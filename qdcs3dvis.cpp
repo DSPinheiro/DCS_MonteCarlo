@@ -16,7 +16,7 @@ QDCS3Dvis::QDCS3Dvis(QWidget* parent)
     
     delrot = 0.0f;
     tetaref = 90 - teta_crys1;
-
+    
     reference = parent;
 }
 
