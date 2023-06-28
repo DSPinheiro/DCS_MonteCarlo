@@ -398,12 +398,20 @@ void Simu_Starter::Make_Simu(SimulationInterface* w){
         #endif
 
         if (UserSettingsInput.fitting) {
-            if (UserSettingsInput.see_para)
-                Util::fit(true);
-            if (UserSettingsInput.see_anti)
-                Util::fit(false);
-            if (UserSettingsInput.see_para && UserSettingsInput.see_anti) {}
-            Util::analyse();
+            // if (UserSettingsInput.see_para)
+            //     Util::fit(true);
+            // if (UserSettingsInput.see_anti)
+            //     Util::fit(false);
+            // if (UserSettingsInput.see_para && UserSettingsInput.see_anti) {}
+            // Util::analyse();
+
+            #ifdef QT_EXISTS
+            emit w->LogLineSignal("Fitting analysis currently disabled!!!\n");
+            #endif
+
+            gener_out << endl;
+            gener_out << "Fitting analysis currently disabled!!!" << endl;
+            gener_out << endl;
         }
 
         if (UserSettingsInput.make_mask_test)

@@ -382,8 +382,8 @@ bool Source_complex::run_Source(SimulationInterface *w){
         vector<vector<double>> eventsToTrace_anti;
 
         #ifdef OPENMP
-        double energy_sum_para_thread;
-        double energy_sum_anti_thread;    
+        double energy_sum_para_thread = 0;
+        double energy_sum_anti_thread = 0;
 
         #pragma omp parallel firstprivate(seed, teta_table_thread,\
                                         p, tetadir, sin_tetadir, cos_tetadir, tan_tetadir, cos_tetadirCry1,\
@@ -1191,7 +1191,11 @@ bool Source_complex::run_Source(SimulationInterface *w){
             I++;
 
             #ifdef QT_EXISTS
-                w->setPctDone(static_cast<float>(++total_current_bins) / total_expexted_bins);
+                #ifdef OPENMP
+                #pragma omp atomic
+                #endif
+                total_current_bins += 1;
+                w->setPctDone(static_cast<float>(total_current_bins) / total_expexted_bins);
             #endif
         }
 

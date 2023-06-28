@@ -108,4 +108,4 @@ double gauss_Doop_ev;
 
 bool export_prof;
 
-double ochisq;
+double ochisq = std::numeric_limits<double>::infinity();

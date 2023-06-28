@@ -22,12 +22,15 @@ void Mask_test_c2::test_c2(){
     c.run_Source(nullptr);
 
     if(UserSettingsInput.fitting){
-        if(UserSettingsInput.see_para)
-            Util::fit(true);
-        if(UserSettingsInput.see_anti)
-            Util::fit(false);
-        if(UserSettingsInput.see_para && UserSettingsInput.see_anti){}
-            Util::analyse();
+        // if(UserSettingsInput.see_para)
+        //     Util::fit(true);
+        // if(UserSettingsInput.see_anti)
+        //     Util::fit(false);
+        // if(UserSettingsInput.see_para && UserSettingsInput.see_anti){}
+        //     Util::analyse();
+        gener_out << endl;
+        gener_out << "Fitting analysis currently disabled!!!" << endl;
+        gener_out << endl;
     }
 
     inte_mask_down_para = a_para_voig[1];
@@ -38,12 +41,16 @@ void Mask_test_c2::test_c2(){
     c.run_Source(nullptr);
 
     if(UserSettingsInput.fitting){
-        if(UserSettingsInput.see_para)
-            Util::fit(true);
-        if(UserSettingsInput.see_anti)
-            Util::fit(false);
-        if(UserSettingsInput.see_para && UserSettingsInput.see_anti){}
-            Util::analyse();
+        // if(UserSettingsInput.see_para)
+        //     Util::fit(true);
+        // if(UserSettingsInput.see_anti)
+        //     Util::fit(false);
+        // if(UserSettingsInput.see_para && UserSettingsInput.see_anti){}
+        //     Util::analyse();
+        
+        gener_out << endl;
+        gener_out << "Fitting analysis currently disabled!!!" << endl;
+        gener_out << endl;
     }
 
     inte_mask_up_para = a_para_voig[1];
