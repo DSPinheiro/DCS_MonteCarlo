@@ -1,6 +1,6 @@
 # ============================================================================ #
-#  César Godinho                                                               #
-#  13/05/2023                                                                  #
+#  César Godinho             Daniel Pinheiro                                   #
+#  13/05/2023                02/07/2023                                        #
 # ============================================================================ #
 
 # This CMake file creates a shared library that side-loads the window wrapper for DCScan-GUI
@@ -43,8 +43,20 @@ find_package(OpenMP)
 include(CheckLanguage)
 check_language(CUDA)
 
+# uncomment this line to manually disable CUDA
+set(CMAKE_CUDA_COMPILER FALSE)
+# uncomment this line to manually disable openmp
+# set(OpenMP_CXX_FOUND FALSE)
+
 if(CMAKE_CUDA_COMPILER)
     enable_language(CUDA)
+
+    include(FindCUDA/select_compute_arch)
+    CUDA_DETECT_INSTALLED_GPUS(INSTALLED_GPU_CCS_1)
+    string(STRIP "${INSTALLED_GPU_CCS_1}" INSTALLED_GPU_CCS_2)
+    string(REPLACE " " ";" INSTALLED_GPU_CCS_3 "${INSTALLED_GPU_CCS_2}")
+    string(REPLACE "." "" CUDA_ARCH_LIST "${INSTALLED_GPU_CCS_3}")
+    SET(CMAKE_CUDA_ARCHITECTURES ${CUDA_ARCH_LIST})
 endif()
 
 # set variable to install with or without interface
@@ -55,84 +67,63 @@ else()
 endif()
 
 
+set(SOURCE
+    dcs_montecarlo.cpp
+    simu_starter.cpp
+    mask_test_c2.cpp
+    obtain_time.cpp
+    simuGlobals.cpp
+    simulation_interface.cpp
+    source_complex.cpp
+    source_simple.cpp
+    Util.cpp
+
+    simuConsts.h
+    Util.h
+
+    dcs_montecarlo.hh
+    simu_starter.hh
+    mask_test_c2.hh
+    obtain_time.hh
+
+    simuGlobals.hh
+    simulation_interface.h
+
+    source_complex.hh
+    source_simple.hh
+
+    sserializer.inl
+    configure.inl
+
+    input_settings.h
+    input_settings.cpp
+)
+
 if(INSTALL_GUI)
-    set(SOURCE
-        dcs_montecarlo.cpp
-        simu_starter.cpp
+    list(APPEND SOURCE
         make_plot_profiles.cpp
-        mask_test_c2.cpp
-        obtain_time.cpp
         qcustomplot.cpp
         qdcs3dvis.cpp
-        simuGlobals.cpp
-        simulation_interface.cpp
-        source_complex.cpp
-        source_simple.cpp
-        Util.cpp
 
-        simuConsts.h
-        Util.h
-
-        dcs_montecarlo.hh
-        simu_starter.hh
         make_plot_profiles.hh
-        mask_test_c2.hh
-        obtain_time.hh
         qcustomplot.h
 
         qdcs3dvis.h
-        simuGlobals.hh
-        simulation_interface.h
-
-        source_complex.hh
-        source_simple.hh
 
         parameter_settings.ui
         simulation_window.ui
         input_settings_prompt.ui
 
-        sserializer.inl
-        configure.inl
-
         parameter_settings.h
         parameter_settings.cpp
-
-        input_settings.h
-        input_settings.cpp
-    )
-else()
-    set(SOURCE
-        dcs_montecarlo.cpp
-        simu_starter.cpp
-        mask_test_c2.cpp
-        obtain_time.cpp
-        simuGlobals.cpp
-        simulation_interface.cpp
-        source_complex.cpp
-        source_simple.cpp
-        Util.cpp
-
-        simuConsts.h
-        Util.h
-
-        dcs_montecarlo.hh
-        simu_starter.hh
-        mask_test_c2.hh
-        obtain_time.hh
-
-        simuGlobals.hh
-        simulation_interface.h
-
-        source_complex.hh
-        source_simple.hh
-
-        sserializer.inl
-        configure.inl
-
-        input_settings.h
-        input_settings.cpp
     )
 endif()
+
+# if(CMAKE_CUDA_COMPILER)
+#     list(APPEND SOURCE
+#         parallel_bin.cu
+#     )
+# endif()
 
 
 
@@ -184,7 +175,7 @@ if(INSTALL_GUI)
 
     # Just using a static lib (improves the "portability" of the final executable)
     add_library(DCSsimuWrapper STATIC ${SOURCE})
-    
+
     if(CMAKE_CUDA_COMPILER)
         if(OpenMP_CXX_FOUND)
             message(STATUS "Compiling simulation <LIB wrapper> with OpenMP and CUDA parallelization")
@@ -252,7 +243,6 @@ endif()
 
 # Keep the original target here, in case we want to build standalone with cmake 
 # no need to use qmake (but useful if using qtcreator)
-# Keep it a console application just like in the base port qmake file
 add_executable(DCSsimu ${SOURCE} ${app_WINRC})
 
 if(INSTALL_GUI)
@@ -300,8 +290,6 @@ if(INSTALL_GUI)
         )
     endif()
 else()
-    target_compile_definitions(DCSsimu PRIVATE -DENTRYPOINT=main)
-
     if(CMAKE_CUDA_COMPILER)
         if(OpenMP_CXX_FOUND)
             message(STATUS "Compiling simulation <console application> with OpenMP and CUDA parallelization")

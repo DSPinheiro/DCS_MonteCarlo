@@ -18,7 +18,7 @@
 
 namespace Util {
 
-    double GaussianBox(double sta_dev, double mean);
+    double GaussianBox(double sta_dev, double mean, bool box_muller = false);
     void cov_srt(std::vector<std::vector<double>> covar, int npc, int ma, int* ia, int mfit);
     void cw(double xw, double yw, double& ak, double& al);
     int FindLoc(std::vector<double> array, double value);

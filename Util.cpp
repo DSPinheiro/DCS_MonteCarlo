@@ -39,13 +39,11 @@ using namespace Util;
 /// <returns>
 /// Randomized radius value from the circle center.
 /// </returns>
-double Util::GaussianBox(double sta_dev, double mean) {
-    double fac, rsq, v1, v2;
-
+double Util::GaussianBox(double sta_dev, double mean, bool box_muller) {
+    
     unsigned seed;
 
     static thread_local std::mt19937 generator;
-    std::uniform_int_distribution<uint32_t> uniform(0, RAND_MAX);
 
     std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
     auto duration = now.time_since_epoch();
@@ -57,20 +55,38 @@ double Util::GaussianBox(double sta_dev, double mean) {
     #endif
 
     generator.seed(seed);
+    
+    double v1, v2;
 
-    while (true) {
-        v1 = 2 * ((double)uniform(generator) / RAND_MAX) - 1;
-        v2 = 2 * ((double)uniform(generator) / RAND_MAX) - 1;
-        rsq = pow(v1, 2) + pow(v2, 2);
+    if(box_muller)
+    {
+        double fac, rsq;
 
-        if (!(rsq >= 1 || rsq == 0))
-            break;
+        std::uniform_int_distribution<uint32_t> uniform(0, RAND_MAX);
 
+        while (true) {
+            v1 = 2 * ((double)uniform(generator) / RAND_MAX) - 1;
+            v2 = 2 * ((double)uniform(generator) / RAND_MAX) - 1;
+            rsq = pow(v1, 2) + pow(v2, 2);
+
+            if (!(rsq >= 1 || rsq == 0))
+                break;
+
+        }
+
+        fac = sqrt(-2 * log(rsq) / rsq);
+
+        return mean + sta_dev * v2 * fac;
     }
+    else
+    {
+        std::normal_distribution<double> normal(mean, sta_dev);
 
-    fac = sqrt(-2 * log(rsq) / rsq);
+        v1 = normal(generator);
+        v2 = normal(generator);
 
-    return mean + sta_dev * v2 * fac;
+        return sqrt(v1 * v1 + v2 * v2);
+    }
 
 }
 
@@ -317,6 +333,7 @@ double Util::getFullApproximationAngle(double tetaref, double tetadir, double co
 /// y component of the director vector for the radiation.
 /// z component of the director vector for the radiation.
 /// </returns>
+///TODO: optimize
 std::vector<double> Util::getFullAngle(double r1x, double r1y, double r1z, double n1x, double n1y, double n1z) {
     double inter_pro, angle, r2x, r2y, r2z;
 
@@ -665,7 +682,7 @@ double Util::Latice_temp(double d_lat, double T_crystal) {
     return d_lat_t;
 }
 
-
+//TODO: optimize
 std::vector<double> Util::getYZ(double r_temp, double sin_tetap_temp, double cos_tetap_temp, double tan_tetadir_temp, double tan_fidir_temp, double L_temp) {
     std::vector<double> res;
 
@@ -673,28 +690,6 @@ std::vector<double> Util::getYZ(double r_temp, double sin_tetap_temp, double cos
     res.push_back(r_temp * sin_tetap_temp + tan_fidir_temp * L_temp);
 
     return res;
-
-    //this was in the original code but isnt used (?)
-    /*if(yp_temp == 0){
-
-            cos_tetap_temp = 0;
-            if(zp_temp > 0)
-                    sin_tetap_temp = 1;
-            else
-                    sin_tetap_temp = -1;
-    }else{
-            temp = zp_temp / yp_temp;
-
-            if(yp_temp > 0){
-                    sin_tetap_temp = temp / sqrt(1 + pow(temp, 2));
-                    cos_tetap_temp = 1 / sqrt(1 + pow(temp, 2));
-            }else{
-                    sin_tetap_temp = -temp / sqrt(1 + pow(temp, 2));
-                    cos_tetap_temp = -1 / sqrt(1 + pow(temp, 2));
-            }
-    }*/
-
-
 }
 
 
@@ -844,6 +839,7 @@ double Util::getFullApproximationAngle2(double tetaref, double tetadir, double d
 /// y component of the director vector for the radiation.
 /// z component of the director vector for the radiation.
 /// </returns>
+///TODO: optimize
 std::vector<double> Util::getFullAngle2(double r2x, double r2y, double r2z, double n2x, double n2y, double n2z) {
 
     double inter_pro, angle, r3x, r3y, r3z;
@@ -1742,11 +1738,7 @@ void Util::Make(int crystal, double y, double z,
     double max_plot_x_temp, max_plot_y_temp;
     int nx, ny;
 
-    //Old unused variables
-    //double step_z_hist, step_y_hist;
-    //int col2_x = 1400, counts;
-
-
+    
     max_plot_x_temp = max_plot_x[crystal - 1];
     max_plot_y_temp = max_plot_y[crystal - 1];
 
@@ -1757,11 +1749,6 @@ void Util::Make(int crystal, double y, double z,
     if (crystal == 1) {
 
         if (!(nx > n_his_ima || ny > n_his_ima || nx <= 0 || ny <= 0)) {
-            if (ny == 0) {
-                //TODO
-                //implement report on gui
-            }
-
             hist_image_plate_source[nx - 1][ny - 1]++;
             counts_sour++;
 
@@ -1819,8 +1806,6 @@ void Util::Make(int crystal, double y, double z,
                 max_hist[crystal - 1] = hist_image_plate_detc_anti[nx - 1][ny - 1];
         }
     }
-
-
 }
 
 
@@ -2282,6 +2267,7 @@ void Util::Read_CurveResponce() {
 /// <returns>
 /// Vector with the correction for the y and z axis.
 /// </returns>
+///TODO: optimize
 std::vector<double> Util::horCorr(double y_pro_C1, double y_max_C1, double z_pro_C1, double z_max_C1, bool type_c) {
 
     double R_cur_crys_t;

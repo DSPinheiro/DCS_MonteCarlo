@@ -1,29 +1,12 @@
 #pragma once
 
-/*
- * Source_complex.hh
- *
- *  Created on: Nov 1, 2020
- *      Author: danip
- */
+#ifndef PARALLEL_BIN_CUH_
+#define PARALLEL_BIN_CUH_
 
-#ifndef SOURCE_COMPLEX_HH_
-#define SOURCE_COMPLEX_HH_
+#include <string>
+#include "simuConsts.h"
 
-
-#include <iostream>
-#include <stdlib.h>
-#include <algorithm>
-#include <random>
-
-#include "simulation_interface.h"
-
-#include "simuGlobals.hh"
-#include "obtain_time.hh"
-#include "make_plot_profiles.hh"
-
-
-class Source_complex{
+class ParallelBin {
 
 public:
     struct BinParameters
@@ -95,28 +78,68 @@ public:
         double n2x_anti;
         double n2y_anti;
         bool sec_crystal_Antiparallel_reach;
-        int total_current_bins;
+        double energy_sum_para_thread;
+        double energy_sum_anti_thread;
+        int toint_para;
+        int toint_anti;
+        int counts_sour;
+        int counts_C1;
+        int counts_C2_para;
+        int counts_C2_anti;
+        int counts_detc_para;
+        int counts_detc_anti;
+        std::vector<std::vector<double>> eventsToTrace_para;
+        std::vector<std::vector<double>> eventsToTrace_anti;
+        double delrot;
 
-        BinParameters() : 
-        total_current_bins (0), sec_crystal_Antiparallel_reach (false), sec_crystal_Parallel_reach (false)
-        {}
-
+        double max_plot_x[6];
+        double max_plot_y[6];
+        double hist_image_plate_source[n_his_ima][n_his_ima];
+        double hist_image_plate_crystal1[n_his_ima][n_his_ima];
+        double hist_image_plate_crystal2_para[n_his_ima][n_his_ima];
+        double hist_image_plate_crystal2_anti[n_his_ima][n_his_ima];
+        double hist_image_plate_detc_para[n_his_ima][n_his_ima];
+        double hist_image_plate_detc_anti[n_his_ima][n_his_ima];
+        double max_hist[6];
     };
-    
+
     struct SetupParameters
     {
+        double teta_table;
+        double table_resolution;
+        bool make_table_noise;
+        bool Make_Horizontal;
+        bool Make_Vertical;
+        double xsi;
+        std::string type_source;
+        double S_shi_ver_B;
+        double S_shi_hor_B;
+        double S_sour;
+        double z_sour;
+        double y_sour;
+        double S_shi_ver_A;
+        double S_shi_hor_A;
+        bool make_image_plates;
+        bool make_imageC1_After_refle;
+        bool Curve_crystall;
+        bool mka_poli;
+        bool see_para;
+        bool make_imageC2_After_refle;
+        int number_events;
+        bool see_anti;
         double del_teta_L;
         double teta_min_L;
         double del_fi_L;
         double fi_min_L;
+        double convrad;
         double tilt_C1_temp;
         double S_sour_2;
         double S_aper_R_2;
         double S_aper_var_2;
         double z_sour_2;
         double y_sour_2;
-        double LT_aper_Db;
         double S_aper_sqr;
+        double LT_aper_Db;
         double y_max_C1;
         double y_min_C1;
         double z_max_C1;
@@ -127,6 +150,7 @@ public:
         double a_lamds_uni;
         double b_lamds_uni;
         double tw_d1_para;
+        double relationP_S;
         double cos_tetartab;
         double sin_tetartab;
         double tilt_C2_para_temp;
@@ -135,7 +159,6 @@ public:
         double sin_difteC1_Ta;
         double dist_Cr1_Cr2_Db;
         double tetaref;
-        double delrot;
         double y_max_C2;
         double y_min_C2;
         double z_max_C2;
@@ -153,56 +176,31 @@ public:
         double ydetc_2_min;
         double zdetc_2_max;
         double zdetc_2_min;
+        double Convert_Ag_minusone_eV;
         double tw_d2_anti;
         double n2x_anti_temp;
         double n2y_anti_temp;
         double n2z_anti;
         double cos_tetartabdete_anti;
         double sin_tetartabdete_anti;
-        int64_t total_expexted_bins;
-        int numbins;
-
-        SetupParameters(double tetaref, double tw_d1_para, double tw_d2_para, double tw_d2_anti, double S_aper_R_2, double S_aper_var_2, double S_aper_sqr,
-                        double S_sour_2, double z_sour_2, double y_sour_2, double zdetc_2_max, double zdetc_2_min, double ydetc_2_max, double ydetc_2_min,
-                        double delrot, int64_t total_expexted_bins) :
-                        tetaref (tetaref), tw_d1_para (tw_d1_para), tw_d2_para (tw_d2_para), tw_d2_anti (tw_d2_anti), S_aper_R_2 (S_aper_R_2), S_aper_var_2 (S_aper_var_2),
-                        S_aper_sqr (S_aper_sqr), S_sour_2 (S_sour_2), z_sour_2 (z_sour_2), y_sour_2 (y_sour_2), zdetc_2_max (zdetc_2_max), zdetc_2_min (zdetc_2_min),
-                        ydetc_2_max (ydetc_2_max), ydetc_2_min (ydetc_2_min), delrot (delrot), total_expexted_bins (total_expexted_bins), numbins (0)
-        {}
-    
+        double R_cur_crys_1;
+        double R_cur_crys_2;
+        int make_more_lines;
+        bool Do_background;
+        double p1_ener;
+        double p2_ener;
+        double p3_ener;
+        energy_vecs Energy_spectrum_vectors;
+        pick picks[5];
+        double gauss_Doop;
+        std::vector<double> available_energies;
+        std::vector<double> min_angle_resp;
+        std::vector<double> max_angle_resp;
+        bool mka_poli;
+        std::vector<plotresponc_vecs> Crystal_Responces;
     };
 
-    struct ReductionVars
-    {
-        #ifdef OPENMP
-        double energy_sum_para_thread;
-        double energy_sum_anti_thread;
-        #else
-        std::vector<double> *energy_sum_para;
-        std::vector<double> *energy_sum_anti;
-        #endif
-        int toint_para;
-        int toint_anti;
-        int counts_sour;
-        int counts_C1;
-        int counts_C2_para;
-        int counts_C2_anti;
-        int counts_detc_para;
-        int counts_detc_anti;
-
-        ReductionVars() :
-        #ifdef OPENMP
-        energy_sum_para_thread (0), energy_sum_anti_thread (0), 
-        #endif
-        toint_para (0), toint_anti (0), counts_sour (0), counts_C1 (0), counts_C2_para (0), counts_C2_anti (0), counts_detc_para (0), counts_detc_anti (0)
-        {}
-    };
-    
-    static bool run_Source(SimulationInterface* w);
-    static void makeBin(SimulationInterface *w, \
-                        SetupParameters *setup, BinParameters *bin, ReductionVars *reduce, \
-                        std::vector<std::vector<double>> *eventsToTrace_para, std::vector<std::vector<double>> *eventsToTrace_anti);
+    static void makeBin(int totalBinEventCount, BinParameters *binIn, SetupParameters setup);
 };
 
-
-#endif /* SOURCE_COMPLEX_HH_ */
+#endif /* PARALLEL_BIN_CUH_ */

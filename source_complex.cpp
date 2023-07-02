@@ -12,6 +12,10 @@
 #include <omp.h>
 #endif
 
+#ifdef CUDA
+#include "parallel_bin.cuh"
+#endif
+
 using namespace std;
 
 
@@ -24,32 +28,62 @@ bool Source_complex::run_Source(SimulationInterface *w){
 
     stringstream logString;
     
+    //setup the variables that will be used during bin count MC simulation
+    BinParameters *bin = new BinParameters();
+
+    //setup the lattice constant for the temperature
+    double d_lat1_para, d_lat2_para, d_lat1_anti, d_lat2_anti;
+
+    d_lat1_para = Util::Latice_temp(d_lat, TemperatureParametersInput.T_crystal_1_para);
+    d_lat1_anti = Util::Latice_temp(d_lat, TemperatureParametersInput.T_crystal_1_anti);
+    d_lat2_para = Util::Latice_temp(d_lat, TemperatureParametersInput.T_crystal_2_para);
+    d_lat2_anti = Util::Latice_temp(d_lat, TemperatureParametersInput.T_crystal_2_anti);
+    
+    //2 * first crystal lattice spacing (fixed throughout the simulation)
+    double tw_d1_anti = 2 * d_lat1_anti;
+
+
+    //setup the second crystal rotation limits
+    double delrot_min, delrot_max, delrot_inc;
+
+    delrot_min = Mini_angl * M_PI / 180;
+    delrot_max = Maxi_angl * M_PI / 180;
+    delrot_inc = (delrot_max - delrot_min) / (double)PlotParametersInput.nubins;
+
+    //setup the variables that are constant throughout the simulation, or per bin.
+    //some of them are initialized in the constructor, other are conditionaly initialized.
+    SetupParameters *setup = new SetupParameters(M_PI / 2 - (teta_crys1 * M_PI / 180), 2 * d_lat1_para, 2 * d_lat2_para, 2 * d_lat2_anti, \
+                                                GeolengthelementsInput.S_aper / 2, GeolengthelementsInput.S_aper_var / 2, pow(GeolengthelementsInput.S_aper / 2, 2), \
+                                                GeolengthelementsInput.S_sour / 2, GeolengthelementsInput.z_sour / 2, GeolengthelementsInput.y_sour / 2, \
+                                                GeolengthelementsInput.zdetc / 2 + GeolengthelementsInput.shift_det_ver, \
+                                                -GeolengthelementsInput.zdetc / 2 + GeolengthelementsInput.shift_det_ver, \
+                                                GeolengthelementsInput.ydetc / 2 + GeolengthelementsInput.shift_det_ver, \
+                                                -GeolengthelementsInput.ydetc / 2 + GeolengthelementsInput.shift_det_ver, \
+                                                delrot_max, NumberRaysInput.number_rotati * NumberRaysInput.nbeams * PlotParametersInput.nubins);
+    
+
+    //setup the variables that are going to be reduced in the MC loops to calculate the counts on the final spectrum
+    ReductionVars *reduce = new ReductionVars();
+    
     double counts_C2_para_t, counts_detc_para_t, counts_C2_anti_t, counts_detc_anti_t;
     
-    double max_valu_para, max_valu_anti, S_aper_R_2, S_aper_var_2, S_aper_sqr, S_sour_2, z_sour_2, y_sour_2, zdetc_2_max, zdetc_2_min, ydetc_2_max, ydetc_2_min, tetaref, tetabrag_ref;
-    double cos_e, sin_e, n1x, n1y, n1z, delrot_min, delrot_max, delrot_inc, cos_tilt_C1, sin_tilt_C1;
-    double delrot, d_lat1_para, d_lat2_para, d_lat1_anti, d_lat2_anti, tw_d1_para, tw_d2_para, tw_d1_anti, tw_d2_anti, a_lamds_uni, b_lamds_uni, auxBragg;
-    double n2x_para, n2y_para, n2x_anti, n2y_anti, n2z_para, n2z_anti, p, tetadir, tilt_C1_temp, n1x_temp, n1y_temp;
-    double fidir, z, y, r, tetap, sin_tetadir, cos_tetadir, rx, ry, rz, angle, lamda, tetabra1, tetabra2, teta_max_L, teta_min_L, del_teta_L, inc_tem;
-    double angle_para, angle_anti, r2x, r2y, r2z, r3x, r3y, r3z, pha_temp[4], fi_max_L, fi_min_L, del_fi_L, tetartab;
-    double cos_tetartab, sin_tetartab, cos_difteC1_Ta, sin_difteC1_Ta, cos_tetartabdete_para, sin_tetartabdete_para, cos_tetartabdete_anti, sin_tetartabdete_anti, z_max_C2, z_min_C2;
-    double LT_aper_Db, dist_T_Cr1_Db, dist_Cr1_Cr2_Db, dist_Cr2_det_Db, y_min_aper, y_max_aper, z_min_aper, z_max_aper, y_min_C1, y_max_C1, y_min_C2, y_max_C2, z_max_C1, z_min_C1;
-    double tilt_C2_para_temp, tilt_C2_anti_temp, n2x_para_temp, n2y_para_temp, n2x_anti_temp;
-    double n2y_anti_temp, cos_difteC2_det_para, sin_difteC2_det_para, tan_tetadir, cos_tetadirCry1, sin_fidir, cos_fidir, tan_fidir, cos_fidirtilt, sin_tetap, cos_tetap, var_temp;
-    double y_pro_C1, z_pro_C1, Costeta_CHC, Sinteta_CHC, rx_rot, ry_rot, cos_fidirtilt2_para, cos_fidirtilt2_anti, corr_dis, sin_tetatab_del_dir, rx_rot_sec, ry_rot_sec;
-    double tetadir_det, tan_tetadir_det, cos_tetadir_det, fidir_det, tan_fidir_det, cos_fidir_det, corr_dis_d_pa, y_pro_C1_d_pa, cos_tetap_det, sin_tetap_det, z_det, y_det, r_det;
+
+
+    double max_valu_para, max_valu_anti, tetabrag_ref;
+    double cos_e, sin_e, cos_tilt_C1, sin_tilt_C1;
+    double auxBragg;
+    double teta_max_L, inc_tem;
+    double angle_para, angle_anti, pha_temp[4], fi_max_L, tetartab;
+    double dist_T_Cr1_Db, y_min_aper, y_max_aper, z_min_aper, z_max_aper;
     
-    
-    unsigned seed;
 
 
     vector<int> int_time_out;
-    int int_time_out_begg, int_time_mili_out_begg, toint_para = 0, toint_anti = 0, total_para, total_anti, bin_tem = 1, bin_fas = 1;
-    int counts_c2_para, counts_c2_anti;
-
-    int numbins, max_para, I;
-    int64_t total_current_bins = 0, total_expexted_bins = NumberRaysInput.number_rotati * NumberRaysInput.nbeams * PlotParametersInput.nubins;
-
+    int int_time_out_begg, int_time_mili_out_begg, total_para, total_anti, bin_tem = 1, bin_fas = 1;
+    
+    int max_para, I;
+    
+    
     int* toint_para_total = new int[PlotParametersInput.nubins];
     int* toint_anti_total = new int[PlotParametersInput.nubins];
 
@@ -57,10 +91,8 @@ bool Source_complex::run_Source(SimulationInterface *w){
     fill(toint_anti_total, toint_anti_total + PlotParametersInput.nubins, 0);
     
     
-    bool make_G_function, sec_crystal_Parallel_reach, sec_crystal_Antiparallel_reach, first_crystal_reach, cond_rotation, poliP;
+    bool make_G_function, cond_rotation, poliP;
 
-    sec_crystal_Parallel_reach = false;
-    sec_crystal_Antiparallel_reach = false;
     max_valu_para = 0;
     max_valu_anti = 0;
 
@@ -74,142 +106,95 @@ bool Source_complex::run_Source(SimulationInterface *w){
     pha_temp[3] = ((double)rand() / RAND_MAX) * 2 * M_PI;
 
 
-    d_lat1_para = Util::Latice_temp(d_lat, TemperatureParametersInput.T_crystal_1_para);
-    d_lat1_anti = Util::Latice_temp(d_lat, TemperatureParametersInput.T_crystal_1_anti);
-    d_lat2_para = Util::Latice_temp(d_lat, TemperatureParametersInput.T_crystal_2_para);
-    d_lat2_anti = Util::Latice_temp(d_lat, TemperatureParametersInput.T_crystal_2_anti);
-
-
-    tw_d1_para = 2 * d_lat1_para;
-    tw_d1_anti = 2 * d_lat1_anti;
-    tw_d2_para = 2 * d_lat2_para;
-    tw_d2_anti = 2 * d_lat2_anti;
-
-
-    S_aper_R_2 = GeolengthelementsInput.S_aper / 2;
-    S_aper_var_2 = GeolengthelementsInput.S_aper_var / 2;
-    S_aper_sqr = pow(S_aper_R_2, 2);
-    S_sour_2 = GeolengthelementsInput.S_sour / 2;
-
-    z_sour_2 = GeolengthelementsInput.z_sour / 2;
-    y_sour_2 = GeolengthelementsInput.y_sour / 2;
-
-
-    zdetc_2_max = GeolengthelementsInput.zdetc / 2 + GeolengthelementsInput.shift_det_ver;
-    zdetc_2_min = -GeolengthelementsInput.zdetc / 2 + GeolengthelementsInput.shift_det_ver;
-    ydetc_2_max = GeolengthelementsInput.ydetc / 2 + GeolengthelementsInput.shift_det_ver;
-    ydetc_2_min = -GeolengthelementsInput.ydetc / 2 + GeolengthelementsInput.shift_det_ver;
-
-
-    delrot_min = Mini_angl * M_PI / 180;
-    delrot_max = Maxi_angl * M_PI / 180;
-    delrot_inc = (delrot_max - delrot_min) / (double)PlotParametersInput.nubins;
-
-
-    delrot = delrot_max;
-
-
-    numbins = 0;
-
-
-    tetaref = M_PI / 2 - (teta_crys1 * M_PI / 180);
-
-    cos_e = cos(tetaref);
-    sin_e = sin(tetaref);
+    cos_e = cos(setup->tetaref);
+    sin_e = sin(setup->tetaref);
 
 
     if(CurveVerticalTiltInput.make_CurveTilt)
-        tilt_C1_temp = Util::ObtainVert(1, 0);
+        setup->tilt_C1_temp = Util::ObtainVert(1, 0);
     else
-        tilt_C1_temp = GeoParametersInput.tilt_C1 * convrad;
+        setup->tilt_C1_temp = GeoParametersInput.tilt_C1 * convrad;
 
 
-    cos_tilt_C1 = cos(tilt_C1_temp);
-    sin_tilt_C1 = sin(tilt_C1_temp);
+    cos_tilt_C1 = cos(setup->tilt_C1_temp);
+    sin_tilt_C1 = sin(setup->tilt_C1_temp);
 
-    n1x = -cos_tilt_C1 * sin_e;
-    n1y = cos_tilt_C1 * cos_e;
-    n1z = sin_tilt_C1;
+    bin->n1x = -cos_tilt_C1 * sin_e;
+    bin->n1y = cos_tilt_C1 * cos_e;
+    setup->n1z = sin_tilt_C1;
 
 
-    tetabrag_ref = asin(-n1x);
+    tetabrag_ref = asin(-bin->n1x);
 
     if(CurvedCrystalInput.Curve_crystall){
-        n1x_temp = n1x;
-        n1y_temp = n1y;
+        setup->n1x_temp = bin->n1x;
+        setup->n1y_temp = bin->n1y;
     }
 
 
     if(GeoParapathlengthsInput.type_source == "UC"){
         teta_max_L = atan((GeolengthelementsInput.S_aper - GeolengthelementsInput.S_shi_hor_B + GeolengthelementsInput.S_shi_hor_A) / GeoParapathlengthsInput.LT_aper);
-        teta_min_L = - atan((GeolengthelementsInput.S_aper + GeolengthelementsInput.S_shi_hor_B - GeolengthelementsInput.S_shi_hor_A) / GeoParapathlengthsInput.LT_aper);
+        setup->teta_min_L = - atan((GeolengthelementsInput.S_aper + GeolengthelementsInput.S_shi_hor_B - GeolengthelementsInput.S_shi_hor_A) / GeoParapathlengthsInput.LT_aper);
     }else{
-        teta_max_L = atan(min((GeolengthelementsInput.y_aper / 2 + y_sour_2 + GeolengthelementsInput.S_shi_hor_B - GeolengthelementsInput.S_shi_hor_A) / GeoParapathlengthsInput.LT_aper, (GeolengthelementsInput.y_first_crys / 2 + y_sour_2 - GeolengthelementsInput.S_shi_hor_A) / (GeoParapathlengthsInput.LT_aper + GeoParapathlengthsInput.dist_T_Cr1)));
-        teta_min_L = - atan(min((GeolengthelementsInput.y_aper / 2 + y_sour_2 - GeolengthelementsInput.S_shi_hor_B + GeolengthelementsInput.S_shi_hor_A) / GeoParapathlengthsInput.LT_aper, (GeolengthelementsInput.y_first_crys / 2 + y_sour_2 + GeolengthelementsInput.S_shi_hor_A) / (GeoParapathlengthsInput.LT_aper + GeoParapathlengthsInput.dist_T_Cr1)));
+        teta_max_L = atan(min((GeolengthelementsInput.y_aper / 2 + setup->y_sour_2 + GeolengthelementsInput.S_shi_hor_B - GeolengthelementsInput.S_shi_hor_A) / GeoParapathlengthsInput.LT_aper, (GeolengthelementsInput.y_first_crys / 2 + setup->y_sour_2 - GeolengthelementsInput.S_shi_hor_A) / (GeoParapathlengthsInput.LT_aper + GeoParapathlengthsInput.dist_T_Cr1)));
+        setup->teta_min_L = - atan(min((GeolengthelementsInput.y_aper / 2 + setup->y_sour_2 - GeolengthelementsInput.S_shi_hor_B + GeolengthelementsInput.S_shi_hor_A) / GeoParapathlengthsInput.LT_aper, (GeolengthelementsInput.y_first_crys / 2 + setup->y_sour_2 + GeolengthelementsInput.S_shi_hor_A) / (GeoParapathlengthsInput.LT_aper + GeoParapathlengthsInput.dist_T_Cr1)));
     }
 
 
     if(FullEnergySpectrumInput.make_more_lines == 0){
-        auxBragg = asin(picks[1].lamda / tw_d1_para);
+        auxBragg = asin(picks[1].lamda / setup->tw_d1_para);
         if(GeoParametersInput.make_table_noise)
         {
             teta_max_L = min(M_PI / 2 + (GeoParametersInput.teta_table + GeoParametersInput.table_resolution) * M_PI / 180 + GeoParametersInput.Exp_crys1 * M_PI / 180 - auxBragg + limitReflec, teta_max_L);
-            teta_min_L = max(M_PI / 2 + (GeoParametersInput.teta_table - GeoParametersInput.table_resolution) * M_PI / 180 + GeoParametersInput.Exp_crys1 * M_PI / 180 - auxBragg - limitReflec, teta_min_L);
+            setup->teta_min_L = max(M_PI / 2 + (GeoParametersInput.teta_table - GeoParametersInput.table_resolution) * M_PI / 180 + GeoParametersInput.Exp_crys1 * M_PI / 180 - auxBragg - limitReflec, setup->teta_min_L);
         }
         else
         {
             teta_max_L = min(M_PI / 2 + GeoParametersInput.teta_table * M_PI / 180 + GeoParametersInput.Exp_crys1 * M_PI / 180 - auxBragg + limitReflec, teta_max_L);
-            teta_min_L = max(M_PI / 2 + GeoParametersInput.teta_table * M_PI / 180 + GeoParametersInput.Exp_crys1 * M_PI / 180 - auxBragg - limitReflec, teta_min_L);
+            setup->teta_min_L = max(M_PI / 2 + GeoParametersInput.teta_table * M_PI / 180 + GeoParametersInput.Exp_crys1 * M_PI / 180 - auxBragg - limitReflec, setup->teta_min_L);
         }
     }
 
 
-    del_teta_L = teta_max_L - teta_min_L;
+    setup->del_teta_L = teta_max_L - setup->teta_min_L;
 
 
     if(GeoParapathlengthsInput.type_source == "UC"){
         fi_max_L = atan((GeolengthelementsInput.S_aper - GeolengthelementsInput.S_shi_ver_B + GeolengthelementsInput.S_shi_ver_A) / GeoParapathlengthsInput.LT_aper);
-        fi_min_L = - atan((GeolengthelementsInput.S_aper + GeolengthelementsInput.S_shi_ver_B - GeolengthelementsInput.S_shi_ver_A) / GeoParapathlengthsInput.LT_aper);
+        setup->fi_min_L = - atan((GeolengthelementsInput.S_aper + GeolengthelementsInput.S_shi_ver_B - GeolengthelementsInput.S_shi_ver_A) / GeoParapathlengthsInput.LT_aper);
     }else{
-        fi_max_L = atan(min((GeolengthelementsInput.z_aper / 2 + z_sour_2 + GeolengthelementsInput.S_shi_ver_B - GeolengthelementsInput.S_shi_ver_A) / GeoParapathlengthsInput.LT_aper, (GeolengthelementsInput.z_first_crys / 2 + z_sour_2 - GeolengthelementsInput.S_shi_ver_A) / (GeoParapathlengthsInput.LT_aper + GeoParapathlengthsInput.dist_T_Cr1)));
-        fi_min_L = - atan(min((GeolengthelementsInput.z_aper / 2 + z_sour_2 - GeolengthelementsInput.S_shi_ver_B + GeolengthelementsInput.S_shi_ver_A) / GeoParapathlengthsInput.LT_aper, (GeolengthelementsInput.z_first_crys / 2 + z_sour_2 + GeolengthelementsInput.S_shi_ver_A) / (GeoParapathlengthsInput.LT_aper + GeoParapathlengthsInput.dist_T_Cr1)));
+        fi_max_L = atan(min((GeolengthelementsInput.z_aper / 2 + setup->z_sour_2 + GeolengthelementsInput.S_shi_ver_B - GeolengthelementsInput.S_shi_ver_A) / GeoParapathlengthsInput.LT_aper, (GeolengthelementsInput.z_first_crys / 2 + setup->z_sour_2 - GeolengthelementsInput.S_shi_ver_A) / (GeoParapathlengthsInput.LT_aper + GeoParapathlengthsInput.dist_T_Cr1)));
+        setup->fi_min_L = - atan(min((GeolengthelementsInput.z_aper / 2 + setup->z_sour_2 - GeolengthelementsInput.S_shi_ver_B + GeolengthelementsInput.S_shi_ver_A) / GeoParapathlengthsInput.LT_aper, (GeolengthelementsInput.z_first_crys / 2 + setup->z_sour_2 + GeolengthelementsInput.S_shi_ver_A) / (GeoParapathlengthsInput.LT_aper + GeoParapathlengthsInput.dist_T_Cr1)));
     }
 
-    del_fi_L = fi_max_L - fi_min_L;
+    setup->del_fi_L = fi_max_L - setup->fi_min_L;
 
     tetartab = GeoParametersInput.teta_table * convrad / 2;
-    cos_tetartab = cos(GeoParametersInput.teta_table * convrad);
-    sin_tetartab = sin(GeoParametersInput.teta_table * convrad);
-    cos_difteC1_Ta = cos(GeoParametersInput.teta_table * convrad - tetaref);
-    sin_difteC1_Ta = sin(GeoParametersInput.teta_table * convrad - tetaref);
+    setup->cos_tetartab = cos(GeoParametersInput.teta_table * convrad);
+    setup->sin_tetartab = sin(GeoParametersInput.teta_table * convrad);
+    setup->cos_difteC1_Ta = cos(GeoParametersInput.teta_table * convrad - setup->tetaref);
+    setup->sin_difteC1_Ta = sin(GeoParametersInput.teta_table * convrad - setup->tetaref);
 
-    cos_tetartabdete_para = cos(GeoParametersInput.teta_table * convrad + GeoParametersInput.teta_detec_para * convrad);
-    sin_tetartabdete_para = sin(GeoParametersInput.teta_table * convrad + GeoParametersInput.teta_detec_para * convrad);
+    setup->cos_tetartabdete_para = cos(GeoParametersInput.teta_table * convrad + GeoParametersInput.teta_detec_para * convrad);
+    setup->sin_tetartabdete_para = sin(GeoParametersInput.teta_table * convrad + GeoParametersInput.teta_detec_para * convrad);
 
-    cos_tetartabdete_anti = cos(GeoParametersInput.teta_table * convrad + GeoParametersInput.teta_detec_anti * convrad);
-    sin_tetartabdete_anti = sin(GeoParametersInput.teta_table * convrad + GeoParametersInput.teta_detec_anti * convrad);
+    setup->cos_tetartabdete_anti = cos(GeoParametersInput.teta_table * convrad + GeoParametersInput.teta_detec_anti * convrad);
+    setup->sin_tetartabdete_anti = sin(GeoParametersInput.teta_table * convrad + GeoParametersInput.teta_detec_anti * convrad);
 
     max_hist[0] = 0;
     max_hist[1] = 0;
 
 
-    if(tw_d1_anti < tw_d2_anti){
-        a_lamds_uni = tw_d1_anti * sin(tetaref + delrot_min - 0.2);
-        b_lamds_uni = tw_d2_anti * sin(tetaref + delrot_max + 0.2);
+    if(tw_d1_anti < setup->tw_d2_anti){
+        setup->a_lamds_uni = tw_d1_anti * sin(setup->tetaref + delrot_min - 0.2);
+        setup->b_lamds_uni = setup->tw_d2_anti * sin(setup->tetaref + delrot_max + 0.2);
     }else{
-        a_lamds_uni = tw_d2_anti * sin(tetaref + delrot_min - 0.2);
-        b_lamds_uni = tw_d1_anti * sin(tetaref + delrot_max + 0.2);
+        setup->a_lamds_uni = setup->tw_d2_anti * sin(setup->tetaref + delrot_min - 0.2);
+        setup->b_lamds_uni = tw_d1_anti * sin(setup->tetaref + delrot_max + 0.2);
     }
 
-    b_lamds_uni = b_lamds_uni - a_lamds_uni;
+    setup->b_lamds_uni = setup->b_lamds_uni - setup->a_lamds_uni;
 
-
-    int counts_sour = 0;
-    int counts_C1 = 0;
-    int counts_C2_para = 0;
-    int counts_detc_para = 0;
-    int counts_C2_anti = 0;
-    int counts_detc_anti = 0;
 
     counts_C2_para_t = 0;
     counts_detc_para_t = 0;
@@ -222,10 +207,10 @@ bool Source_complex::run_Source(SimulationInterface *w){
     max_plot[1][0] = Maxi_angl - teta_crys1;
 
 
-    LT_aper_Db = (double)GeoParapathlengthsInput.LT_aper;
+    setup->LT_aper_Db = (double)GeoParapathlengthsInput.LT_aper;
     dist_T_Cr1_Db = (double)GeoParapathlengthsInput.dist_T_Cr1;
-    dist_Cr1_Cr2_Db = (double)GeoParapathlengthsInput.dist_Cr1_Cr2;
-    dist_Cr2_det_Db = (double)GeoParapathlengthsInput.dist_Cr2_Det;
+    setup->dist_Cr1_Cr2_Db = (double)GeoParapathlengthsInput.dist_Cr1_Cr2;
+    setup->dist_Cr2_det_Db = (double)GeoParapathlengthsInput.dist_Cr2_Det;
 
 
     y_min_aper = GeolengthelementsInput.S_shi_hor_A - GeolengthelementsInput.y_aper / 2;
@@ -233,49 +218,49 @@ bool Source_complex::run_Source(SimulationInterface *w){
     z_min_aper = GeolengthelementsInput.S_shi_ver_A - GeolengthelementsInput.z_aper / 2;
     z_max_aper = GeolengthelementsInput.S_shi_ver_A + GeolengthelementsInput.z_aper / 2;
 
-    y_min_C1 = -GeolengthelementsInput.y_first_crys / 2;
-    y_max_C1 = GeolengthelementsInput.y_first_crys / 2;
-    y_min_C2 = y_min_C1;
-    y_max_C2 = y_max_C1;
+    setup->y_min_C1 = -GeolengthelementsInput.y_first_crys / 2;
+    setup->y_max_C1 = GeolengthelementsInput.y_first_crys / 2;
+    setup->y_min_C2 = setup->y_min_C1;
+    setup->y_max_C2 = setup->y_max_C1;
 
 
     if(UserSettingsInput.center_Mask){
-        z_max_C1 = 0.6;
-        z_min_C1 = - 0.6;
+        setup->z_max_C1 = 0.6;
+        setup->z_min_C1 = - 0.6;
 
-        y_max_C1 = GeolengthelementsInput.y_first_crys / 2 - 0.2;
-        y_min_C1 = -GeolengthelementsInput.y_first_crys / 2 + 0.2;
+        setup->y_max_C1 = GeolengthelementsInput.y_first_crys / 2 - 0.2;
+        setup->y_min_C1 = -GeolengthelementsInput.y_first_crys / 2 + 0.2;
     }else{
         if(UserSettingsInput.mask_C1 == 0){
-            z_max_C1 = GeolengthelementsInput.z_first_crys / 2;
-            z_min_C1 = -GeolengthelementsInput.z_first_crys / 2;
+            setup->z_max_C1 = GeolengthelementsInput.z_first_crys / 2;
+            setup->z_min_C1 = -GeolengthelementsInput.z_first_crys / 2;
         }else if(UserSettingsInput.mask_C1 == 1){
-            z_max_C1 = GeolengthelementsInput.z_first_crys / 2 - 0.2;
-            z_min_C1 = 0;
-            y_max_C1 = GeolengthelementsInput.y_first_crys / 2 - 0.2;
-            y_min_C1 = -GeolengthelementsInput.y_first_crys / 2 + 0.2;
+            setup->z_max_C1 = GeolengthelementsInput.z_first_crys / 2 - 0.2;
+            setup->z_min_C1 = 0;
+            setup->y_max_C1 = GeolengthelementsInput.y_first_crys / 2 - 0.2;
+            setup->y_min_C1 = -GeolengthelementsInput.y_first_crys / 2 + 0.2;
         }else if(UserSettingsInput.mask_C1 == 2){
-            z_max_C1 = 0;
-            z_min_C1 = -GeolengthelementsInput.z_first_crys / 2 + 0.2;
-            y_max_C1 = GeolengthelementsInput.y_first_crys / 2 - 0.2;
-            y_min_C1 = -GeolengthelementsInput.y_first_crys / 2 + 0.2;
+            setup->z_max_C1 = 0;
+            setup->z_min_C1 = -GeolengthelementsInput.z_first_crys / 2 + 0.2;
+            setup->y_max_C1 = GeolengthelementsInput.y_first_crys / 2 - 0.2;
+            setup->y_min_C1 = -GeolengthelementsInput.y_first_crys / 2 + 0.2;
         }
     }
 
 
     if(UserSettingsInput.mask_C2 == 0){
-        z_max_C2 = GeolengthelementsInput.z_first_crys / 2;
-        z_min_C2 = -GeolengthelementsInput.z_first_crys / 2;
+        setup->z_max_C2 = GeolengthelementsInput.z_first_crys / 2;
+        setup->z_min_C2 = -GeolengthelementsInput.z_first_crys / 2;
     }else if(UserSettingsInput.mask_C2 == 1){
-        z_max_C2 = GeolengthelementsInput.z_first_crys / 2 - 0.2;
-        z_min_C2 = 0;
-        y_max_C2 = GeolengthelementsInput.y_first_crys / 2 - 0.2;
-        y_min_C2 = -GeolengthelementsInput.y_first_crys / 2 + 0.2;
+        setup->z_max_C2 = GeolengthelementsInput.z_first_crys / 2 - 0.2;
+        setup->z_min_C2 = 0;
+        setup->y_max_C2 = GeolengthelementsInput.y_first_crys / 2 - 0.2;
+        setup->y_min_C2 = -GeolengthelementsInput.y_first_crys / 2 + 0.2;
     }else if(UserSettingsInput.mask_C2 == 2){
-        z_max_C2 = 0;
-        z_min_C2 = -GeolengthelementsInput.z_first_crys / 2 + 0.2;
-        y_max_C2 = GeolengthelementsInput.y_first_crys / 2 - 0.2;
-        y_min_C2 = -GeolengthelementsInput.y_first_crys / 2 + 0.2;
+        setup->z_max_C2 = 0;
+        setup->z_min_C2 = -GeolengthelementsInput.z_first_crys / 2 + 0.2;
+        setup->y_max_C2 = GeolengthelementsInput.y_first_crys / 2 - 0.2;
+        setup->y_min_C2 = -GeolengthelementsInput.y_first_crys / 2 + 0.2;
     }
 
 
@@ -289,21 +274,29 @@ bool Source_complex::run_Source(SimulationInterface *w){
     int_time_out_begg = int_time_out[0];
     int_time_mili_out_begg = int_time_out[1];
 
-
+    
+    #ifndef OPENMP
+    reduce->energy_sum_para = new vector<double>();
+    reduce->energy_sum_anti = new vector<double>();
+    
+    reduce->energy_sum_para->resize(PlotParametersInput.nubins);
+    reduce->energy_sum_anti->resize(PlotParametersInput.nubins);
+    #else
     vector<double> energy_sum_para;
     vector<double> energy_sum_anti;
 
     energy_sum_para.resize(PlotParametersInput.nubins);
     energy_sum_anti.resize(PlotParametersInput.nubins);
+    #endif
     
     
-    double teta_table_thread = GeoParametersInput.teta_table;
+    bin->teta_table_thread = GeoParametersInput.teta_table;
     #ifdef QT_EXISTS
-    emit w->setTetaTableSignal(teta_table_thread);
+    emit w->setTetaTableSignal(bin->teta_table_thread);
     #endif
 
-    while(numbins < PlotParametersInput.nubins){
-        numbins++;
+    while(setup->numbins < PlotParametersInput.nubins){
+        setup->numbins++;
 
         if(TemperatureParametersInput.mk_temp_bin){
             inc_tem = Util::getNewTemp(
@@ -324,10 +317,10 @@ bool Source_complex::run_Source(SimulationInterface *w){
 
             bin_tem++;
 
-            tw_d1_para = 2 * d_lat1_para;
+            setup->tw_d1_para = 2 * d_lat1_para;
             tw_d1_anti = 2 * d_lat1_anti;
-            tw_d2_para = 2 * d_lat2_para;
-            tw_d2_anti = 2 * d_lat2_anti;
+            setup->tw_d2_para = 2 * d_lat2_para;
+            setup->tw_d2_anti = 2 * d_lat2_anti;
 
 
             logString << "tw_1: " << d_lat1_para << endl;
@@ -341,39 +334,39 @@ bool Source_complex::run_Source(SimulationInterface *w){
 
         }
 
-        angle_para = delrot * 180 / M_PI + teta_crys1;
-        angle_anti = delrot * 180 / M_PI - teta_crys1;
+        angle_para = setup->delrot * 180 / M_PI + teta_crys1;
+        angle_anti = setup->delrot * 180 / M_PI - teta_crys1;
 
 
         if(CurveVerticalTiltInput.make_CurveTilt){
-            tilt_C2_para_temp = Util::ObtainVert(2, angle_para);
-            tilt_C2_anti_temp = Util::ObtainVert(2, angle_anti);
+            setup->tilt_C2_para_temp = Util::ObtainVert(2, angle_para);
+            setup->tilt_C2_anti_temp = Util::ObtainVert(2, angle_anti);
         }else{
-            tilt_C2_para_temp = GeoParametersInput.tilt_C2 * convrad;
-            tilt_C2_anti_temp = GeoParametersInput.tilt_C2 * convrad;
+            setup->tilt_C2_para_temp = GeoParametersInput.tilt_C2 * convrad;
+            setup->tilt_C2_anti_temp = GeoParametersInput.tilt_C2 * convrad;
         }
 
-            counts_c2_para = 0;
-            counts_c2_anti = 0;
+        reduce->counts_C2_para = 0;
+        reduce->counts_C2_anti = 0;
+        
 
-
-        n2x_para = cos(tilt_C2_para_temp) * sin(GeoParametersInput.teta_table * convrad - tetaref + delrot);
-        n2y_para = - cos(tilt_C2_para_temp) * cos(GeoParametersInput.teta_table * convrad - tetaref + delrot);
-        n2z_para = sin(tilt_C2_para_temp);
-        n2x_anti = - cos(tilt_C2_anti_temp) * sin(GeoParametersInput.teta_table * convrad + tetaref + delrot);
-        n2y_anti = cos(tilt_C2_anti_temp) * cos(GeoParametersInput.teta_table * convrad + tetaref + delrot);
-        n2z_anti = sin(tilt_C2_anti_temp);
+        bin->n2x_para = cos(setup->tilt_C2_para_temp) * sin(GeoParametersInput.teta_table * convrad - setup->tetaref + setup->delrot);
+        bin->n2y_para = - cos(setup->tilt_C2_para_temp) * cos(GeoParametersInput.teta_table * convrad - setup->tetaref + setup->delrot);
+        setup->n2z_para = sin(setup->tilt_C2_para_temp);
+        bin->n2x_anti = - cos(setup->tilt_C2_anti_temp) * sin(GeoParametersInput.teta_table * convrad + setup->tetaref + setup->delrot);
+        bin->n2y_anti = cos(setup->tilt_C2_anti_temp) * cos(GeoParametersInput.teta_table * convrad + setup->tetaref + setup->delrot);
+        setup->n2z_anti = sin(setup->tilt_C2_anti_temp);
 
         if(CurvedCrystalInput.Curve_crystall){
-            n2x_para_temp = n2x_para;
-            n2y_para_temp = n2y_para;
-            n2x_anti_temp = n2x_anti;
-            n2y_anti_temp = n2y_anti;
+            setup->n2x_para_temp = bin->n2x_para;
+            setup->n2y_para_temp = bin->n2y_para;
+            setup->n2x_anti_temp = bin->n2x_anti;
+            setup->n2y_anti_temp = bin->n2y_anti;
         }
 
 
-        cos_difteC2_det_para = cos(tetaref - delrot + GeoParametersInput.teta_table * convrad + GeoParametersInput.teta_detec_para * convrad);
-        sin_difteC2_det_para = sin(tetaref - delrot + GeoParametersInput.teta_table * convrad + GeoParametersInput.teta_detec_para * convrad);
+        setup->cos_difteC2_det_para = cos(setup->tetaref - setup->delrot + GeoParametersInput.teta_table * convrad + GeoParametersInput.teta_detec_para * convrad);
+        setup->sin_difteC2_det_para = sin(setup->tetaref - setup->delrot + GeoParametersInput.teta_table * convrad + GeoParametersInput.teta_detec_para * convrad);
 
         I = 1;
 
@@ -381,827 +374,18 @@ bool Source_complex::run_Source(SimulationInterface *w){
         vector<vector<double>> eventsToTrace_para;
         vector<vector<double>> eventsToTrace_anti;
 
-        #ifdef OPENMP
-        double energy_sum_para_thread = 0;
-        double energy_sum_anti_thread = 0;
-
-        #pragma omp parallel firstprivate(seed, teta_table_thread,\
-                                        p, tetadir, sin_tetadir, cos_tetadir, tan_tetadir, cos_tetadirCry1,\
-                                        fidir, sin_fidir, cos_fidir, tan_fidir, cos_fidirtilt,\
-                                        z, y, r, tetap, sin_tetap, cos_tetap, var_temp,\
-                                        y_pro_C1, z_pro_C1, rx, ry, rz,\
-                                        Costeta_CHC, Sinteta_CHC, n1x, n1y,\
-                                        angle, r2x, r2y, r2z,\
-                                        lamda, tetabra1, first_crystal_reach,\
-                                        rx_rot, ry_rot, cos_fidirtilt2_para, cos_fidirtilt2_anti,\
-                                        corr_dis, sin_tetatab_del_dir,\
-                                        tetabra2, n2x_para, n2y_para,\
-                                        r3x, r3y, r3z, sec_crystal_Parallel_reach,\
-                                        rx_rot_sec, ry_rot_sec,\
-                                        tetadir_det, tan_tetadir_det, cos_tetadir_det, fidir_det, tan_fidir_det, cos_fidir_det,\
-                                        corr_dis_d_pa, y_pro_C1_d_pa, cos_tetap_det, sin_tetap_det, r_det, y_det, z_det,\
-                                        n2x_anti, n2y_anti, sec_crystal_Antiparallel_reach) \
-                            reduction(+:energy_sum_para_thread, energy_sum_anti_thread, \
-                                        toint_para, toint_anti, counts_sour, counts_C1, counts_C2_para, counts_C2_anti, counts_detc_para, counts_detc_anti)
+        #if defined(OPENMP) && ! defined(CUDA)
+        reduce->energy_sum_para_thread = 0;
+        reduce->energy_sum_anti_thread = 0;
         #endif
-        while(I <= NumberRaysInput.nbeams * NumberRaysInput.number_rotati){
-            std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
-            auto duration = now.time_since_epoch();
-            #ifdef OPENMP
-            // random seed for this event if we have openMP enabled
-            seed = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count() + 17 * omp_get_thread_num();
-            #else
-            seed = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
-            #endif
 
-            static thread_local std::mt19937 generator;
-            uniform_int_distribution<uint32_t> uniform(0, RAND_MAX);
-            
-            // Density function -> https://cplusplus.com/reference/random/normal_distribution/
-            normal_distribution<double> table_noise(0, (GeoParametersInput.table_resolution / 2.355) / 3.0);
 
-
-            generator.seed(seed);
-            
-            //Temporary event to show in the 3D view
-            //If we have less than maxEventNum we just append otherwise we see
-            //this temporary event stored reaches the exit before appending.
-            //Each triple of values is 1 point and each event will have 4 points.
-            //Source - Crystal1 - Crystal2 - Detector
-            vector<double> tmpEvent;
-
-            if(UserSettingsInput.Make_Horizontal){
-                p = del_teta_L * ((double)uniform(generator) / RAND_MAX) + teta_min_L;
-                
-                tetadir = p;
-            }else
-                tetadir = 0;
-
-
-            sin_tetadir = sin(tetadir);
-            cos_tetadir = cos(tetadir);
-            tan_tetadir = sin_tetadir / cos_tetadir;
-
-            if(GeoParametersInput.make_table_noise)
-            {
-                teta_table_thread = GeoParametersInput.teta_table;
-                teta_table_thread += table_noise(generator);
-                
-                #ifdef QT_EXISTS
-                
-                #ifdef OPENMP
-                #pragma omp critical
-                {
-                #endif
-                    emit w->setTetaTableSignal(teta_table_thread);
-                #ifdef OPENMP
-                }
-                #endif
-
-                #endif
-            }
-
-            cos_tetadirCry1 = cos(tetadir + teta_table_thread * convrad);
-
-
-            if(UserSettingsInput.Make_Vertical){
-                p = del_fi_L * ((double)uniform(generator) / RAND_MAX) + fi_min_L;
-                fidir = p;
-            }else
-                fidir = GeoParametersInput.xsi * convrad;
-
-
-            sin_fidir = sin(fidir);
-            cos_fidir = cos(fidir);
-            tan_fidir = sin_fidir / cos_fidir;
-            cos_fidirtilt = cos(fidir + tilt_C1_temp);
-
-
-            if(GeoParapathlengthsInput.type_source == "P"){
-                z = GeolengthelementsInput.S_shi_ver_B;
-                y = GeolengthelementsInput.S_shi_hor_B;
-                r = sqrt(pow(z, 2) + pow(y, 2));
-
-                if(GeolengthelementsInput.S_shi_ver_B == 0 && GeolengthelementsInput.S_shi_hor_B == 0){
-                    sin_tetap = 0;
-                    cos_tetap = 1;
-                }else if(GeolengthelementsInput.S_shi_hor_B == 0){
-                    sin_tetap = 1;
-                    cos_tetap = 0;
-                }else{
-                    var_temp = z / y;
-                    if(y > 0){
-                        sin_tetap = var_temp / sqrt(1 + pow(var_temp, 2));
-                        cos_tetap = 1 / sqrt(1 + pow(var_temp, 2));
-                    }else{
-                        sin_tetap = - var_temp / sqrt(1 + pow(var_temp, 2));
-                        cos_tetap = - 1 / sqrt(1 + pow(var_temp, 2));
-                    }
-                }
-
-            }else if(GeoParapathlengthsInput.type_source == "UC"){
-                r = S_sour_2 + 1;
-                while(r > S_sour_2){
-                    z = ((double)uniform(generator) / RAND_MAX) * GeolengthelementsInput.S_sour - S_sour_2;
-                    y = ((double)uniform(generator) / RAND_MAX) * GeolengthelementsInput.S_sour - S_sour_2;
-                    r = sqrt(pow(z, 2) + pow(y, 2));
-                }
-
-
-                z += GeolengthelementsInput.S_shi_ver_B;
-                y += GeolengthelementsInput.S_shi_hor_B;
-
-                if(y != 0)
-                    var_temp = z / y;
-                else
-                    var_temp = 0;
-
-                r = sqrt(pow(z, 2) + pow(y, 2));
-
-                if(y > 0){
-                    sin_tetap = var_temp / sqrt(1 + pow(var_temp, 2));
-                    cos_tetap = 1 / sqrt(1 + pow(var_temp, 2));
-                }else{
-                    sin_tetap = - var_temp / sqrt(1 + pow(var_temp, 2));
-                    cos_tetap = - 1 / sqrt(1 + pow(var_temp, 2));
-                }
-            }else if(GeoParapathlengthsInput.type_source == "G"){
-                p = 2 * M_PI * ((double)uniform(generator) / RAND_MAX);
-                tetap = p;
-                sin_tetap = sin(tetap);
-                cos_tetap = cos(tetap);
-                r = S_aper_R_2 + 1;
-
-                while(r > S_aper_R_2)
-                    r = Util::GaussianBox(S_aper_var_2, 0);
-
-                if(! (GeolengthelementsInput.S_shi_ver_B == 0 && GeolengthelementsInput.S_shi_hor_B == 0)){
-                    z = r * sin_tetap + GeolengthelementsInput.S_shi_ver_B;
-                    y = r * cos_tetap + GeolengthelementsInput.S_shi_hor_B;
-                    var_temp = z / y;
-                    r = sqrt(pow(z, 2) + pow(y, 2));
-
-                    if(y > 0){
-                        sin_tetap = var_temp / sqrt(1 + pow(var_temp, 2));
-                        cos_tetap = 1 / sqrt(1 + pow(var_temp, 2));
-                    }else{
-                        sin_tetap = - var_temp / sqrt(1 + pow(var_temp, 2));
-                        cos_tetap = - 1 / sqrt(1 + pow(var_temp, 2));
-                    }
-                }
-
-            }else if(GeoParapathlengthsInput.type_source == "UR"){
-                z = ((double)uniform(generator) / RAND_MAX) * GeolengthelementsInput.z_sour - z_sour_2;
-                y = ((double)uniform(generator) / RAND_MAX) * GeolengthelementsInput.y_sour - y_sour_2;
-
-                z += GeolengthelementsInput.S_shi_ver_B;
-                y += GeolengthelementsInput.S_shi_hor_B;
-                var_temp = z / y;
-                r = sqrt(pow(z, 2) + pow(y, 2));
-
-                if(y > 0){
-                    sin_tetap = var_temp / sqrt(1 + pow(var_temp, 2));
-                    cos_tetap = 1 / sqrt(1 + pow(var_temp, 2));
-                }else{
-                    sin_tetap = - var_temp / sqrt(1 + pow(var_temp, 2));
-                    cos_tetap = - 1 / sqrt(1 + pow(var_temp, 2));
-                }
-            }else{
-                runtime_error("Bad input on the source type: type_source");
-            }
-
-            vector<double> yz = Util::getYZ(r, sin_tetap, cos_tetap, tan_tetadir, tan_fidir, LT_aper_Db);
-
-            y = yz[0];
-            z = yz[1];
-
-            var_temp = pow(y - GeolengthelementsInput.S_shi_hor_A, 2) + pow(z - GeolengthelementsInput.S_shi_ver_A, 2);
-
-            if(var_temp < S_aper_sqr){
-
-                if(GraphOptionsInput.make_image_plates){
-                    Util::Make(1, y, z,
-                                counts_sour,
-                                counts_C1,
-                                counts_C2_para,
-                                counts_detc_para,
-                                counts_C2_anti,
-                                counts_detc_anti);
-
-                    //Event point at source
-                    tmpEvent.push_back(0); //X
-                    tmpEvent.push_back(y); //Y
-                    tmpEvent.push_back(z); //Z
-                    
-                }
-
-
-                r = sqrt(pow(y, 2) + pow(z, 2));
-
-                vector<double> yz = Util::getYZ(r, sin_tetap, cos_tetap, tan_tetadir, tan_fidir, LT_aper_Db);
-
-                y = yz[0];
-                z = yz[1];
-
-
-                y_pro_C1 = y * cos_tetadir / cos_tetadirCry1;
-                z_pro_C1 = z * cos_fidir / cos_fidirtilt;
-
-
-                //logString.clear();
-                //logString << y_pro_C1 << "\t" << y_max_C1 << "\t" << y_min_C1 << "\t;\t" << z_pro_C1 << "\t" << z_max_C1 << "\t" << z_min_C1 << endl;
-                //emit w->LogLine(logString.str());
-
-                if(y_pro_C1 < y_max_C1 && y_pro_C1 > y_min_C1 && z_pro_C1 < z_max_C1 && z_pro_C1 > z_min_C1){
-                    if(!GraphOptionsInput.make_imageC1_After_refle){
-                        if(GraphOptionsInput.make_image_plates){
-                            Util::Make(2, y_pro_C1, z_pro_C1,
-                                        counts_sour,
-                                        counts_C1,
-                                        counts_C2_para,
-                                        counts_detc_para,
-                                        counts_C2_anti,
-                                        counts_detc_anti);
-                            
-                            //Event point at the first crystal
-                            tmpEvent.push_back(0); //X
-                            tmpEvent.push_back(y_pro_C1); //Y
-                            tmpEvent.push_back(z_pro_C1); //Z
-                        }
-                    }
-
-                    rx = cos_fidir * cos_tetadir;
-                    ry = cos_fidir * sin_tetadir;
-                    rz = sin_fidir;
-
-
-                    if(CurvedCrystalInput.Curve_crystall){
-                        vector<double> corrRes = Util::horCorr(
-                            y_pro_C1,
-                            y_max_C1,
-                            z_pro_C1,
-                            z_max_C1,
-                            true);
-
-                        Costeta_CHC = corrRes[0];
-                        Sinteta_CHC = corrRes[1];
-
-                        n1x = n1x_temp * Costeta_CHC + n1y_temp * Sinteta_CHC;
-                        n1y = n1y_temp * Costeta_CHC - n1x_temp * Sinteta_CHC;
-                    }
-
-                    vector<double> angleRes = Util::getFullAngle(rx, ry, rz, n1x, n1y, n1z);
-                    angle = angleRes[0];
-                    r2x = angleRes[1];
-                    r2y = angleRes[2];
-                    r2z = angleRes[3];
-
-                    lamda = Util::getEnergy(a_lamds_uni, b_lamds_uni, tw_d1_para);
-                    
-                    tetabra1 = asin(lamda / tw_d1_para);
-
-                    //logString.clear();
-                    //logString << angle << "\t" << tetabra1 << endl;
-                    //emit w->LogLine(logString.str());
-
-                    if(PolarizationParametersInput.mka_poli)
-                    {
-                        if(((double)uniform(generator) / RAND_MAX) < PolarizationParametersInput.relationP_S)
-                            poliP = true;
-                        else
-                            poliP = false;
-                    }
-                    else
-                    {
-                        poliP = false;
-                    }
-
-                    first_crystal_reach = Util::getReflection(
-                            angle,
-                            tetabra1,
-                            lamda,
-                            false,
-                            poliP);
-
-                    if(first_crystal_reach){
-                        if(GraphOptionsInput.make_imageC1_After_refle){
-                            if(GraphOptionsInput.make_image_plates){
-                                Util::Make(2, y_pro_C1, z_pro_C1,
-                                            counts_sour,
-                                            counts_C1,
-                                            counts_C2_para,
-                                            counts_detc_para,
-                                            counts_C2_anti,
-                                            counts_detc_anti);
-                            }
-                        }
-                        
-                        rx_rot = cos_tetartab * r2x + sin_tetartab * r2y;
-                        ry_rot = -sin_tetartab * r2x + cos_tetartab * r2y;
-
-                        //logString.clear();
-                        //logString << ry_rot << "\t" << -sin_tetartab << "\t" << r2x << "\t" << cos_tetartab << "\t" << r2y << endl;
-                        //emit w->LogLine(logString.str());
-
-                        var_temp = ry_rot / rx_rot;
-
-                        tetadir = atan(var_temp);
-                        tan_tetadir = var_temp;
-                        cos_tetadir = cos(tetadir);
-
-
-                        var_temp = r2z / sqrt(pow(rx_rot, 2) + pow(ry_rot, 2));
-                        fidir = atan(var_temp);
-                        tan_fidir = var_temp;
-                        cos_fidir = cos(fidir);
-                        cos_fidirtilt2_para = cos(fidir + tilt_C2_para_temp);
-                        cos_fidirtilt2_anti = cos(fidir + tilt_C2_anti_temp);
-
-                        corr_dis = y_pro_C1 * cos_difteC1_Ta;
-
-                        y_pro_C1 = -y_pro_C1 * sin_difteC1_Ta;
-
-
-                        if(y_pro_C1 == 0){
-                            cos_tetap = 0;
-                            if(z_pro_C1 > 0)
-                                sin_tetap = 1;
-                            else
-                                sin_tetap = -1;
-                        }else{
-                            var_temp = z_pro_C1 / y_pro_C1;
-                            r = sqrt(pow(z_pro_C1, 2) + pow(y_pro_C1, 2));
-
-                            if(y_pro_C1 > 0){
-                                sin_tetap = var_temp / sqrt(1 + pow(var_temp, 2));
-                                cos_tetap = 1 / sqrt(1 + pow(var_temp, 2));
-                            }else{
-                                sin_tetap = - var_temp / sqrt(1 + pow(var_temp, 2));
-                                cos_tetap = - 1 / sqrt(1 + pow(var_temp, 2));
-                            }
-
-                        }
-
-                        //logString.clear();
-                        //logString << cos_tetap << "\t" << tan_tetadir << "\t" << dist_Cr1_Cr2_Db << "\t" << corr_dis << endl;
-                        //emit w->LogLine(logString.str());
-
-                        vector<double> yz = Util::getYZ(r, sin_tetap, cos_tetap, tan_tetadir, tan_fidir, dist_Cr1_Cr2_Db - corr_dis);
-
-                        y = yz[0];
-                        z = yz[1];
-
-
-                        if(UserSettingsInput.see_para){
-                            sin_tetatab_del_dir = sin(tetaref - delrot + tetadir);
-                            y_pro_C1 = y * cos_tetadir / sin_tetatab_del_dir;
-                            z_pro_C1 = z * cos_fidir / cos_fidirtilt2_para;
-                            
-                            //logString.clear();
-                            //logString << y_pro_C1 << "\t" << y_max_C2 << "\t" << y_min_C2 << "\t;\t" << z_pro_C1 << "\t" << z_max_C2 << "\t" << z_min_C2 << endl;
-                            //emit w->LogLine(logString.str());
-
-                            if(y_pro_C1 < y_max_C2 && y_pro_C1 > y_min_C2 && z_pro_C1 < z_max_C2 && z_pro_C1 > z_min_C2){
-
-                                if(GraphOptionsInput.make_image_plates){
-                                    if(!GraphOptionsInput.make_imageC2_After_refle){
-                                        Util::Make(3, y_pro_C1, z_pro_C1,
-                                                        counts_sour,
-                                                        counts_C1,
-                                                        counts_C2_para,
-                                                        counts_detc_para,
-                                                        counts_C2_anti,
-                                                        counts_detc_anti);
-                                        
-                                        //Event point at second crystal in parallel
-                                        tmpEvent.push_back(0); //X
-                                        tmpEvent.push_back(y_pro_C1); //Y
-                                        tmpEvent.push_back(z_pro_C1); //Z
-                                    }
-                                }
-
-                                
-                                tetabra2 = asin(lamda / tw_d2_para);
-
-
-                                if(CurvedCrystalInput.Curve_crystall){
-                                    vector<double> corrRes = Util::horCorr(
-                                        y_pro_C1,
-                                        y_max_C2,
-                                        z_pro_C1,
-                                        z_max_C2,
-                                        false);
-
-                                    Costeta_CHC = corrRes[0];
-                                    Sinteta_CHC = corrRes[1];
-
-                                    n2x_para = n2x_para_temp * Costeta_CHC + n2y_para_temp * Sinteta_CHC;
-                                    n2y_para = n2y_para_temp * Costeta_CHC - n2x_para_temp * Sinteta_CHC;
-                                }
-
-
-                                vector<double> angleRes = Util::getFullAngle2(r2x, r2y, r2z, n2x_para, n2y_para, n2z_para);
-                                angle = angleRes[0];
-                                r3x = angleRes[1];
-                                r3y = angleRes[2];
-                                r3z = angleRes[3];
-
-                                sec_crystal_Parallel_reach = Util::getReflection(
-                                    angle,
-                                    tetabra2,
-                                    lamda,
-                                    true,
-                                    poliP);
-
-                                if(sec_crystal_Parallel_reach){
-
-                                    if(GraphOptionsInput.make_image_plates){
-                                        if(GraphOptionsInput.make_imageC2_After_refle){
-                                            Util::Make(3, y_pro_C1, z_pro_C1,
-                                                        counts_sour,
-                                                        counts_C1,
-                                                        counts_C2_para,
-                                                        counts_detc_para,
-                                                        counts_C2_anti,
-                                                        counts_detc_anti);
-                                        }
-                                    }
-
-
-                                    rx_rot_sec = cos_tetartabdete_para * r3x + sin_tetartabdete_para * r3y;
-                                    ry_rot_sec = -sin_tetartabdete_para * r3x + cos_tetartabdete_para * r3y;
-
-                                    var_temp = ry_rot_sec / rx_rot_sec;
-
-
-
-                                    tetadir_det = atan(var_temp);
-                                    tan_tetadir_det = var_temp;
-                                    cos_tetadir_det = cos(tetadir_det);
-
-
-                                    var_temp = rz / sqrt(pow(rx_rot, 2) + pow(ry_rot, 2));
-                                    fidir_det = atan(var_temp);
-                                    tan_fidir_det = var_temp;
-                                    cos_fidir_det = cos(fidir_det);
-                                    cos_fidirtilt2_para = cos(fidir + tilt_C2_para_temp);
-
-                                    corr_dis_d_pa = -y_pro_C1 * cos_difteC2_det_para;
-                                    y_pro_C1_d_pa = -y_pro_C1 * sin_difteC2_det_para;
-
-
-                                    if(y_pro_C1_d_pa == 0){
-                                        cos_tetap_det = 0;
-                                        if(z_pro_C1 > 0)
-                                            sin_tetap_det = 1;
-                                        else
-                                            sin_tetap_det = -1;
-                                    }else{
-                                        var_temp = z_pro_C1 / y_pro_C1_d_pa;
-                                        r_det = sqrt(pow(z_pro_C1, 2) + pow(y_pro_C1_d_pa, 2));
-
-                                        if(y_pro_C1_d_pa > 0){
-                                            sin_tetap_det = var_temp / sqrt(1 + pow(var_temp, 2));
-                                            cos_tetap_det = 1 / sqrt(1 + pow(var_temp, 2));
-                                        }else{
-                                            sin_tetap_det = - var_temp / sqrt(1 + pow(var_temp, 2));
-                                            cos_tetap_det = - 1 / sqrt(1 + pow(var_temp, 2));
-                                        }
-                                    }
-
-                                    vector<double> yz = Util::getYZ(r_det, sin_tetap_det, cos_tetap_det, tan_tetadir_det, tan_fidir_det, dist_Cr2_det_Db - corr_dis_d_pa);
-
-                                    y_det = yz[0];
-                                    z_det = yz[1];
-
-                                    if(y_det < ydetc_2_max && y_det > ydetc_2_min && z_det < zdetc_2_max && z_det > zdetc_2_min){
-
-                                        if(GraphOptionsInput.make_image_plates){
-                                            Util::Make(4, y_det, z_det,
-                                                        counts_sour,
-                                                        counts_C1,
-                                                        counts_C2_para,
-                                                        counts_detc_para,
-                                                        counts_C2_anti,
-                                                        counts_detc_anti);
-
-                                            //Event point at detector in parallel
-                                            tmpEvent.push_back(0); //X
-                                            tmpEvent.push_back(y_det); //Y
-                                            tmpEvent.push_back(z_det); //Z
-
-                                            #ifdef OPENMP
-                                            #pragma omp critical
-                                            {
-                                            #endif
-                                            if (eventsToTrace_para.size() < NumberRaysInput.number_events) {
-                                                eventsToTrace_para.push_back(tmpEvent);
-                                            }
-                                            else {
-                                                eventsToTrace_para.erase(eventsToTrace_para.begin());
-                                                eventsToTrace_para.push_back(tmpEvent);
-                                            }
-                                            #ifdef OPENMP
-                                            }
-                                            #endif
-                                        }
-
-                                        toint_para++;
-
-                                        #ifdef OPENMP
-                                        energy_sum_para_thread += Convert_Ag_minusone_eV / lamda;
-                                        #else
-                                        energy_sum_para[numbins - 1] += Convert_Ag_minusone_eV / lamda;
-                                        #endif
-                                    }
-                                    else {
-                                        if (GraphOptionsInput.make_image_plates) {
-                                            //If the event does not reach the detector then only add when we have less than maxEventNum
-                                            #ifdef OPENMP
-                                            #pragma omp critical
-                                            {
-                                            #endif
-                                            if (eventsToTrace_para.size() < NumberRaysInput.number_events && tmpEvent.size() >= 6) {
-                                                eventsToTrace_para.push_back(tmpEvent);
-                                            }
-                                            #ifdef OPENMP
-                                            }
-                                            #endif
-                                        }
-                                    }
-                                }
-                                else {
-                                    if (GraphOptionsInput.make_image_plates) {
-                                        //If the event does not reach the detector then only add when we have less than maxEventNum
-                                        #ifdef OPENMP
-                                        #pragma omp critical
-                                        {
-                                        #endif
-                                        if (eventsToTrace_para.size() < NumberRaysInput.number_events && tmpEvent.size() >= 6) {
-                                            eventsToTrace_para.push_back(tmpEvent);
-                                        }
-                                        #ifdef OPENMP
-                                        }
-                                        #endif
-                                    }
-                                }
-                            }
-                            else {
-                                if (GraphOptionsInput.make_image_plates) {
-                                    //If the event does not reach the detector then only add when we have less than maxEventNum
-                                    #ifdef OPENMP
-                                    #pragma omp critical
-                                    {
-                                    #endif
-                                    if (eventsToTrace_para.size() < NumberRaysInput.number_events && tmpEvent.size() >= 6) {
-                                        eventsToTrace_para.push_back(tmpEvent);
-                                    }
-                                    #ifdef OPENMP
-                                    }
-                                    #endif
-                                }
-                            }
-
-                        }
-
-
-                        if(UserSettingsInput.see_anti){
-
-
-                            sin_tetatab_del_dir = sin(tetaref + delrot - tetadir);
-
-                            y_pro_C1 = y * cos_tetadir / sin_tetatab_del_dir;
-                            z_pro_C1 = z * cos_fidir / cos_fidirtilt2_anti;
-
-                            
-                            if(y_pro_C1 < y_max_C2 && y_pro_C1 > y_min_C2 && z_pro_C1 < z_max_C2 && z_pro_C1 > z_min_C2){
-
-
-                                if(GraphOptionsInput.make_imageC2_After_refle){
-                                    if(GraphOptionsInput.make_image_plates){
-                                        Util::Make(5, y_pro_C1, z_pro_C1,
-                                                    counts_sour,
-                                                    counts_C1,
-                                                    counts_C2_para,
-                                                    counts_detc_para,
-                                                    counts_C2_anti,
-                                                    counts_detc_anti);
-
-                                        //Event point at second crystal in antiparallel
-                                        tmpEvent.push_back(0); //X
-                                        tmpEvent.push_back(y_pro_C1); //Y
-                                        tmpEvent.push_back(z_pro_C1); //Z
-                                    }
-                                }
-
-                                
-                                tetabra2 = asin(lamda / tw_d2_anti);
-
-                                if(CurvedCrystalInput.Curve_crystall){
-                                    vector<double> corrRes = Util::horCorr(
-                                        -y_pro_C1,
-                                        y_max_C2,
-                                        z_pro_C1,
-                                        z_max_C2,
-                                        false);
-
-                                    Costeta_CHC = corrRes[0];
-                                    Sinteta_CHC = corrRes[1];
-
-                                    n2x_anti = n2x_anti_temp * Costeta_CHC + n2y_anti_temp * Sinteta_CHC;
-                                    n2y_anti = n2y_anti_temp * Costeta_CHC - n2x_anti_temp * Sinteta_CHC;
-                                }
-
-
-                                vector<double> angleRes = Util::getFullAngle2(r2x, r2y, r2z, n2x_anti, n2y_anti, n2z_anti);
-                                angle = angleRes[0];
-                                r3x = angleRes[1];
-                                r3y = angleRes[2];
-                                r3z = angleRes[3];
-
-
-                                sec_crystal_Antiparallel_reach = Util::getReflection(
-                                    angle,
-                                    tetabra2,
-                                    lamda,
-                                    true,
-                                    poliP);
-
-                                if(sec_crystal_Antiparallel_reach){
-
-                                    if(GraphOptionsInput.make_image_plates){
-                                        if(GraphOptionsInput.make_imageC2_After_refle){
-                                            Util::Make(5, y_pro_C1, z_pro_C1,
-                                                        counts_sour,
-                                                        counts_C1,
-                                                        counts_C2_para,
-                                                        counts_detc_para,
-                                                        counts_C2_anti,
-                                                        counts_detc_anti);
-                                        }
-                                    }
-
-
-                                    rx_rot_sec = cos_tetartabdete_anti * r3x + sin_tetartabdete_anti * r3y;
-                                    ry_rot_sec = - sin_tetartabdete_anti * r3x + cos_tetartabdete_anti * r3y;
-
-
-                                    var_temp = - ry_rot_sec / rx_rot_sec;
-                                    tetadir_det = atan(var_temp);
-                                    tan_tetadir_det = var_temp;
-                                    cos_tetadir_det = cos(tetadir_det);
-
-
-                                    var_temp = rz / sqrt(pow(rx_rot, 2) + pow(ry_rot, 2));
-                                    fidir_det = atan(var_temp);
-                                    tan_fidir_det = var_temp;
-                                    cos_fidir_det = cos(fidir_det);
-                                    cos_fidirtilt2_anti = cos(fidir + tilt_C2_anti_temp);
-
-                                    corr_dis_d_pa = y_pro_C1 * cos_difteC2_det_para;
-                                    y_pro_C1_d_pa = y_pro_C1 * sin_difteC2_det_para;
-
-
-                                    if(y_pro_C1_d_pa == 0){
-                                        cos_tetap_det = 0;
-                                        if(z_pro_C1 > 0)
-                                            sin_tetap_det = 1;
-                                        else
-                                            sin_tetap_det = -1;
-                                    }else{
-                                        var_temp = z_pro_C1 / y_pro_C1_d_pa;
-                                        r_det = sqrt(pow(z_pro_C1, 2) + pow(y_pro_C1_d_pa, 2));
-
-                                        if(y_pro_C1_d_pa > 0){
-                                            sin_tetap_det = var_temp / sqrt(1 + pow(var_temp, 2));
-                                            cos_tetap_det = 1 / sqrt(1 + pow(var_temp, 2));
-                                        }else{
-                                            sin_tetap_det = - var_temp / sqrt(1 + pow(var_temp, 2));
-                                            cos_tetap_det = - 1 / sqrt(1 + pow(var_temp, 2));
-                                        }
-                                    }
-
-
-                                    vector<double> yz = Util::getYZ(r_det, sin_tetap_det, cos_tetap_det, tan_tetadir_det, tan_fidir_det, dist_Cr2_det_Db - corr_dis_d_pa);
-
-                                    y_det = yz[0];
-                                    z_det = yz[1];
-
-                                    if(y_det < ydetc_2_max && y_det > ydetc_2_min && z_det < zdetc_2_max && z_det > zdetc_2_min){
-
-                                        if (GraphOptionsInput.make_image_plates) {
-                                            Util::Make(6, y_det, z_det,
-                                                    counts_sour,
-                                                    counts_C1,
-                                                    counts_C2_para,
-                                                    counts_detc_para,
-                                                    counts_C2_anti,
-                                                    counts_detc_anti);
-
-                                            //Event point at detector in antiparallel
-                                            tmpEvent.push_back(0); //X
-                                            tmpEvent.push_back(y_det); //Y
-                                            tmpEvent.push_back(z_det); //Z
-
-                                            #ifdef OPENMP
-                                            #pragma omp critical
-                                            {
-                                            #endif
-                                            if (eventsToTrace_anti.size() < NumberRaysInput.number_events) {
-                                                eventsToTrace_anti.push_back(tmpEvent);
-                                            }
-                                            else {
-                                                eventsToTrace_anti.erase(eventsToTrace_anti.begin());
-                                                eventsToTrace_anti.push_back(tmpEvent);
-                                            }
-                                            #ifdef OPENMP
-                                            }
-                                            #endif
-                                        }
-
-                                        toint_anti++;
-
-                                        #ifdef OPENMP
-                                        energy_sum_anti_thread += Convert_Ag_minusone_eV / lamda;
-                                        #else
-                                        energy_sum_anti[numbins - 1] += Convert_Ag_minusone_eV / lamda;
-                                        #endif
-                                    }
-                                    else {
-                                        if (GraphOptionsInput.make_image_plates) {
-                                            //If the event does not reach the detector then only add when we have less than maxEventNum
-                                            #ifdef OPENMP
-                                            #pragma omp critical
-                                            {
-                                            #endif
-                                            if (eventsToTrace_anti.size() < NumberRaysInput.number_events && tmpEvent.size() >= 6) {
-                                                eventsToTrace_anti.push_back(tmpEvent);
-                                            }
-                                            #ifdef OPENMP
-                                            }
-                                            #endif
-                                        }
-                                    }
-
-                                }
-                                else {
-                                    if (GraphOptionsInput.make_image_plates) {
-                                        //If the event does not reach the detector then only add when we have less than maxEventNum
-                                        #ifdef OPENMP
-                                        #pragma omp critical
-                                        {
-                                        #endif
-                                        if (eventsToTrace_anti.size() < NumberRaysInput.number_events && tmpEvent.size() >= 6) {
-                                            eventsToTrace_anti.push_back(tmpEvent);
-                                        }
-                                        #ifdef OPENMP
-                                        }
-                                        #endif
-                                    }
-                                }
-
-                            }
-                            else {
-                                if (GraphOptionsInput.make_image_plates) {
-                                    //If the event does not reach the detector then only add when we have less than maxEventNum
-                                    #ifdef OPENMP
-                                    #pragma omp critical
-                                    {
-                                    #endif
-                                    if (eventsToTrace_anti.size() < NumberRaysInput.number_events && tmpEvent.size() >= 6) {
-                                        eventsToTrace_anti.push_back(tmpEvent);
-                                    }
-                                    #ifdef OPENMP
-                                    }
-                                    #endif
-                                }
-                            }
-
-                        }
-
-                    }
-
-                }
-
-            }
-
-            #ifdef OPENMP
-            #pragma omp atomic
-            #endif
-            I++;
-
-            #ifdef QT_EXISTS
-                #ifdef OPENMP
-                #pragma omp atomic
-                #endif
-                total_current_bins += 1;
-                w->setPctDone(static_cast<float>(total_current_bins) / total_expexted_bins);
-            #endif
-        }
+        makeBin(w, setup, bin, reduce, &eventsToTrace_para, &eventsToTrace_anti);
+        
 
         #ifdef OPENMP
-        energy_sum_para[numbins - 1] = energy_sum_para_thread;
-        energy_sum_anti[numbins - 1] = energy_sum_anti_thread;
+        energy_sum_para[setup->numbins - 1] = reduce->energy_sum_para_thread;
+        energy_sum_anti[setup->numbins - 1] = reduce->energy_sum_anti_thread;
         #endif
 
         #ifdef QT_EXISTS
@@ -1226,13 +410,13 @@ bool Source_complex::run_Source(SimulationInterface *w){
             emit w->changeStatsSignal(
                 SimulationInterface::Stats
                 {
-                    counts_sour,
-                    counts_C1,
-                    counts_C2_para,
-                    counts_C2_anti,
-                    counts_detc_para,
-                    counts_detc_anti,
-                    delrot,
+                    reduce->counts_sour,
+                    reduce->counts_C1,
+                    reduce->counts_C2_para,
+                    reduce->counts_C2_anti,
+                    reduce->counts_detc_para,
+                    reduce->counts_detc_anti,
+                    setup->delrot,
                     eventsToTrace_para,
                     eventsToTrace_anti
                 }
@@ -1240,49 +424,56 @@ bool Source_complex::run_Source(SimulationInterface *w){
             }
         #endif
 
+        toint_para_total[setup->numbins - 1] += reduce->toint_para;
+        total_para = toint_para_total[setup->numbins - 1];
 
-        toint_para_total[numbins - 1] += toint_para;
-        total_para = toint_para_total[numbins - 1];
-
-        toint_anti_total[numbins - 1] += toint_anti;
-        total_anti = toint_anti_total[numbins - 1];
+        toint_anti_total[setup->numbins - 1] += reduce->toint_anti;
+        total_anti = toint_anti_total[setup->numbins - 1];
 
 
-        angle_para = delrot * 180 / M_PI + teta_crys1;
-        angle_anti = delrot * 180 / M_PI - teta_crys1;
+        angle_para = setup->delrot * 180 / M_PI + teta_crys1;
+        angle_anti = setup->delrot * 180 / M_PI - teta_crys1;
 
 
         if(export_prof){
-            hist_para << - angle_para << "\t" << toint_para << "\t" << sqrt((double)toint_para) << endl;
-            hist_anti << - angle_anti << "\t" << toint_anti << "\t" << sqrt((double)toint_anti) << endl;
+            hist_para << - angle_para << "\t" << reduce->toint_para << "\t" << sqrt((double)reduce->toint_para) << endl;
+            hist_anti << - angle_anti << "\t" << reduce->toint_anti << "\t" << sqrt((double)reduce->toint_anti) << endl;
         }
 
 
         #ifdef QT_EXISTS
             if(GraphOptionsInput.make_graph_profile){
                 Make_plot_profiles::plotProfiles(
-                    energy_sum_para[numbins - 1] / total_para,
+                    #ifndef OPENMP
+                    reduce->energy_sum_para->at(setup->numbins - 1) / total_para,
+                    #else
+                    energy_sum_para[setup->numbins - 1] / total_para,
+                    #endif
                     angle_para,
                     total_para,
-                    energy_sum_anti[numbins - 1] / total_anti,
+                    #ifndef OPENMP
+                    reduce->energy_sum_anti->at(setup->numbins - 1) / total_anti,
+                    #else
+                    energy_sum_anti[setup->numbins - 1] / total_anti,
+                    #endif
                     angle_anti,
                     total_anti,
-                    numbins,
-                    counts_sour,
-                    counts_C1,
-                    counts_C2_para,
-                    counts_detc_para,
-                    counts_C2_anti,
-                    counts_detc_anti,
+                    setup->numbins,
+                    reduce->counts_sour,
+                    reduce->counts_C1,
+                    reduce->counts_C2_para,
+                    reduce->counts_C2_anti,
+                    reduce->counts_detc_para,
+                    reduce->counts_detc_anti,
                     w);
             }
         #endif
 
 
-        if(numbins == PlotParametersInput.nubins){
+        if(setup->numbins == PlotParametersInput.nubins){
             if(UserSettingsInput.fitting){
                 Util::FitData(
-                    numbins,
+                    setup->numbins,
                     angle_para,
                     total_para,
                     angle_anti,
@@ -1304,31 +495,32 @@ bool Source_complex::run_Source(SimulationInterface *w){
         }
 
 
-        if (numbins % 5 == 0) {
+        if (setup->numbins % 5 == 0) {
             int_time_out = Obtain_time::simuTime(
                 1,
                 // #ifdef OPENMP
                 // (int)(((PlotParametersInput.nubins - numbins) / 5) / ParallelSettingsInput.OMP_threads),
                 // #else
-                (int)((PlotParametersInput.nubins - numbins) / 5),
+                (int)((PlotParametersInput.nubins - setup->numbins) / 5),
                 // #endif
                 int_time_out[0],
                 int_time_out[1],
                 w);
         }
 
-        counts_C2_para_t += counts_C2_para;
-        counts_detc_para_t += counts_detc_para;
-        counts_C2_anti_t += counts_C2_anti;
-        counts_detc_anti_t += counts_detc_anti;
+        counts_C2_para_t += reduce->counts_C2_para;
+        counts_detc_para_t += reduce->counts_detc_para;
+        counts_C2_anti_t += reduce->counts_C2_anti;
+        counts_detc_anti_t += reduce->counts_detc_anti;
 
-        counts_C2_para = 0;
-        counts_detc_para = 0;
-        counts_detc_anti = 0;
-        counts_C2_anti = 0;
+        reduce->counts_C2_para = 0;
+        reduce->counts_detc_para = 0;
+        reduce->counts_detc_anti = 0;
+        reduce->counts_C2_anti = 0;
 
-        toint_para = 0;
-        toint_anti = 0;
+        reduce->toint_para = 0;
+        reduce->toint_anti = 0;
+        
 
         fill(&hist_image_plate_crystal2_para[0][0], &hist_image_plate_crystal2_para[0][0] + n_his_ima * n_his_ima, 0);
         fill(&hist_image_plate_crystal2_anti[0][0], &hist_image_plate_crystal2_anti[0][0] + n_his_ima * n_his_ima, 0);
@@ -1340,7 +532,7 @@ bool Source_complex::run_Source(SimulationInterface *w){
         max_hist[4] = 0;
         max_hist[5] = 0;
 
-        delrot = delrot - delrot_inc;
+        setup->delrot = setup->delrot - delrot_inc;
     }
 
 
@@ -1349,8 +541,8 @@ bool Source_complex::run_Source(SimulationInterface *w){
         gener_out << endl;
         gener_out << " Number of counts in the several geometric elements" << endl;
         gener_out << endl;
-        gener_out << legen_counts[0] << "\t" << counts_sour << endl;
-        gener_out << legen_counts[1] << "\t" << counts_C1 << endl;
+        gener_out << legen_counts[0] << "\t" << reduce->counts_sour << endl;
+        gener_out << legen_counts[1] << "\t" << reduce->counts_C1 << endl;
         gener_out << legen_counts[2] << "\t" << counts_C2_para_t << endl;
         gener_out << legen_counts[3] << "\t" << counts_detc_para_t << endl;
         gener_out << legen_counts[4] << "\t" << counts_C2_anti_t << endl;
@@ -1359,4 +551,863 @@ bool Source_complex::run_Source(SimulationInterface *w){
 
     return true;
 
+}
+
+
+void Source_complex::makeBin(SimulationInterface *w, \
+                            SetupParameters *setup, BinParameters *bin, ReductionVars *reduce, \
+                            vector<vector<double>> *eventsToTrace_para, vector<vector<double>> *eventsToTrace_anti)
+{
+    int I = 1;
+
+    #ifdef OPENMP
+    double energy_sum_para_thread = reduce->energy_sum_para_thread; double energy_sum_anti_thread = reduce->energy_sum_anti_thread;
+    #endif
+    int toint_para = reduce->toint_para; int toint_anti = reduce->toint_anti; int counts_sour = reduce->counts_sour; int counts_C1 = reduce->counts_C1;
+    int counts_C2_para = reduce->counts_C2_para; int counts_C2_anti = reduce->counts_C2_anti; int counts_detc_para = reduce->counts_detc_para;
+    int counts_detc_anti = reduce->counts_detc_anti;
+
+
+    unsigned int seed = bin->seed; double teta_table_thread = bin->teta_table_thread; double p = bin->p; double tetadir = bin->tetadir;
+    double sin_tetadir = bin->sin_tetadir; double cos_tetadir = bin->cos_tetadir; double tan_tetadir = bin->tan_tetadir;
+    double cos_tetadirCry1 = bin->cos_tetadirCry1; double fidir = bin->fidir; double sin_fidir = bin->sin_fidir; double cos_fidir = bin->cos_fidir;
+    double tan_fidir = bin->tan_fidir; double cos_fidirtilt = bin->cos_fidirtilt; double z = bin->z; double y = bin->y; double r = bin->r;
+    double tetap = bin->tetap; double sin_tetap = bin->sin_tetap; double cos_tetap = bin->cos_tetap; double var_temp = bin->var_temp; double y_pro_C1 = bin->y_pro_C1;
+    double z_pro_C1 = bin->z_pro_C1; double rx = bin->rx; double ry = bin->ry; double rz = bin->rz; double Costeta_CHC = bin->Costeta_CHC;
+    double Sinteta_CHC = bin->Sinteta_CHC; double n1x = bin->n1x; double n1y = bin->n1y; double angle = bin->angle; double r2x = bin->r2x; double r2y = bin->r2y;
+    double r2z = bin->r2z; double lamda = bin->lamda; double tetabra1 = bin->tetabra1; bool first_crystal_reach = bin->first_crystal_reach; double rx_rot = bin->rx_rot;
+    double ry_rot = bin->ry_rot; double cos_fidirtilt2_para = bin->cos_fidirtilt2_para; double cos_fidirtilt2_anti = bin->cos_fidirtilt2_anti; double corr_dis = bin->corr_dis;
+    double sin_tetatab_del_dir = bin->sin_tetatab_del_dir; double tetabra2 = bin->tetabra2; double n2x_para = bin->n2x_para; double n2y_para = bin->n2y_para;
+    double r3x = bin->r3x; double r3y = bin->r3y; double r3z = bin->r3z; bool sec_crystal_Parallel_reach = bin->sec_crystal_Parallel_reach;
+    double rx_rot_sec = bin->rx_rot_sec; double ry_rot_sec = bin->ry_rot_sec; double tetadir_det = bin->tetadir_det; double tan_tetadir_det = bin->tan_tetadir_det;
+    double cos_tetadir_det = bin->cos_tetadir_det; double fidir_det = bin->fidir_det; double tan_fidir_det = bin->tan_fidir_det; double cos_fidir_det = bin->cos_fidir_det;
+    double corr_dis_d_pa = bin->corr_dis_d_pa; double y_pro_C1_d_pa = bin->y_pro_C1_d_pa; double cos_tetap_det = bin->cos_tetap_det; double sin_tetap_det = bin->sin_tetap_det;
+    double r_det = bin->r_det; double y_det = bin->y_det; double z_det = bin->z_det; double n2x_anti = bin->n2x_anti; double n2y_anti = bin->n2y_anti;
+    bool sec_crystal_Antiparallel_reach = bin->sec_crystal_Antiparallel_reach; int total_current_bins = bin->total_current_bins;
+
+    #ifdef OPENMP
+    #pragma omp parallel firstprivate(seed, teta_table_thread, p, tetadir, sin_tetadir, cos_tetadir, tan_tetadir, cos_tetadirCry1, fidir, sin_fidir, cos_fidir, \
+                                    tan_fidir, cos_fidirtilt, z, y, r, tetap, sin_tetap, cos_tetap, var_temp, y_pro_C1, z_pro_C1, rx, ry, rz, Costeta_CHC, Sinteta_CHC, \
+                                    n1x, n1y, angle, r2x, r2y, r2z, lamda, tetabra1, first_crystal_reach, rx_rot, ry_rot, cos_fidirtilt2_para, cos_fidirtilt2_anti, \
+                                    corr_dis, sin_tetatab_del_dir, tetabra2, n2x_para, n2y_para, r3x, r3y, r3z, sec_crystal_Parallel_reach, rx_rot_sec, ry_rot_sec, \
+                                    tetadir_det, tan_tetadir_det, cos_tetadir_det, fidir_det, tan_fidir_det, cos_fidir_det, corr_dis_d_pa, y_pro_C1_d_pa, cos_tetap_det, \
+                                    sin_tetap_det, r_det, y_det, z_det, n2x_anti, n2y_anti, sec_crystal_Antiparallel_reach) \
+                            reduction(+:energy_sum_para_thread, energy_sum_anti_thread, toint_para, toint_anti, counts_sour, counts_C1, counts_C2_para, \
+                                        counts_C2_anti, counts_detc_para, counts_detc_anti)
+    #endif
+    while(I <= NumberRaysInput.nbeams * NumberRaysInput.number_rotati){
+        std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
+        auto duration = now.time_since_epoch();
+        #ifdef OPENMP
+        // random seed for this event if we have openMP enabled
+        seed = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count() + 17 * omp_get_thread_num();
+        #else
+        seed = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
+        #endif
+
+        static thread_local std::mt19937 generator;
+        uniform_int_distribution<uint32_t> uniform(0, RAND_MAX);
+        
+        // Density function -> https://cplusplus.com/reference/random/normal_distribution/
+        normal_distribution<double> table_noise(0, (GeoParametersInput.table_resolution / 2.355) / 3.0);
+
+
+        generator.seed(seed);
+        
+        //Temporary event to show in the 3D view
+        //If we have less than maxEventNum we just append otherwise we see
+        //this temporary event stored reaches the exit before appending.
+        //Each triple of values is 1 point and each event will have 4 points.
+        //Source - Crystal1 - Crystal2 - Detector
+        vector<double> tmpEvent;
+
+        if(UserSettingsInput.Make_Horizontal){
+            p = setup->del_teta_L * ((double)uniform(generator) / RAND_MAX) + setup->teta_min_L;
+            
+            tetadir = p;
+        }else
+            tetadir = 0;
+
+
+        sin_tetadir = sin(tetadir);
+        cos_tetadir = cos(tetadir);
+        tan_tetadir = sin_tetadir / cos_tetadir;
+
+        if(GeoParametersInput.make_table_noise && GeoParametersInput.table_resolution >= 0.01)
+        {
+            teta_table_thread = GeoParametersInput.teta_table;
+            teta_table_thread += table_noise(generator);
+            
+            #ifdef QT_EXISTS
+            
+            #ifdef OPENMP
+            #pragma omp critical
+            {
+            #endif
+                emit w->setTetaTableSignal(teta_table_thread);
+            #ifdef OPENMP
+            }
+            #endif
+
+            #endif
+        }
+
+        cos_tetadirCry1 = cos(tetadir + teta_table_thread * convrad);
+
+
+        if(UserSettingsInput.Make_Vertical){
+            p = setup->del_fi_L * ((double)uniform(generator) / RAND_MAX) + setup->fi_min_L;
+            fidir = p;
+        }else
+            fidir = GeoParametersInput.xsi * convrad;
+
+
+        sin_fidir = sin(fidir);
+        cos_fidir = cos(fidir);
+        tan_fidir = sin_fidir / cos_fidir;
+        cos_fidirtilt = cos(fidir + setup->tilt_C1_temp);
+
+
+        if(GeoParapathlengthsInput.type_source == "P"){
+            z = GeolengthelementsInput.S_shi_ver_B;
+            y = GeolengthelementsInput.S_shi_hor_B;
+            r = sqrt(pow(z, 2) + pow(y, 2));
+
+            if(GeolengthelementsInput.S_shi_ver_B == 0 && GeolengthelementsInput.S_shi_hor_B == 0){
+                sin_tetap = 0;
+                cos_tetap = 1;
+            }else if(GeolengthelementsInput.S_shi_hor_B == 0){
+                sin_tetap = 1;
+                cos_tetap = 0;
+            }else{
+                var_temp = z / y;
+                if(y > 0){
+                    sin_tetap = var_temp / sqrt(1 + pow(var_temp, 2));
+                    cos_tetap = 1 / sqrt(1 + pow(var_temp, 2));
+                }else{
+                    sin_tetap = - var_temp / sqrt(1 + pow(var_temp, 2));
+                    cos_tetap = - 1 / sqrt(1 + pow(var_temp, 2));
+                }
+            }
+
+        }else if(GeoParapathlengthsInput.type_source == "UC"){
+            r = setup->S_sour_2 + 1;
+            while(r > setup->S_sour_2){
+                z = ((double)uniform(generator) / RAND_MAX) * GeolengthelementsInput.S_sour - setup->S_sour_2;
+                y = ((double)uniform(generator) / RAND_MAX) * GeolengthelementsInput.S_sour - setup->S_sour_2;
+                r = sqrt(pow(z, 2) + pow(y, 2));
+            }
+            
+            z += GeolengthelementsInput.S_shi_ver_B;
+            y += GeolengthelementsInput.S_shi_hor_B;
+            
+            
+            if(y != 0)
+                var_temp = z / y;
+            else
+                var_temp = 0;
+
+            r = sqrt(pow(z, 2) + pow(y, 2));
+
+            if(y > 0){
+                sin_tetap = var_temp / sqrt(1 + pow(var_temp, 2));
+                cos_tetap = 1 / sqrt(1 + pow(var_temp, 2));
+            }else{
+                sin_tetap = - var_temp / sqrt(1 + pow(var_temp, 2));
+                cos_tetap = - 1 / sqrt(1 + pow(var_temp, 2));
+            }
+        }else if(GeoParapathlengthsInput.type_source == "G"){
+            p = 2 * M_PI * ((double)uniform(generator) / RAND_MAX);
+            tetap = p;
+            sin_tetap = sin(tetap);
+            cos_tetap = cos(tetap);
+            r = setup->S_aper_R_2 + 1;
+
+            while(r > setup->S_aper_R_2)
+                r = Util::GaussianBox(setup->S_aper_var_2, 0);
+
+            if(! (GeolengthelementsInput.S_shi_ver_B == 0 && GeolengthelementsInput.S_shi_hor_B == 0)){
+                z = r * sin_tetap + GeolengthelementsInput.S_shi_ver_B;
+                y = r * cos_tetap + GeolengthelementsInput.S_shi_hor_B;
+                var_temp = z / y;
+                r = sqrt(pow(z, 2) + pow(y, 2));
+
+                if(y > 0){
+                    sin_tetap = var_temp / sqrt(1 + pow(var_temp, 2));
+                    cos_tetap = 1 / sqrt(1 + pow(var_temp, 2));
+                }else{
+                    sin_tetap = - var_temp / sqrt(1 + pow(var_temp, 2));
+                    cos_tetap = - 1 / sqrt(1 + pow(var_temp, 2));
+                }
+            }
+
+        }else if(GeoParapathlengthsInput.type_source == "UR"){
+            z = ((double)uniform(generator) / RAND_MAX) * GeolengthelementsInput.z_sour - setup->z_sour_2;
+            y = ((double)uniform(generator) / RAND_MAX) * GeolengthelementsInput.y_sour - setup->y_sour_2;
+
+            z += GeolengthelementsInput.S_shi_ver_B;
+            y += GeolengthelementsInput.S_shi_hor_B;
+            var_temp = z / y;
+            r = sqrt(pow(z, 2) + pow(y, 2));
+
+            if(y > 0){
+                sin_tetap = var_temp / sqrt(1 + pow(var_temp, 2));
+                cos_tetap = 1 / sqrt(1 + pow(var_temp, 2));
+            }else{
+                sin_tetap = - var_temp / sqrt(1 + pow(var_temp, 2));
+                cos_tetap = - 1 / sqrt(1 + pow(var_temp, 2));
+            }
+        }else{
+            runtime_error("Bad input on the source type: type_source");
+        }
+
+        vector<double> yz = Util::getYZ(r, sin_tetap, cos_tetap, tan_tetadir, tan_fidir, setup->LT_aper_Db);
+
+        y = yz[0];
+        z = yz[1];
+
+        var_temp = pow(y - GeolengthelementsInput.S_shi_hor_A, 2) + pow(z - GeolengthelementsInput.S_shi_ver_A, 2);
+
+        if(var_temp < setup->S_aper_sqr){
+
+            if(GraphOptionsInput.make_image_plates){
+                Util::Make(1, y, z,
+                            counts_sour,
+                            counts_C1,
+                            counts_C2_para,
+                            counts_detc_para,
+                            counts_C2_anti,
+                            counts_detc_anti);
+
+                //Event point at source
+                tmpEvent.push_back(0); //X
+                tmpEvent.push_back(y); //Y
+                tmpEvent.push_back(z); //Z
+                
+            }
+
+
+            r = sqrt(pow(y, 2) + pow(z, 2));
+
+            vector<double> yz = Util::getYZ(r, sin_tetap, cos_tetap, tan_tetadir, tan_fidir, setup->LT_aper_Db);
+
+            y = yz[0];
+            z = yz[1];
+
+
+            y_pro_C1 = y * cos_tetadir / cos_tetadirCry1;
+            z_pro_C1 = z * cos_fidir / cos_fidirtilt;
+
+
+            //logString.clear();
+            //logString << y_pro_C1 << "\t" << y_max_C1 << "\t" << y_min_C1 << "\t;\t" << z_pro_C1 << "\t" << z_max_C1 << "\t" << z_min_C1 << endl;
+            //emit w->LogLine(logString.str());
+
+            if(y_pro_C1 < setup->y_max_C1 && y_pro_C1 > setup->y_min_C1 && z_pro_C1 < setup->z_max_C1 && z_pro_C1 > setup->z_min_C1){
+                if(!GraphOptionsInput.make_imageC1_After_refle){
+                    if(GraphOptionsInput.make_image_plates){
+                        Util::Make(2, y_pro_C1, z_pro_C1,
+                                    counts_sour,
+                                    counts_C1,
+                                    counts_C2_para,
+                                    counts_detc_para,
+                                    counts_C2_anti,
+                                    counts_detc_anti);
+                        
+                        //Event point at the first crystal
+                        tmpEvent.push_back(0); //X
+                        tmpEvent.push_back(y_pro_C1); //Y
+                        tmpEvent.push_back(z_pro_C1); //Z
+                    }
+                }
+
+                rx = cos_fidir * cos_tetadir;
+                ry = cos_fidir * sin_tetadir;
+                rz = sin_fidir;
+
+
+                if(CurvedCrystalInput.Curve_crystall){
+                    vector<double> corrRes = Util::horCorr(
+                        y_pro_C1,
+                        setup->y_max_C1,
+                        z_pro_C1,
+                        setup->z_max_C1,
+                        true);
+
+                    Costeta_CHC = corrRes[0];
+                    Sinteta_CHC = corrRes[1];
+
+                    n1x = setup->n1x_temp * Costeta_CHC + setup->n1y_temp * Sinteta_CHC;
+                    n1y = setup->n1y_temp * Costeta_CHC - setup->n1x_temp * Sinteta_CHC;
+                }
+
+                vector<double> angleRes = Util::getFullAngle(rx, ry, rz, n1x, n1y, setup->n1z);
+                angle = angleRes[0];
+                r2x = angleRes[1];
+                r2y = angleRes[2];
+                r2z = angleRes[3];
+
+                lamda = Util::getEnergy(setup->a_lamds_uni, setup->b_lamds_uni, setup->tw_d1_para);
+                
+                tetabra1 = asin(lamda / setup->tw_d1_para);
+
+                //logString.clear();
+                //logString << angle << "\t" << tetabra1 << endl;
+                //emit w->LogLine(logString.str());
+
+                bool poliP;
+
+                if(PolarizationParametersInput.mka_poli)
+                {
+                    if(((double)uniform(generator) / RAND_MAX) < PolarizationParametersInput.relationP_S)
+                        poliP = true;
+                    else
+                        poliP = false;
+                }
+                else
+                {
+                    poliP = false;
+                }
+
+                first_crystal_reach = Util::getReflection(
+                        angle,
+                        tetabra1,
+                        lamda,
+                        false,
+                        poliP);
+
+                if(first_crystal_reach){
+                    if(GraphOptionsInput.make_imageC1_After_refle){
+                        if(GraphOptionsInput.make_image_plates){
+                            Util::Make(2, y_pro_C1, z_pro_C1,
+                                        counts_sour,
+                                        counts_C1,
+                                        counts_C2_para,
+                                        counts_detc_para,
+                                        counts_C2_anti,
+                                        counts_detc_anti);
+                        }
+                    }
+                    
+                    rx_rot = setup->cos_tetartab * r2x + setup->sin_tetartab * r2y;
+                    ry_rot = -setup->sin_tetartab * r2x + setup->cos_tetartab * r2y;
+
+                    //logString.clear();
+                    //logString << ry_rot << "\t" << -sin_tetartab << "\t" << r2x << "\t" << cos_tetartab << "\t" << r2y << endl;
+                    //emit w->LogLine(logString.str());
+
+                    var_temp = ry_rot / rx_rot;
+
+                    tetadir = atan(var_temp);
+                    tan_tetadir = var_temp;
+                    cos_tetadir = cos(tetadir);
+
+
+                    var_temp = r2z / sqrt(pow(rx_rot, 2) + pow(ry_rot, 2));
+                    fidir = atan(var_temp);
+                    tan_fidir = var_temp;
+                    cos_fidir = cos(fidir);
+                    cos_fidirtilt2_para = cos(fidir + setup->tilt_C2_para_temp);
+                    cos_fidirtilt2_anti = cos(fidir + setup->tilt_C2_anti_temp);
+
+                    corr_dis = y_pro_C1 * setup->cos_difteC1_Ta;
+
+                    y_pro_C1 = -y_pro_C1 * setup->sin_difteC1_Ta;
+
+
+                    if(y_pro_C1 == 0){
+                        cos_tetap = 0;
+                        if(z_pro_C1 > 0)
+                            sin_tetap = 1;
+                        else
+                            sin_tetap = -1;
+                    }else{
+                        var_temp = z_pro_C1 / y_pro_C1;
+                        r = sqrt(pow(z_pro_C1, 2) + pow(y_pro_C1, 2));
+
+                        if(y_pro_C1 > 0){
+                            sin_tetap = var_temp / sqrt(1 + pow(var_temp, 2));
+                            cos_tetap = 1 / sqrt(1 + pow(var_temp, 2));
+                        }else{
+                            sin_tetap = - var_temp / sqrt(1 + pow(var_temp, 2));
+                            cos_tetap = - 1 / sqrt(1 + pow(var_temp, 2));
+                        }
+
+                    }
+
+                    //logString.clear();
+                    //logString << cos_tetap << "\t" << tan_tetadir << "\t" << dist_Cr1_Cr2_Db << "\t" << corr_dis << endl;
+                    //emit w->LogLine(logString.str());
+
+                    vector<double> yz = Util::getYZ(r, sin_tetap, cos_tetap, tan_tetadir, tan_fidir, setup->dist_Cr1_Cr2_Db - corr_dis);
+
+                    y = yz[0];
+                    z = yz[1];
+
+
+                    if(UserSettingsInput.see_para){
+                        sin_tetatab_del_dir = sin(setup->tetaref - setup->delrot + tetadir);
+                        y_pro_C1 = y * cos_tetadir / sin_tetatab_del_dir;
+                        z_pro_C1 = z * cos_fidir / cos_fidirtilt2_para;
+                        
+                        //logString.clear();
+                        //logString << y_pro_C1 << "\t" << y_max_C2 << "\t" << y_min_C2 << "\t;\t" << z_pro_C1 << "\t" << z_max_C2 << "\t" << z_min_C2 << endl;
+                        //emit w->LogLine(logString.str());
+
+                        if(y_pro_C1 < setup->y_max_C2 && y_pro_C1 > setup->y_min_C2 && z_pro_C1 < setup->z_max_C2 && z_pro_C1 > setup->z_min_C2){
+
+                            if(GraphOptionsInput.make_image_plates){
+                                if(!GraphOptionsInput.make_imageC2_After_refle){
+                                    Util::Make(3, y_pro_C1, z_pro_C1,
+                                                    counts_sour,
+                                                    counts_C1,
+                                                    counts_C2_para,
+                                                    counts_detc_para,
+                                                    counts_C2_anti,
+                                                    counts_detc_anti);
+                                    
+                                    //Event point at second crystal in parallel
+                                    tmpEvent.push_back(0); //X
+                                    tmpEvent.push_back(y_pro_C1); //Y
+                                    tmpEvent.push_back(z_pro_C1); //Z
+                                }
+                            }
+
+                            
+                            tetabra2 = asin(lamda / setup->tw_d2_para);
+
+
+                            if(CurvedCrystalInput.Curve_crystall){
+                                vector<double> corrRes = Util::horCorr(
+                                    y_pro_C1,
+                                    setup->y_max_C2,
+                                    z_pro_C1,
+                                    setup->z_max_C2,
+                                    false);
+
+                                Costeta_CHC = corrRes[0];
+                                Sinteta_CHC = corrRes[1];
+
+                                n2x_para = setup->n2x_para_temp * Costeta_CHC + setup->n2y_para_temp * Sinteta_CHC;
+                                n2y_para = setup->n2y_para_temp * Costeta_CHC - setup->n2x_para_temp * Sinteta_CHC;
+                            }
+
+
+                            vector<double> angleRes = Util::getFullAngle2(r2x, r2y, r2z, n2x_para, n2y_para, setup->n2z_para);
+                            angle = angleRes[0];
+                            r3x = angleRes[1];
+                            r3y = angleRes[2];
+                            r3z = angleRes[3];
+
+                            sec_crystal_Parallel_reach = Util::getReflection(
+                                angle,
+                                tetabra2,
+                                lamda,
+                                true,
+                                poliP);
+
+                            if(sec_crystal_Parallel_reach){
+
+                                if(GraphOptionsInput.make_image_plates){
+                                    if(GraphOptionsInput.make_imageC2_After_refle){
+                                        Util::Make(3, y_pro_C1, z_pro_C1,
+                                                    counts_sour,
+                                                    counts_C1,
+                                                    counts_C2_para,
+                                                    counts_detc_para,
+                                                    counts_C2_anti,
+                                                    counts_detc_anti);
+                                    }
+                                }
+
+
+                                rx_rot_sec = setup->cos_tetartabdete_para * r3x + setup->sin_tetartabdete_para * r3y;
+                                ry_rot_sec = -setup->sin_tetartabdete_para * r3x + setup->cos_tetartabdete_para * r3y;
+
+                                var_temp = ry_rot_sec / rx_rot_sec;
+
+
+
+                                tetadir_det = atan(var_temp);
+                                tan_tetadir_det = var_temp;
+                                cos_tetadir_det = cos(tetadir_det);
+
+
+                                var_temp = rz / sqrt(pow(rx_rot, 2) + pow(ry_rot, 2));
+                                fidir_det = atan(var_temp);
+                                tan_fidir_det = var_temp;
+                                cos_fidir_det = cos(fidir_det);
+                                cos_fidirtilt2_para = cos(fidir + setup->tilt_C2_para_temp);
+
+                                corr_dis_d_pa = -y_pro_C1 * setup->cos_difteC2_det_para;
+                                y_pro_C1_d_pa = -y_pro_C1 * setup->sin_difteC2_det_para;
+
+
+                                if(y_pro_C1_d_pa == 0){
+                                    cos_tetap_det = 0;
+                                    if(z_pro_C1 > 0)
+                                        sin_tetap_det = 1;
+                                    else
+                                        sin_tetap_det = -1;
+                                }else{
+                                    var_temp = z_pro_C1 / y_pro_C1_d_pa;
+                                    r_det = sqrt(pow(z_pro_C1, 2) + pow(y_pro_C1_d_pa, 2));
+
+                                    if(y_pro_C1_d_pa > 0){
+                                        sin_tetap_det = var_temp / sqrt(1 + pow(var_temp, 2));
+                                        cos_tetap_det = 1 / sqrt(1 + pow(var_temp, 2));
+                                    }else{
+                                        sin_tetap_det = - var_temp / sqrt(1 + pow(var_temp, 2));
+                                        cos_tetap_det = - 1 / sqrt(1 + pow(var_temp, 2));
+                                    }
+                                }
+
+                                vector<double> yz = Util::getYZ(r_det, sin_tetap_det, cos_tetap_det, tan_tetadir_det, tan_fidir_det, setup->dist_Cr2_det_Db - corr_dis_d_pa);
+
+                                y_det = yz[0];
+                                z_det = yz[1];
+
+                                if(y_det < setup->ydetc_2_max && y_det > setup->ydetc_2_min && z_det < setup->zdetc_2_max && z_det > setup->zdetc_2_min){
+
+                                    if(GraphOptionsInput.make_image_plates){
+                                        Util::Make(4, y_det, z_det,
+                                                    counts_sour,
+                                                    counts_C1,
+                                                    counts_C2_para,
+                                                    counts_detc_para,
+                                                    counts_C2_anti,
+                                                    counts_detc_anti);
+
+                                        //Event point at detector in parallel
+                                        tmpEvent.push_back(0); //X
+                                        tmpEvent.push_back(y_det); //Y
+                                        tmpEvent.push_back(z_det); //Z
+
+                                        #ifdef OPENMP
+                                        #pragma omp critical
+                                        {
+                                        #endif
+                                        if (eventsToTrace_para->size() < NumberRaysInput.number_events) {
+                                            eventsToTrace_para->push_back(tmpEvent);
+                                        }
+                                        else {
+                                            eventsToTrace_para->erase(eventsToTrace_para->begin());
+                                            eventsToTrace_para->push_back(tmpEvent);
+                                        }
+                                        #ifdef OPENMP
+                                        }
+                                        #endif
+                                    }
+
+                                    toint_para++;
+                                    #ifdef OPENMP
+                                    energy_sum_para_thread += Convert_Ag_minusone_eV / lamda;
+                                    #else
+                                    reduce->energy_sum_para->at(setup->numbins - 1) += Convert_Ag_minusone_eV / lamda;
+                                    #endif
+                                }
+                                else {
+                                    if (GraphOptionsInput.make_image_plates) {
+                                        //If the event does not reach the detector then only add when we have less than maxEventNum
+                                        #ifdef OPENMP
+                                        #pragma omp critical
+                                        {
+                                        #endif
+                                        if (eventsToTrace_para->size() < NumberRaysInput.number_events && tmpEvent.size() >= 6) {
+                                            eventsToTrace_para->push_back(tmpEvent);
+                                        }
+                                        #ifdef OPENMP
+                                        }
+                                        #endif
+                                    }
+                                }
+                            }
+                            else {
+                                if (GraphOptionsInput.make_image_plates) {
+                                    //If the event does not reach the detector then only add when we have less than maxEventNum
+                                    #ifdef OPENMP
+                                    #pragma omp critical
+                                    {
+                                    #endif
+                                    if (eventsToTrace_para->size() < NumberRaysInput.number_events && tmpEvent.size() >= 6) {
+                                        eventsToTrace_para->push_back(tmpEvent);
+                                    }
+                                    #ifdef OPENMP
+                                    }
+                                    #endif
+                                }
+                            }
+                        }
+                        else {
+                            if (GraphOptionsInput.make_image_plates) {
+                                //If the event does not reach the detector then only add when we have less than maxEventNum
+                                #ifdef OPENMP
+                                #pragma omp critical
+                                {
+                                #endif
+                                if (eventsToTrace_para->size() < NumberRaysInput.number_events && tmpEvent.size() >= 6) {
+                                    eventsToTrace_para->push_back(tmpEvent);
+                                }
+                                #ifdef OPENMP
+                                }
+                                #endif
+                            }
+                        }
+
+                    }
+
+
+                    if(UserSettingsInput.see_anti){
+
+
+                        sin_tetatab_del_dir = sin(setup->tetaref + setup->delrot - tetadir);
+
+                        y_pro_C1 = y * cos_tetadir / sin_tetatab_del_dir;
+                        z_pro_C1 = z * cos_fidir / cos_fidirtilt2_anti;
+
+                        
+                        if(y_pro_C1 < setup->y_max_C2 && y_pro_C1 > setup->y_min_C2 && z_pro_C1 < setup->z_max_C2 && z_pro_C1 > setup->z_min_C2){
+
+
+                            if(GraphOptionsInput.make_imageC2_After_refle){
+                                if(GraphOptionsInput.make_image_plates){
+                                    Util::Make(5, y_pro_C1, z_pro_C1,
+                                                counts_sour,
+                                                counts_C1,
+                                                counts_C2_para,
+                                                counts_detc_para,
+                                                counts_C2_anti,
+                                                counts_detc_anti);
+
+                                    //Event point at second crystal in antiparallel
+                                    tmpEvent.push_back(0); //X
+                                    tmpEvent.push_back(y_pro_C1); //Y
+                                    tmpEvent.push_back(z_pro_C1); //Z
+                                }
+                            }
+
+                            
+                            tetabra2 = asin(lamda / setup->tw_d2_anti);
+
+                            if(CurvedCrystalInput.Curve_crystall){
+                                vector<double> corrRes = Util::horCorr(
+                                    -y_pro_C1,
+                                    setup->y_max_C2,
+                                    z_pro_C1,
+                                    setup->z_max_C2,
+                                    false);
+
+                                Costeta_CHC = corrRes[0];
+                                Sinteta_CHC = corrRes[1];
+
+                                n2x_anti = setup->n2x_anti_temp * Costeta_CHC + setup->n2y_anti_temp * Sinteta_CHC;
+                                n2y_anti = setup->n2y_anti_temp * Costeta_CHC - setup->n2x_anti_temp * Sinteta_CHC;
+                            }
+
+
+                            vector<double> angleRes = Util::getFullAngle2(r2x, r2y, r2z, n2x_anti, n2y_anti, setup->n2z_anti);
+                            angle = angleRes[0];
+                            r3x = angleRes[1];
+                            r3y = angleRes[2];
+                            r3z = angleRes[3];
+
+
+                            sec_crystal_Antiparallel_reach = Util::getReflection(
+                                angle,
+                                tetabra2,
+                                lamda,
+                                true,
+                                poliP);
+
+                            if(sec_crystal_Antiparallel_reach){
+
+                                if(GraphOptionsInput.make_image_plates){
+                                    if(GraphOptionsInput.make_imageC2_After_refle){
+                                        Util::Make(5, y_pro_C1, z_pro_C1,
+                                                    counts_sour,
+                                                    counts_C1,
+                                                    counts_C2_para,
+                                                    counts_detc_para,
+                                                    counts_C2_anti,
+                                                    counts_detc_anti);
+                                    }
+                                }
+
+
+                                rx_rot_sec = setup->cos_tetartabdete_anti * r3x + setup->sin_tetartabdete_anti * r3y;
+                                ry_rot_sec = - setup->sin_tetartabdete_anti * r3x + setup->cos_tetartabdete_anti * r3y;
+
+
+                                var_temp = - ry_rot_sec / rx_rot_sec;
+                                tetadir_det = atan(var_temp);
+                                tan_tetadir_det = var_temp;
+                                cos_tetadir_det = cos(tetadir_det);
+
+
+                                var_temp = rz / sqrt(pow(rx_rot, 2) + pow(ry_rot, 2));
+                                fidir_det = atan(var_temp);
+                                tan_fidir_det = var_temp;
+                                cos_fidir_det = cos(fidir_det);
+                                cos_fidirtilt2_anti = cos(fidir + setup->tilt_C2_anti_temp);
+
+                                corr_dis_d_pa = y_pro_C1 * setup->cos_difteC2_det_para;
+                                y_pro_C1_d_pa = y_pro_C1 * setup->sin_difteC2_det_para;
+
+
+                                if(y_pro_C1_d_pa == 0){
+                                    cos_tetap_det = 0;
+                                    if(z_pro_C1 > 0)
+                                        sin_tetap_det = 1;
+                                    else
+                                        sin_tetap_det = -1;
+                                }else{
+                                    var_temp = z_pro_C1 / y_pro_C1_d_pa;
+                                    r_det = sqrt(pow(z_pro_C1, 2) + pow(y_pro_C1_d_pa, 2));
+
+                                    if(y_pro_C1_d_pa > 0){
+                                        sin_tetap_det = var_temp / sqrt(1 + pow(var_temp, 2));
+                                        cos_tetap_det = 1 / sqrt(1 + pow(var_temp, 2));
+                                    }else{
+                                        sin_tetap_det = - var_temp / sqrt(1 + pow(var_temp, 2));
+                                        cos_tetap_det = - 1 / sqrt(1 + pow(var_temp, 2));
+                                    }
+                                }
+
+
+                                vector<double> yz = Util::getYZ(r_det, sin_tetap_det, cos_tetap_det, tan_tetadir_det, tan_fidir_det, setup->dist_Cr2_det_Db - corr_dis_d_pa);
+
+                                y_det = yz[0];
+                                z_det = yz[1];
+
+                                if(y_det < setup->ydetc_2_max && y_det > setup->ydetc_2_min && z_det < setup->zdetc_2_max && z_det > setup->zdetc_2_min){
+                                    if (GraphOptionsInput.make_image_plates) {
+                                        Util::Make(6, y_det, z_det,
+                                                counts_sour,
+                                                counts_C1,
+                                                counts_C2_para,
+                                                counts_detc_para,
+                                                counts_C2_anti,
+                                                counts_detc_anti);
+
+                                        
+                                        //Event point at detector in antiparallel
+                                        tmpEvent.push_back(0); //X
+                                        tmpEvent.push_back(y_det); //Y
+                                        tmpEvent.push_back(z_det); //Z
+
+                                        #ifdef OPENMP
+                                        #pragma omp critical
+                                        {
+                                        #endif
+                                        if (eventsToTrace_anti->size() < NumberRaysInput.number_events) {
+                                            eventsToTrace_anti->push_back(tmpEvent);
+                                        }
+                                        else {
+                                            eventsToTrace_anti->erase(eventsToTrace_anti->begin());
+                                            eventsToTrace_anti->push_back(tmpEvent);
+                                        }
+                                        #ifdef OPENMP
+                                        }
+                                        #endif
+                                    }
+
+                                    toint_anti++;
+                                    #ifdef OPENMP
+                                    energy_sum_anti_thread += Convert_Ag_minusone_eV / lamda;
+                                    #else
+                                    reduce->energy_sum_anti->at(setup->numbins - 1) += Convert_Ag_minusone_eV / lamda;
+                                    #endif
+                                }
+                                else {
+                                    if (GraphOptionsInput.make_image_plates) {
+                                        //If the event does not reach the detector then only add when we have less than maxEventNum
+                                        #ifdef OPENMP
+                                        #pragma omp critical
+                                        {
+                                        #endif
+                                        if (eventsToTrace_anti->size() < NumberRaysInput.number_events && tmpEvent.size() >= 6) {
+                                            eventsToTrace_anti->push_back(tmpEvent);
+                                        }
+                                        #ifdef OPENMP
+                                        }
+                                        #endif
+                                    }
+                                }
+
+                            }
+                            else {
+                                if (GraphOptionsInput.make_image_plates) {
+                                    //If the event does not reach the detector then only add when we have less than maxEventNum
+                                    #ifdef OPENMP
+                                    #pragma omp critical
+                                    {
+                                    #endif
+                                    if (eventsToTrace_anti->size() < NumberRaysInput.number_events && tmpEvent.size() >= 6) {
+                                        eventsToTrace_anti->push_back(tmpEvent);
+                                    }
+                                    #ifdef OPENMP
+                                    }
+                                    #endif
+                                }
+                            }
+
+                        }
+                        else {
+                            if (GraphOptionsInput.make_image_plates) {
+                                //If the event does not reach the detector then only add when we have less than maxEventNum
+                                #ifdef OPENMP
+                                #pragma omp critical
+                                {
+                                #endif
+                                if (eventsToTrace_anti->size() < NumberRaysInput.number_events && tmpEvent.size() >= 6) {
+                                    eventsToTrace_anti->push_back(tmpEvent);
+                                }
+                                #ifdef OPENMP
+                                }
+                                #endif
+                            }
+                        }
+
+                    }
+
+                }
+
+            }
+
+        }
+
+        #ifdef OPENMP
+        #pragma omp atomic
+        #endif
+        I++;
+
+        #ifdef QT_EXISTS
+            #ifdef OPENMP
+            #pragma omp atomic
+            #endif
+            total_current_bins += 1;
+            w->setPctDone(static_cast<float>(total_current_bins) / setup->total_expexted_bins);
+        #endif
+    }
+
+
+    #ifdef OPENMP
+    reduce->energy_sum_para_thread = energy_sum_para_thread; reduce->energy_sum_anti_thread = energy_sum_anti_thread;
+    #endif
+    reduce->toint_para = toint_para; reduce->toint_anti = toint_anti; reduce->counts_sour = counts_sour; reduce->counts_C1 = counts_C1;
+    reduce->counts_C2_para = counts_C2_para; reduce->counts_C2_anti = counts_C2_anti; reduce->counts_detc_para = counts_detc_para; reduce->counts_detc_anti = counts_detc_anti; 
+
+    bin->seed = seed; bin->teta_table_thread = teta_table_thread; bin->p = p; bin->tetadir = tetadir; bin->sin_tetadir = sin_tetadir; bin->cos_tetadir = cos_tetadir;
+    bin->tan_tetadir = tan_tetadir; bin->cos_tetadirCry1 = cos_tetadirCry1; bin->fidir = fidir; bin->sin_fidir = sin_fidir; bin->cos_fidir = cos_fidir;
+    bin->tan_fidir = tan_fidir; bin->cos_fidirtilt = cos_fidirtilt; bin->z = z; bin->y = y; bin->r = r; bin->tetap = tetap; bin->sin_tetap = sin_tetap;
+    bin->cos_tetap = cos_tetap; bin->var_temp = var_temp; bin->y_pro_C1 = y_pro_C1; bin->z_pro_C1 = z_pro_C1; bin->rx = rx; bin->ry = ry; bin->rz = rz;
+    bin->Costeta_CHC = Costeta_CHC; bin->Sinteta_CHC = Sinteta_CHC; bin->n1x = n1x; bin->n1y = n1y; bin->angle = angle; bin->r2x = r2x; bin->r2y = r2y; bin->r2z = r2z;
+    bin->lamda = lamda; bin->tetabra1 = tetabra1; bin->first_crystal_reach = first_crystal_reach; bin->rx_rot = rx_rot; bin->ry_rot = ry_rot;
+    bin->cos_fidirtilt2_para = cos_fidirtilt2_para; bin->cos_fidirtilt2_anti = cos_fidirtilt2_anti; bin->corr_dis = corr_dis; bin->sin_tetatab_del_dir = sin_tetatab_del_dir;
+    bin->tetabra2 = tetabra2; bin->n2x_para = n2x_para; bin->n2y_para = n2y_para; bin->r3x = r3x; bin->r3y = r3y; bin->r3z = r3z;
+    bin->sec_crystal_Parallel_reach = sec_crystal_Parallel_reach; bin->rx_rot_sec = rx_rot_sec; bin->ry_rot_sec = ry_rot_sec; bin->tetadir_det = tetadir_det;
+    bin->tan_tetadir_det = tan_tetadir_det; bin->cos_tetadir_det = cos_tetadir_det; bin->fidir_det = fidir_det; bin->tan_fidir_det = tan_fidir_det;
+    bin->cos_fidir_det = cos_fidir_det; bin->corr_dis_d_pa = corr_dis_d_pa; bin->y_pro_C1_d_pa = y_pro_C1_d_pa; bin->cos_tetap_det = cos_tetap_det;
+    bin->sin_tetap_det = sin_tetap_det; bin->r_det = r_det; bin->y_det = y_det; bin->z_det = z_det; bin->n2x_anti = n2x_anti; bin->n2y_anti = n2y_anti;
+    bin->sec_crystal_Antiparallel_reach = sec_crystal_Antiparallel_reach; bin->total_current_bins = total_current_bins;
 }
