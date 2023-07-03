@@ -215,7 +215,14 @@ GUISettingsWindow::GUISettingsWindow(QWidget *parent) :
     connect(ui->spinBox_6, QOverload<int>::of(&QSpinBox::valueChanged), this, [this](int v) { GeometryInput.imk = v; });
     connect(ui->spinBox_7, QOverload<int>::of(&QSpinBox::valueChanged), this, [this](int v) { GeometryInput.iml = v; });
     // Geometry mode (reserved)
-    // Crystal type (reserved)
+    connect(ui->src_geometry_6, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int v) { 
+        switch(v)
+        {
+            case 0: GeometryInput.crystal_Si = true; break;
+            case 1: GeometryInput.crystal_Si = false; break;
+            default: break;
+        }
+    });
     connect(ui->src_geometry, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int v) { 
         switch(v)
         {
@@ -614,7 +621,8 @@ void GUISettingsWindow::updateElements()
     ui->spinBox_6->setValue(GeometryInput.imk);
     ui->spinBox_7->setValue(GeometryInput.iml);
     // Geometry mode (reserved)
-    // Crystal type (reserved)
+    if(GeometryInput.crystal_Si)      ui->src_geometry_6->setCurrentIndex(0);
+    else if(!GeometryInput.crystal_Si) ui->src_geometry_6->setCurrentIndex(1);
     if(GeoParapathlengthsInput.type_source == "UC")      ui->src_geometry->setCurrentIndex(0);
     else if(GeoParapathlengthsInput.type_source == "UR") ui->src_geometry->setCurrentIndex(1);
     else if(GeoParapathlengthsInput.type_source ==  "P") ui->src_geometry->setCurrentIndex(2);

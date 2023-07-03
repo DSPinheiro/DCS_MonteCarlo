@@ -107,7 +107,7 @@ background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgb
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>-449</y>
+              <y>-474</y>
               <width>343</width>
               <height>690</height>
              </rect>
@@ -173,7 +173,7 @@ background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgb
                <item>
                 <widget class="QComboBox" name="src_geometry_6">
                  <property name="enabled">
-                  <bool>false</bool>
+                  <bool>true</bool>
                  </property>
                  <item>
                   <property name="text">
@@ -685,7 +685,7 @@ background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgb
                <item>
                 <widget class="QLabel" name="sg_label_11">
                  <property name="text">
-                  <string>Detector Initial Vertical Disp.</string>
+                  <string>Detector Vertical Shift</string>
                  </property>
                 </widget>
                </item>
@@ -775,6 +775,9 @@ background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgb
              </item>
              <item>
               <widget class="QCheckBox" name="fitting">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
                <property name="text">
                 <string>Enable Fitting</string>
                </property>
@@ -803,6 +806,9 @@ background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgb
              </item>
              <item>
               <widget class="QCheckBox" name="print_scan">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
                <property name="text">
                 <string>Output TIF Image</string>
                </property>
@@ -983,7 +989,7 @@ background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgb
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>-156</y>
+              <y>-395</y>
               <width>343</width>
               <height>611</height>
              </rect>
@@ -1210,7 +1216,7 @@ background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgb
                <item>
                 <widget class="QLabel" name="sg_label_33">
                  <property name="text">
-                  <string>Center Crystal 1 Incident Spot</string>
+                  <string>Center Crystal 1 Vertical Shift</string>
                  </property>
                 </widget>
                </item>
@@ -1237,7 +1243,7 @@ background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgb
                <item>
                 <widget class="QLabel" name="sg_label_34">
                  <property name="text">
-                  <string>Center Crystal 2 Incident Spot</string>
+                  <string>Center Crystal 2 Vertical Shift</string>
                  </property>
                 </widget>
                </item>
@@ -1594,14 +1600,14 @@ background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgb
              <item>
               <widget class="QCheckBox" name="make_img_plates_3">
                <property name="text">
-                <string>Make Image After Reflection For Crystal 1</string>
+                <string>Make Image Plate After Reflection For Crystal 1</string>
                </property>
               </widget>
              </item>
              <item>
               <widget class="QCheckBox" name="make_img_plates_4">
                <property name="text">
-                <string>Make Image After Reflection For Crystal 2</string>
+                <string>Make Image Plate After Reflection For Crystal 2</string>
                </property>
               </widget>
              </item>
@@ -1712,7 +1718,7 @@ background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgb
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>0</y>
+              <y>-655</y>
               <width>343</width>
               <height>871</height>
              </rect>
@@ -1765,7 +1771,7 @@ background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgb
                   <item>
                    <widget class="QLabel" name="sg_label_47">
                     <property name="text">
-                     <string>Number of Events</string>
+                     <string>Number of 3D Events</string>
                     </property>
                    </widget>
                   </item>
@@ -2519,7 +2525,7 @@ background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgb
                <item>
                 <widget class="QLabel" name="sg_label_58">
                  <property name="text">
-                  <string>Integral Constant Temp. (AA)</string>
+                  <string>Amp. Constant for Temp. (AA)</string>
                  </property>
                 </widget>
                </item>
@@ -2546,7 +2552,7 @@ background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgb
                <item>
                 <widget class="QLabel" name="sg_label_59">
                  <property name="text">
-                  <string>Integral Constant Temp. (TT)</string>
+                  <string>Width Constant for Temp. (TT)</string>
                  </property>
                 </widget>
                </item>

@@ -1460,7 +1460,7 @@ double Util::getNewTemp(int bin_tem, int& bin_fas, double& pha_tem) {
 
 
     if (TemperatureParametersInput.TT_tempera == 0) {
-        logString << "Warning: Value for TT:tempera is 0" << std::endl;
+        logString << "Warning: Value for TT_tempera is 0" << std::endl;
         #ifdef QT_EXISTS
         logBox->appendPlainText(logString.str().c_str());
         #else

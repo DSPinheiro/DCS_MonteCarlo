@@ -19,6 +19,10 @@ cmake --build . --config Release --target install
 
 ## Changelog
 
+**03/07/2023**\
+Major main loop refactoring to simulate the bin in a seperate function.\
+Input parameters explanation.\
+
 **26/06/2023**\
 Added OpenMP support for event generation.\
 The user can now specify a number of threads to use for the simulation.\
