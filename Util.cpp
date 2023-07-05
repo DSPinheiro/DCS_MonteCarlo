@@ -146,7 +146,7 @@ void Util::cov_srt(std::vector<std::vector<double>> covar, int npc, int ma, int*
 /// <param name="al"></param>
 void Util::cw(double xw, double yw, double& ak, double& al) {
 
-    const std::complex<double> C1(0.5641896, 0), C2(1.12837917, 0), CZ1(0.4613135, 0), CZ2(0.1901635, 0), CZ3(0.09999216, 0), CZ4(1.7844927, 0), CZ5(0.002883994, 0), CZ6(5.5253437, 0);
+    const std::complex<double> c1(0.5641896, 0), C2(1.12837917, 0), CZ1(0.4613135, 0), CZ2(0.1901635, 0), CZ3(0.09999216, 0), CZ4(1.7844927, 0), CZ5(0.002883994, 0), CZ6(5.5253437, 0);
     const std::complex<double> CZZ1(0.55124242, 0), CZZ2(2.752551, 0), CZZ3(0.05176536, 0), CZZ4(2.724745, 0), ZI(0, 1);
 
     std::complex<double> CWZ;
@@ -192,7 +192,7 @@ void Util::cw(double xw, double yw, double& ak, double& al) {
 
         }
 
-        CWZ = CWZ * C1 * ZI;
+        CWZ = CWZ * c1 * ZI;
 
     }
     else {
@@ -659,19 +659,19 @@ void Util::mrq_min(std::vector<double> x, std::vector<double> y, std::vector<dou
 /// Latice spacing for the temperature.
 /// </returns>
 double Util::Latice_temp(double d_lat, double T_crystal) {
-    double C1, C2, C3, C4, t0, Temp, a;
+    double c1, C2, C3, C4, t0, Temp, a;
     const double a22 = 1.000054702395071;
 
     t0 = 273.15;
 
-    C1 = 3.725E-6;
+    c1 = 3.725E-6;
     C2 = 5.88E-3;
     C3 = C2 * 124.0;
     C4 = 2.774E-10;
 
     Temp = T_crystal + t0;
 
-    a = (1.0 + (Temp - t0) * C1 + (pow(Temp, 2) - pow(t0, 2)) * C4 + (exp(-C2 * Temp) - exp(-C2 * t0)) * exp(C3) * C1 / C2);
+    a = (1.0 + (Temp - t0) * c1 + (pow(Temp, 2) - pow(t0, 2)) * C4 + (exp(-C2 * Temp) - exp(-C2 * t0)) * exp(C3) * c1 / C2);
 
     a /= a22;
 
@@ -1962,7 +1962,7 @@ void Util::fit(bool Parallel) {
     std::cout << logString.str();
     #endif
 
-    FWMH_V = c1 * a[2] + sqrt(c2 * pow(a[2], 2) + pow(a[0], 2));
+    FWMH_V = c1_coef * a[2] + sqrt(c2_coef * pow(a[2], 2) + pow(a[0], 2));
     if (UserSettingsInput.TrueVoigt) {
         if (Parallel)
             FWMH_V_para = FWMH_V;

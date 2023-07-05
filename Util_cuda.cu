@@ -2,22 +2,15 @@
 #include <curand_kernel.h>
 #include <cuda/std/chrono>
 
+
 #include "Util_cuda.cuh"
 
 using namespace Util_CUDA;
 
 
-__device__ void Util_CUDA::setup_kernel(curandState *state)
+__global__ void Util_CUDA::setupRand(curandState *state, unsigned int seed)
 {
-
-    int idx = threadIdx.x+blockDim.x*blockIdx.x;
-
-    std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
-    auto duration = now.time_since_epoch();
-
-    unsigned int seed = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
-
-    curand_init(seed, idx, 0, &state[idx]);
+    curand_init(seed, 1, 0, &state[1]);
 }
 
 
@@ -198,7 +191,7 @@ __device__ double Util_CUDA::getEnergy(curandState *state, double a_lamds_uni, d
     else {
         rnd_inten = curand_uniform_double(state);
         
-        energy_t = Util_CUDA::splint_te(pars.Energy_spectrum_vectors.cum_ints, pars.Energy_spectrum_vectors.lamdas, pars.Energy_spectrum_vectors.lamda_two_derivs, rnd_inten);
+        energy_t = Util_CUDA::splint_te(pars.Energy_spectrum_vectors.size, pars.Energy_spectrum_vectors.cum_ints, pars.Energy_spectrum_vectors.lamdas, pars.Energy_spectrum_vectors.lamda_two_derivs, rnd_inten);
 
         return Convert_Ag_minusone_eV / energy_t;
     }
@@ -224,19 +217,15 @@ __device__ double Util_CUDA::getEnergy(curandState *state, double a_lamds_uni, d
         return hit;
 
     }
-    else {
-        throw std::runtime_error("Error in intensity_source: energy could not be generated from input");
-    }
-
 }
 
 //TODO: test if there is a faster alternative
-__device__ double Util_CUDA::splint_te(std::vector<double> xa, std::vector<double> ya, std::vector<double> y2a, double x) {
+__device__ double Util_CUDA::splint_te(int64_t size, double *xa, double *ya, double *y2a, double x) {
     int k, klo;
     double a, b, h;
 
     klo = 1;
-    size_t khi = xa.size();
+    size_t khi = size;
 
     while (khi - klo > 1) {
         k = (khi + klo) / 2;
@@ -266,8 +255,10 @@ __device__ bool Util_CUDA::getReflection(curandState *state, double angle, doubl
     int energy_resp_index;
 
     int index = 0;
-    for (double energ : pars.available_energies)
+    for (int i = 0; i < pars.size; i++)
     {
+        double energ = pars.available_energies[i];
+
         if (energ > energy)
         {
             energy_resp_index = index - 1;
@@ -278,8 +269,8 @@ __device__ bool Util_CUDA::getReflection(curandState *state, double angle, doubl
 
 
     double energy_min_angle_resp, energy_max_angle_resp;
-    energy_min_angle_resp = std::max(pars.min_angle_resp[energy_resp_index], pars.min_angle_resp[energy_resp_index + 1]);
-    energy_max_angle_resp = std::min(pars.max_angle_resp[energy_resp_index], pars.max_angle_resp[energy_resp_index + 1]);
+    energy_min_angle_resp = max(pars.min_angle_resp[energy_resp_index], pars.min_angle_resp[energy_resp_index + 1]);
+    energy_max_angle_resp = min(pars.max_angle_resp[energy_resp_index], pars.max_angle_resp[energy_resp_index + 1]);
 
     if (dif < energy_min_angle_resp) {
         return false;
@@ -288,36 +279,41 @@ __device__ bool Util_CUDA::getReflection(curandState *state, double angle, doubl
         if (dif < energy_max_angle_resp) {
             if (type_crystal && pars.mka_poli) {
                 if (poli_p) {
-                    inte1 = Util_CUDA::splint_te(pars.Crystal_Responces[energy_resp_index].degrees,
-                                            pars.Crystal_Responces[energy_resp_index].reflecti_total_ps,
-                                            pars.Crystal_Responces[energy_resp_index].reflecti_two_deriv_ps, dif);
+                    inte1 = Util_CUDA::splint_te(pars.Crystal_Responces[energy_resp_index].size,
+                                                pars.Crystal_Responces[energy_resp_index].degrees,
+                                                pars.Crystal_Responces[energy_resp_index].reflecti_total_ps,
+                                                pars.Crystal_Responces[energy_resp_index].reflecti_two_deriv_ps, dif);
 
-                    inte2 = Util_CUDA::splint_te(pars.Crystal_Responces[energy_resp_index + 1].degrees,
-                                            pars.Crystal_Responces[energy_resp_index + 1].reflecti_total_ps,
-                                            pars.Crystal_Responces[energy_resp_index + 1].reflecti_total_ps, dif);
+                    inte2 = Util_CUDA::splint_te(pars.Crystal_Responces[energy_resp_index].size,
+                                                pars.Crystal_Responces[energy_resp_index + 1].degrees,
+                                                pars.Crystal_Responces[energy_resp_index + 1].reflecti_total_ps,
+                                                pars.Crystal_Responces[energy_resp_index + 1].reflecti_total_ps, dif);
 
                     inte = ((inte2 - inte1) / (pars.available_energies[energy_resp_index + 1] - pars.available_energies[energy_resp_index])) * (energy - pars.available_energies[energy_resp_index]) + inte1;
                 }
                 else {
-                    inte1 = Util_CUDA::splint_te(pars.Crystal_Responces[energy_resp_index].degrees,
-                                            pars.Crystal_Responces[energy_resp_index].reflecti_total_ss,
-                                            pars.Crystal_Responces[energy_resp_index].reflecti_two_deriv_ss, dif);
+                    inte1 = Util_CUDA::splint_te(pars.Crystal_Responces[energy_resp_index].size,
+                                                pars.Crystal_Responces[energy_resp_index].degrees,
+                                                pars.Crystal_Responces[energy_resp_index].reflecti_total_ss,
+                                                pars.Crystal_Responces[energy_resp_index].reflecti_two_deriv_ss, dif);
 
-                    inte2 = Util_CUDA::splint_te(pars.Crystal_Responces[energy_resp_index + 1].degrees,
-                                            pars.Crystal_Responces[energy_resp_index + 1].reflecti_total_ss,
-                                            pars.Crystal_Responces[energy_resp_index + 1].reflecti_two_deriv_ss, dif);
+                    inte2 = Util_CUDA::splint_te(pars.Crystal_Responces[energy_resp_index].size, pars.Crystal_Responces[energy_resp_index + 1].degrees,
+                                                pars.Crystal_Responces[energy_resp_index + 1].reflecti_total_ss,
+                                                pars.Crystal_Responces[energy_resp_index + 1].reflecti_two_deriv_ss, dif);
 
                     inte = ((inte2 - inte1) / (pars.available_energies[energy_resp_index + 1] - pars.available_energies[energy_resp_index])) * (energy - pars.available_energies[energy_resp_index]) + inte1;
                 }
             }
             else {
-                inte1 = Util_CUDA::splint_te(pars.Crystal_Responces[energy_resp_index].degrees,
-                                        pars.Crystal_Responces[energy_resp_index].reflecti_totals,
-                                        pars.Crystal_Responces[energy_resp_index].reflecti_two_derivs, dif);
+                inte1 = Util_CUDA::splint_te(pars.Crystal_Responces[energy_resp_index].size,
+                                            pars.Crystal_Responces[energy_resp_index].degrees,
+                                            pars.Crystal_Responces[energy_resp_index].reflecti_totals,
+                                            pars.Crystal_Responces[energy_resp_index].reflecti_two_derivs, dif);
 
-                inte2 = Util_CUDA::splint_te(pars.Crystal_Responces[energy_resp_index + 1].degrees,
-                                        pars.Crystal_Responces[energy_resp_index + 1].reflecti_totals,
-                                        pars.Crystal_Responces[energy_resp_index + 1].reflecti_two_derivs, dif);
+                inte2 = Util_CUDA::splint_te(pars.Crystal_Responces[energy_resp_index].size,
+                                            pars.Crystal_Responces[energy_resp_index + 1].degrees,
+                                            pars.Crystal_Responces[energy_resp_index + 1].reflecti_totals,
+                                            pars.Crystal_Responces[energy_resp_index + 1].reflecti_two_derivs, dif);
 
                 inte = ((inte2 - inte1) / (pars.available_energies[energy_resp_index + 1] - pars.available_energies[energy_resp_index])) * (energy - pars.available_energies[energy_resp_index]) + inte1;
             }

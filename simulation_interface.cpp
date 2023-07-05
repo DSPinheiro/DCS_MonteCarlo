@@ -74,7 +74,7 @@ void SimulationInterface::headlessSimu(){
     }
 
     if(FullEnergySpectrumInput.make_more_lines == 0 || FullEnergySpectrumInput.make_more_lines == 1){
-        if(PhysicalParametersInput.Unit_energy == evv[0]){
+        if(PhysicalParametersInput.Unit_energy == evv_1){
             for(int i = 0; i < 4; i++){
                 if(reques_energ[i] < 10.0){
                     throw runtime_error("bad input on the energies. requested energy less than 10 eV");
@@ -119,7 +119,7 @@ void SimulationInterface::headlessSimu(){
         for(int i = 0; i < 4; i++){
             reques_width[i] /= 2.0;
 
-            if(PhysicalParametersInput.Unit_energy == evv[0]){
+            if(PhysicalParametersInput.Unit_energy == evv_1){
                 picks[i].lamda = Convert_Ag_minusone_eV / reques_energ[i];
                 picks[i].natural_varia = Convert_Ag_minusone_eV * reques_width[i] / (pow(reques_energ[i], 2) - pow(reques_width[i], 2));
             }else{
@@ -130,7 +130,7 @@ void SimulationInterface::headlessSimu(){
     }else if(FullEnergySpectrumInput.make_more_lines == 0){
         reques_width[1] = reques_width[1] / 2.0;
 
-        if(PhysicalParametersInput.Unit_energy == evv[0]){
+        if(PhysicalParametersInput.Unit_energy == evv_1){
             picks[1].lamda = Convert_Ag_minusone_eV / reques_energ[1];
             picks[1].natural_varia = Convert_Ag_minusone_eV * reques_width[1] / (pow(reques_energ[1], 2) - pow(reques_width[1], 2));
         }else{
@@ -218,7 +218,7 @@ void SimulationInterface::guiSimu(){
     }
 
     if(FullEnergySpectrumInput.make_more_lines == 0 || FullEnergySpectrumInput.make_more_lines == 1){
-        if(PhysicalParametersInput.Unit_energy == evv[0]){
+        if(PhysicalParametersInput.Unit_energy == evv_1){
             for(int i = 0; i < 4; i++){
                 if(reques_energ[i] < 10.0){
                     throw runtime_error("bad input on the energies. requested energy less than 10 eV");
@@ -263,7 +263,7 @@ void SimulationInterface::guiSimu(){
         for(int i = 0; i < 4; i++){
             reques_width[i] /= 2.0;
 
-            if(PhysicalParametersInput.Unit_energy == evv[0]){
+            if(PhysicalParametersInput.Unit_energy == evv_1){
                 picks[i].lamda = Convert_Ag_minusone_eV / reques_energ[i];
                 picks[i].natural_varia = Convert_Ag_minusone_eV * reques_width[i] / (pow(reques_energ[i], 2) - pow(reques_width[i], 2));
             }else{
@@ -274,7 +274,7 @@ void SimulationInterface::guiSimu(){
     }else if(FullEnergySpectrumInput.make_more_lines == 0){
         reques_width[1] = reques_width[1] / 2.0;
 
-        if(PhysicalParametersInput.Unit_energy == evv[0]){
+        if(PhysicalParametersInput.Unit_energy == evv_1){
             picks[1].lamda = Convert_Ag_minusone_eV / reques_energ[1];
             picks[1].natural_varia = Convert_Ag_minusone_eV * reques_width[1] / (pow(reques_energ[1], 2) - pow(reques_width[1], 2));
         }else{

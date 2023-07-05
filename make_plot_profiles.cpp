@@ -56,12 +56,34 @@ void Make_plot_profiles::plotProfiles(
 
 
     if(GeometryInput.mode_bragg_geo)
-        copy(begin(legen_counts), end(legen_counts), begin(legen_counts_temp));
-    else{
+    {
+        legen_counts_temp[0] = legen_counts_1;
+        legen_counts_temp[1] = legen_counts_2;
+        legen_counts_temp[2] = legen_counts_3;
+        legen_counts_temp[3] = legen_counts_4;
+        legen_counts_temp[4] = legen_counts_5;
+        legen_counts_temp[5] = legen_counts_6;
+    }
+    else
+    {
         if(transmi_2crys)
-            copy(begin(legen_counts), end(legen_counts), begin(legen_counts_temp));
+        {
+            legen_counts_temp[0] = legen_counts_1;
+            legen_counts_temp[1] = legen_counts_2;
+            legen_counts_temp[2] = legen_counts_3;
+            legen_counts_temp[3] = legen_counts_4;
+            legen_counts_temp[4] = legen_counts_5;
+            legen_counts_temp[5] = legen_counts_6;
+        }
         else
-            copy(begin(legen_counts_1C), end(legen_counts_1C), begin(legen_counts_temp));
+        {
+            legen_counts_temp[0] = legen_counts_1C_1;
+            legen_counts_temp[1] = legen_counts_1C_2;
+            legen_counts_temp[2] = legen_counts_1C_3;
+            legen_counts_temp[3] = legen_counts_1C_4;
+            legen_counts_temp[4] = legen_counts_1C_5;
+            legen_counts_temp[5] = legen_counts_1C_6;
+        }
     }
 
     
@@ -159,7 +181,7 @@ void Make_plot_profiles::plotProfiles(
                 plates.crystal = crystal;
                 // Not ideal (but at least does not crash)
                 // cgodinho 15/05/2023 (there is not much tought into this anyways)
-                memcpy(&plates.hist_image[0][0], &hist_image[0][0], 100 * 100 * sizeof(double));
+                memcpy(&plates.hist_image[0][0], &hist_image[0][0], n_his_ima * n_his_ima * sizeof(double));
                 plates.max_z = max_plot_z_temp;
                 emit w->changePlatesSignal(plates);
 

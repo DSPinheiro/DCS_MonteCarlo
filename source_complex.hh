@@ -197,7 +197,8 @@ public:
         toint_para (0), toint_anti (0), counts_sour (0), counts_C1 (0), counts_C2_para (0), counts_C2_anti (0), counts_detc_para (0), counts_detc_anti (0)
         {}
     };
-    
+
+
     static bool run_Source(SimulationInterface* w);
     static void makeBin(SimulationInterface *w, \
                         SetupParameters *setup, BinParameters *bin, ReductionVars *reduce, \

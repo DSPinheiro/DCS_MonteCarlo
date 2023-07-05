@@ -223,6 +223,29 @@ struct ParallelSettings {
     
 // };
 
+#ifdef CUDA
+struct energy_vecs_CUDA {
+    double *lamdas;
+    double *intensities;
+    double *cum_ints;
+    double *intensity_two_derivs;
+    double *lamda_two_derivs;
+    int64_t size;
+};
+
+
+struct plotresponc_vecs_CUDA {
+    double *degrees;
+    double *reflecti_totals;
+    double *reflecti_two_derivs;
+    double *reflecti_total_ps;
+    double *reflecti_two_deriv_ps;
+    double *reflecti_total_ss;
+    double *reflecti_two_deriv_ss;
+    int64_t size;
+};
+#endif
+
 
 static inline std::vector<std::string> split(std::string s, std::string delimiter)
 {
@@ -266,60 +289,220 @@ static inline void trim(std::string& s) {
     rtrim(s);
 }
 
-const double refra_corrNIST = 0.00351262;
-const double refra_corrPARIS = 0.005952;
+
+#ifndef refra_corrNIST
+#define refra_corrNIST 0.00351262
+#endif
+
+#ifndef refra_corrPARIS
+#define refra_corrPARIS 0.005952
+#endif
 
 
-const double a_si_para = 5.431020457; // Paul Indelicato Value
-const double a_Ge_para = 5.65735; // XOP
-const double Convert_Ag_minusone_eV = 12398.41875;
+#ifndef a_si_para
+#define a_si_para 5.431020457   // Paul Indelicato Value
+#endif
 
-const std::string evv[2] = { "eV ", "Ang" };
+#ifndef a_Ge_para
+#define a_Ge_para 5.65735       // XOP
+#endif
 
-const int MA = 5;
+#ifndef Convert_Ag_minusone_eV
+#define Convert_Ag_minusone_eV 12398.41875
+#endif
 
-const double convrad = M_PI / 180;
-const double convdeg = 180 / M_PI;
-const double one_micro = 1000000;
+#ifndef evv_1
+#define evv_1 "eV "
+#endif
 
-const double limitReflec = 0.001;
+#ifndef evv_2
+#define evv_2 "Ang"
+#endif
 
-const int n_his_ima = 100;
-const int n_his_g = 100;
 
-const int fact_3 = 3 * 2;
-const int fact_5 = 5 * 4 * 3 * 2;
-const int fact_7 = 7 * 6 * 5 * 4 * 3 * 2;
+#ifndef MA
+#define MA 5
+#endif
 
-const std::string legen_counts[6] = {
-        "Number counts entrance:	",
-        "Number counts C1:			",
-        "Number counts C2_para:		",
-        "Number counts detc_para:	",
-        "Number counts C2_anti:		",
-        "Number counts detc_anti:	"
-};
+#ifndef convrad
+#define convrad M_PI / 180
+#endif
 
-const std::string legen_counts_1C[6] = {
-        "Number counts entrance:	",
-        "Number counts C1:			",
-        "Number counts C2_para:		",
-        "Number counts detc_para:	",
-        "Number counts C2_anti:		",
-        "Number counts detc_anti:	"
-};
+#ifndef convdeg
+#define convdeg 180 / M_PI
+#endif
 
-const double nm2 = n_his_ima / 2;
-const double np2 = n_his_ima / 2;
+#ifndef one_micro
+#define one_micro 1000000
+#endif
 
-const double const_back_para = 100, const_back_anti = 100;
 
-const double width_Gaus_para = 0.009, width_Lore_para = 0.0009, width_Gaus_anti = 0.009, width_Lore_anti = 0.005;
+#ifndef limitReflec
+#define limitReflec 0.001
+#endif
 
-const int do_amplitu_con_para = 1, do_amplitu_con_anti = 1, do_const_back_para = 1, do_const_back_anti = 1, do_firstcryst = 1, do_Gwidth_para = 1, do_Lwidth_para = 1, do_firstcryst_anti = 1, do_Gwidth_anti = 1, do_Lwidth_anti = 1;
 
-const double c1 = 0.5346, c2 = 0.2166;
+#ifndef n_his_ima
+#define n_his_ima 100
+#endif
 
-const double shape_corr = 0;
+#ifndef n_his_g
+#define n_his_g 100
+#endif
+
+
+#ifndef fact_3
+#define fact_3 3 * 2
+#endif
+
+#ifndef fact_5
+#define fact_5 5 * 4 * 3 * 2
+#endif
+
+#ifndef fact_7
+#define fact_7 7 * 6 * 5 * 4 * 3 * 2
+#endif
+
+
+
+#ifndef legen_counts_1
+#define legen_counts_1 "Number counts entrance:	"
+#endif
+
+#ifndef legen_counts_2
+#define legen_counts_2 "Number counts C1:			"
+#endif
+
+#ifndef legen_counts_3
+#define legen_counts_3 "Number counts C2_para:		"
+#endif
+
+#ifndef legen_counts_4
+#define legen_counts_4 "Number counts detc_para:	"
+#endif
+
+#ifndef legen_counts_5
+#define legen_counts_5 "Number counts C2_anti:		"
+#endif
+
+#ifndef legen_counts_6
+#define legen_counts_6 "Number counts detc_anti:	"
+#endif
+
+
+#ifndef legen_counts_1C_1
+#define legen_counts_1C_1 "Number counts entrance:	"
+#endif
+
+#ifndef legen_counts_1C_2
+#define legen_counts_1C_2 "Number counts C1:			"
+#endif
+
+#ifndef legen_counts_1C_3
+#define legen_counts_1C_3 "Number counts C2_para:		"
+#endif
+
+#ifndef legen_counts_1C_4
+#define legen_counts_1C_4 "Number counts detc_para:	"
+#endif
+
+#ifndef legen_counts_1C_5
+#define legen_counts_1C_5 "Number counts C2_anti:		"
+#endif
+
+#ifndef legen_counts_1C_6
+#define legen_counts_1C_6 "Number counts detc_anti:	"
+#endif
+
+
+#ifndef nm2
+#define nm2 n_his_ima / 2
+#endif
+
+#ifndef np2
+#define np2 n_his_ima / 2
+#endif
+
+
+#ifndef const_back_para
+#define const_back_para 100
+#endif
+
+#ifndef const_back_anti
+#define const_back_anti 100
+#endif
+
+
+#ifndef width_Gaus_para
+#define width_Gaus_para 0.009
+#endif
+
+#ifndef width_Lore_para
+#define width_Lore_para 0.0009
+#endif
+
+#ifndef width_Gaus_anti
+#define width_Gaus_anti 0.009
+#endif
+
+#ifndef width_Lore_anti
+#define width_Lore_anti 0.005
+#endif
+
+
+#ifndef do_amplitu_con_para
+#define do_amplitu_con_para 1
+#endif
+
+#ifndef do_amplitu_con_anti
+#define do_amplitu_con_anti 1
+#endif
+
+#ifndef do_const_back_para
+#define do_const_back_para 1
+#endif
+
+#ifndef do_const_back_anti
+#define do_const_back_anti 1
+#endif
+
+#ifndef do_firstcryst
+#define do_firstcryst 1
+#endif
+
+#ifndef do_Gwidth_para
+#define do_Gwidth_para 1
+#endif
+
+#ifndef do_Lwidth_para
+#define do_Lwidth_para 1
+#endif
+
+#ifndef do_firstcryst_anti
+#define do_firstcryst_anti 1
+#endif
+
+#ifndef do_Gwidth_anti
+#define do_Gwidth_anti 1
+#endif
+
+#ifndef do_Lwidth_anti
+#define do_Lwidth_anti 1
+#endif
+
+
+#ifndef c1_coef
+#define c1_coef 0.5346
+#endif
+
+#ifndef c2_coef
+#define c2_coef 0.2166
+#endif
+
+
+#ifndef shape_corr
+#define shape_corr 0
+#endif
+
 
 #endif /* SIMUCONSTS_H_ */

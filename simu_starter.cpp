@@ -230,18 +230,18 @@ void Simu_Starter::Make_Simu(SimulationInterface* w){
 
     if(FullEnergySpectrumInput.make_more_lines == 0){
         gener_out << "Make more energies: No" << endl;
-        gener_out << "Energy used in simulation: " << line_ener << evv[0] << endl;
-        gener_out << "with corresponding wavelength: " << linelamda << evv[1] << endl;
-        gener_out << "Natural width of: " << 2 * Convert_Ag_minusone_eV * naturalwidth / (pow(linelamda, 2) + pow(naturalwidth, 2)) << evv[0] << endl;
-        gener_out << "with corresponding wavelength: " << 2 * naturalwidth << evv[1] << endl;
+        gener_out << "Energy used in simulation: " << line_ener << evv_1 << endl;
+        gener_out << "with corresponding wavelength: " << linelamda << evv_2 << endl;
+        gener_out << "Natural width of: " << 2 * Convert_Ag_minusone_eV * naturalwidth / (pow(linelamda, 2) + pow(naturalwidth, 2)) << evv_1 << endl;
+        gener_out << "with corresponding wavelength: " << 2 * naturalwidth << evv_2 << endl;
         gener_out << "Gaussian width FWHM (wavelength) = " << PhysicalParametersInput.gauss_Doop * termFW << " Ang" << endl;
         gener_out << "Gaussian width FWHM (energy) = " << PhysicalParametersInput.gauss_Doop * termFW * line_ener / linelamda << " eV" << endl;
     }else if(FullEnergySpectrumInput.make_more_lines == 1){
         gener_out << "Make more energies: Yes" << endl;
-        gener_out << "Central energy used in simulation: " << line_ener << evv[0] << endl;
-        gener_out << "with corresponding wavelength: " << linelamda << evv[1] << endl;
-        gener_out << "Natural width of: " << 2 * Convert_Ag_minusone_eV * naturalwidth / (pow(linelamda, 2) + pow(naturalwidth, 2)) << evv[0] << endl;
-        gener_out << "with corresponding wavelength: " << 2 * naturalwidth << evv[1] << endl;
+        gener_out << "Central energy used in simulation: " << line_ener << evv_1 << endl;
+        gener_out << "with corresponding wavelength: " << linelamda << evv_2 << endl;
+        gener_out << "Natural width of: " << 2 * Convert_Ag_minusone_eV * naturalwidth / (pow(linelamda, 2) + pow(naturalwidth, 2)) << evv_1 << endl;
+        gener_out << "with corresponding wavelength: " << 2 * naturalwidth << evv_2 << endl;
         gener_out << "Gaussian width FWHM (wavelength) = " << PhysicalParametersInput.gauss_Doop * termFW << " Ang" << endl;
         gener_out << "Gaussian width FWHM (energy) = " << PhysicalParametersInput.gauss_Doop * termFW * line_ener / linelamda << " eV" << endl;
     }else{

@@ -7,9 +7,12 @@
 # Its sole porpose is to create a bridge to the official C++ port both for the simulation 
 # and configure windows
 
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.18)
 
 project(DCSsimu VERSION 1.0)
+
+
+# SETUP THE CXX STANDARD AND FLAGS
 
 cmake_policy(SET CMP0100 NEW)
 cmake_policy(SET CMP0090 OLD)
@@ -27,37 +30,16 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /permissive- /D_USE_MATH_DEFINES /W0")
 
 list(APPEND CMAKE_PREFIX_PATH "C:/Qt/5.15.2/msvc2019_64")
 
-# removing the required tag and adding non required to compile for only console in headless clusters
-#find_package(OpenGL REQUIRED)
-#find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets OpenGL Core Gui PrintSupport REQUIRED)
-#find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets OpenGL Core Gui PrintSupport REQUIRED)
+set(CMAKE_VERBOSE_MAKEFILE ON)
 
+
+
+# SETUP THE QT AND OPENGL LIBRARY SUPPORT
+
+# NOT required to compile for only console in headless clusters
 find_package(OpenGL)
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets OpenGL Core Gui PrintSupport)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets OpenGL Core Gui PrintSupport)
-
-# load the openMP package for multiprocessing
-find_package(OpenMP)
-
-# load CUDA for GPU processing
-include(CheckLanguage)
-check_language(CUDA)
-
-# uncomment this line to manually disable CUDA
-set(CMAKE_CUDA_COMPILER FALSE)
-# uncomment this line to manually disable openmp
-# set(OpenMP_CXX_FOUND FALSE)
-
-if(CMAKE_CUDA_COMPILER)
-    enable_language(CUDA)
-
-    include(FindCUDA/select_compute_arch)
-    CUDA_DETECT_INSTALLED_GPUS(INSTALLED_GPU_CCS_1)
-    string(STRIP "${INSTALLED_GPU_CCS_1}" INSTALLED_GPU_CCS_2)
-    string(REPLACE " " ";" INSTALLED_GPU_CCS_3 "${INSTALLED_GPU_CCS_2}")
-    string(REPLACE "." "" CUDA_ARCH_LIST "${INSTALLED_GPU_CCS_3}")
-    SET(CMAKE_CUDA_ARCHITECTURES ${CUDA_ARCH_LIST})
-endif()
 
 # set variable to install with or without interface
 if(OpenGL_FOUND AND (QT_FOUND OR Qt${QT_VERSION_MAJOR}_FOUND))
@@ -66,6 +48,82 @@ else()
     set(INSTALL_GUI FALSE)
 endif()
 
+
+# SETUP THE OPENMP LIBRARY
+
+# load the openMP package for multiprocessing
+find_package(OpenMP)
+
+if(OpenMP_CXX_FOUND)
+    add_compile_options($<$<COMPILE_LANG_AND_ID:CXX,GNU>:-openmp:experimental>)
+endif()
+
+
+# SETUP THE CUDA LANGUAGE FOR GPU ACCELERATION
+
+# load CUDA for GPU processing
+include(CheckLanguage)
+check_language(CUDA)
+
+# TODO: check if this works in a system without CUDA and/or without CUB
+if(CMAKE_CUDA_COMPILER)
+    if(NOT EXISTS "${CUB_INCLUDE_DIR}")
+        message(STATUS "Searching for the required CUB CUDA library...")
+        find_path(
+            CUB_INCLUDE_DIR 
+            cub/cub.cuh
+            HINTS
+                ${CUDA_INCLUDE_DIRS}
+                ${CMAKE_SOURCE_DIR}/include
+                ${CMAKE_SOURCE_DIR}
+                ${PROJECT_SOURCE_DIR}
+                ${PROJECT_SOURCE_DIR}/include 
+                /opt 
+                $ENV{HOME}/opt 
+                ENV CUB_DIR 
+                ENV CUB_INCLUDE_DIR 
+                ENV CUB_PATH
+            DOC "nVIDIA CUB GPU primitives header-only CUDA library"
+            PATH_SUFFIXES cub libcub nvidia-cub 
+        )
+    endif()
+
+    if(EXISTS ${CUB_INCLUDE_DIR})
+        message(STATUS "Found CUB library at: ${CUB_INCLUDE_DIR}")
+        message(STATUS "Enabling CUDA language")
+
+        enable_language(CUDA)
+
+        set(CMAKE_CUDA_STANDARD 17)
+        # add_link_options(/NODEFAULTLIB:LIBCMT.LIB)
+
+        include(FindCUDA/select_compute_arch)
+        CUDA_DETECT_INSTALLED_GPUS(INSTALLED_GPU_CCS_1)
+        string(STRIP "${INSTALLED_GPU_CCS_1}" INSTALLED_GPU_CCS_2)
+        string(REPLACE " " ";" INSTALLED_GPU_CCS_3 "${INSTALLED_GPU_CCS_2}")
+        string(REPLACE "." "" CUDA_ARCH_LIST "${INSTALLED_GPU_CCS_3}")
+        SET(CMAKE_CUDA_ARCHITECTURES ${CUDA_ARCH_LIST})
+
+        add_compile_options($<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-openmp:experimental>)
+        add_compile_options($<$<COMPILE_LANGUAGE:CUDA>:--disable-warnings>)
+    else()
+        message(STATUS "Could not find CUB library. Disabling CUDA language")
+        set(CMAKE_CUDA_COMPILER FALSE)
+    endif()
+endif()
+
+
+# MANUAL TOGGLES FOR THE LIBRARIES
+# TODO: make these as build targets from the cmd line
+# set(INSTALL_GUI FALSE) # uncomment to disable the QT GUI
+# message(NOTICE "QT GUI interface was manually disabled!") # uncomment to disable the QT GUI
+# set(OpenMP_CXX_FOUND FALSE) # uncomment to disable the OpenMP support
+# message(NOTICE "OpenMP support was manually disabled!") # uncomment to disable the OpenMP support
+set(CMAKE_CUDA_COMPILER FALSE) # uncomment to disable the CUDA support
+message(NOTICE "CUDA support was manually disabled!") # uncomment to disable the CUDA support
+
+
+# SETUP THE PROPER SOURCE FILES TO COMPILE
 
 set(SOURCE
     dcs_montecarlo.cpp
@@ -119,22 +177,18 @@ if(INSTALL_GUI)
     )
 endif()
 
-# if(CMAKE_CUDA_COMPILER)
-#     list(APPEND SOURCE
-#         parallel_bin.cu
-#     )
-# endif()
+if(CMAKE_CUDA_COMPILER)
+    set_source_files_properties(source_complex.cpp PROPERTIES LANGUAGE CUDA)
+
+    list(APPEND SOURCE
+        parallel_bin.cu
+        Util_cuda.cu
+    )
+endif()
 
 
 
-
-# You can make your code fail to compile if it uses deprecated APIs.
-# In order to do so, uncomment the following line.
-# add_definitions(-DQT_DISABLE_DEPRECATED_BEFORE=0x060000)    # disables all the APIs deprecated before Qt 6.0.0
-
-#images for the interface
-#qt5_add_resources(RESFILES res/res.qrc)
-
+# ADD THE RESOURCE FILE FOR THE EXE ICON ON WINDOWS
 
 if(WIN32)
     set(app_WINRC ${CMAKE_SOURCE_DIR}/app_win32.rc)
@@ -143,6 +197,8 @@ if(WIN32)
             )
 endif()
 
+
+# LIBRARY WRAPPER BUILD AND INSTALL SETTINGS
 
 # only install the lib wrapper if we have qt in the system
 if(INSTALL_GUI)
@@ -180,16 +236,16 @@ if(INSTALL_GUI)
         if(OpenMP_CXX_FOUND)
             message(STATUS "Compiling simulation <LIB wrapper> with OpenMP and CUDA parallelization")
             target_compile_definitions(DCSsimuWrapper PRIVATE -DENTRYPOINT=dummy -DLIB_DEF -DQT_EXISTS -DOPENMP -DCUDA -DLIB_DATA_DIR="${CMAKE_INSTALL_PREFIX}/${INSTALL_DATA_DIR}")
-            target_compile_options(DCSsimuWrapper PRIVATE -openmp:experimental)
         else()
             message(STATUS "Compiling simulation <LIB wrapper> with CUDA parallelization")
             target_compile_definitions(DCSsimuWrapper PRIVATE -DENTRYPOINT=dummy -DLIB_DEF -DQT_EXISTS -DCUDA -DLIB_DATA_DIR="${CMAKE_INSTALL_PREFIX}/${INSTALL_DATA_DIR}")
         endif()
+        set_target_properties(DCSsimuWrapper PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+        target_link_options(DCSsimuWrapper PRIVATE /NODEFAULTLIB:library)
     else()
         if(OpenMP_CXX_FOUND)
             message(STATUS "Compiling simulation <LIB wrapper> with OpenMP parallelization")
             target_compile_definitions(DCSsimuWrapper PRIVATE -DENTRYPOINT=dummy -DLIB_DEF -DQT_EXISTS -DOPENMP -DLIB_DATA_DIR="${CMAKE_INSTALL_PREFIX}/${INSTALL_DATA_DIR}")
-            target_compile_options(DCSsimuWrapper PRIVATE -openmp:experimental)
         else()
             message(STATUS "Compiling simulation <LIB wrapper> with NO parallelization")
             target_compile_definitions(DCSsimuWrapper PRIVATE -DENTRYPOINT=dummy -DLIB_DEF -DQT_EXISTS -DLIB_DATA_DIR="${CMAKE_INSTALL_PREFIX}/${INSTALL_DATA_DIR}")
@@ -241,8 +297,11 @@ if(INSTALL_GUI)
 endif()
 
 
+
+
+# EXE BUILD SETTINGS
+
 # Keep the original target here, in case we want to build standalone with cmake 
-# no need to use qmake (but useful if using qtcreator)
 add_executable(DCSsimu ${SOURCE} ${app_WINRC})
 
 if(INSTALL_GUI)
@@ -253,16 +312,16 @@ if(INSTALL_GUI)
         if(OpenMP_CXX_FOUND)
             message(STATUS "Compiling simulation <GUI application> with OpenMP and CUDA parallelization")
             target_compile_definitions(DCSsimu PRIVATE -DENTRYPOINT=main -DQT_EXISTS -DOPENMP -DCUDA)
-            target_compile_options(DCSsimu PRIVATE -openmp:experimental)
         else()
             message(STATUS "Compiling simulation <GUI application> with CUDA parallelization")
             target_compile_definitions(DCSsimu PRIVATE -DENTRYPOINT=main -DQT_EXISTS -DCUDA)
         endif()
+        set_target_properties(DCSsimu PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+        target_link_options(DCSsimu PRIVATE /NODEFAULTLIB:library)
     else()
         if(OpenMP_CXX_FOUND)
             message(STATUS "Compiling simulation <GUI application> with OpenMP parallelization")
             target_compile_definitions(DCSsimu PRIVATE -DENTRYPOINT=main -DQT_EXISTS -DOPENMP)
-            target_compile_options(DCSsimu PRIVATE -openmp:experimental)
         else()
             message(STATUS "Compiling simulation <GUI application> with NO parallelization")
             target_compile_definitions(DCSsimu PRIVATE -DENTRYPOINT=main -DQT_EXISTS)
@@ -294,16 +353,16 @@ else()
         if(OpenMP_CXX_FOUND)
             message(STATUS "Compiling simulation <console application> with OpenMP and CUDA parallelization")
             target_compile_definitions(DCSsimu PRIVATE -DENTRYPOINT=main -DOPENMP -DCUDA)
-            target_compile_options(DCSsimu PRIVATE -openmp:experimental)
         else()
             message(STATUS "Compiling simulation <console application> with CUDA parallelization")
             target_compile_definitions(DCSsimu PRIVATE -DENTRYPOINT=main -DCUDA)
         endif()
+        set_target_properties(DCSsimu PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+        target_link_options(DCSsimu PRIVATE /NODEFAULTLIB:library)
     else()
         if(OpenMP_CXX_FOUND)
             message(STATUS "Compiling simulation <console application> with OpenMP parallelization")
             target_compile_definitions(DCSsimu PRIVATE -DENTRYPOINT=main -DOPENMP)
-            target_compile_options(DCSsimu PRIVATE -openmp:experimental)
         else()
             message(STATUS "Compiling simulation <console application> with NO parallelization")
             target_compile_definitions(DCSsimu PRIVATE -DENTRYPOINT=main)
