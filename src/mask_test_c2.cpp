@@ -5,8 +5,8 @@
  *      Author: danip
  */
 
-#include "mask_test_c2.hh"
-#include "Util.h"
+#include "../include/mask_test_c2.hh"
+#include "../include/Util.h"
 
 using namespace std;
 

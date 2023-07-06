@@ -1,9 +1,9 @@
-#include "parameter_settings.h"
-#include "ui_parameter_settings.h"
-#include "input_settings.h"
+#include "../include/parameter_settings.h"
+#include "../include/ui_parameter_settings.h"
+#include "../include/input_settings.h"
 
-#include "simuGlobals.hh"
-#include "simulation_interface.h"
+#include "../include/simuGlobals.hh"
+#include "../include/simulation_interface.h"
 #include "sserializer.inl"
 #include <filesystem>
 #include <fstream>

@@ -6,7 +6,7 @@
  */
 
 
-#include "make_plot_profiles.hh"
+#include "../include/make_plot_profiles.hh"
 
 using namespace std;
 

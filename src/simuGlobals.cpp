@@ -1,4 +1,4 @@
-#include "simuGlobals.hh"
+#include "../include/simuGlobals.hh"
 
 
 Geometry GeometryInput;

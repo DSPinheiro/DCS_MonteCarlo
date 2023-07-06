@@ -1,4 +1,4 @@
-#include "input_settings.h"
+#include "../include/input_settings.h"
 #include <fstream>
 #include <filesystem>
 #include <iostream>
@@ -34,7 +34,7 @@ int InputSettingsPrompt::configure(const std::string& inFile)
             message.append(File_simu);
             QMessageBox::information(nullptr, message, tr("An input file with the experimental setup parameters has been found!"), QMessageBox::Ok);
         #else
-            cout << "An input file with the C++ configuration model has been found." << endl;
+            std::cout << "An input file with the C++ configuration model has been found." << std::endl;
         #endif
 
         while (getline(inputFile, line)){

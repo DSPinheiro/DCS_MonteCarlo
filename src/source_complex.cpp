@@ -5,15 +5,15 @@
  *      Author: danip
  */
 
-#include "source_complex.hh"
-#include "Util.h"
+#include "../include/source_complex.hh"
+#include "../include/Util.h"
 
 #ifdef OPENMP
 #include <omp.h>
 #endif
 
 #ifdef CUDA
-#include "parallel_bin.cuh"
+#include "../include_cuda/parallel_bin.cuh"
 #endif
 
 using namespace std;

@@ -2,10 +2,10 @@
 #include <float.h>
 #include <thread>
 
-#include "simulation_interface.h"
+#include "../include/simulation_interface.h"
 
-#include "simu_starter.hh"
-#include "Util.h"
+#include "../include/simu_starter.hh"
+#include "../include/Util.h"
 
 #ifdef QT_EXISTS
 #include "ui_simulation_window.h"

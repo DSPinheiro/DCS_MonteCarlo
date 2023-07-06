@@ -1,7 +1,6 @@
 #include "simuGlobals.hh"
 #include <iostream>
 
-extern double refra_corr;
 
 struct CommandLineParams
 {

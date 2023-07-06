@@ -9,13 +9,14 @@
 
 cmake_minimum_required(VERSION 3.18)
 
-project(DCSsimu VERSION 1.0)
+project(DCS_Simulation VERSION 1.0)
 
 
 # SETUP THE CXX STANDARD AND FLAGS
 
 cmake_policy(SET CMP0100 NEW)
 cmake_policy(SET CMP0090 OLD)
+cmake_policy(SET CMP0104 NEW)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -30,8 +31,12 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /permissive- /D_USE_MATH_DEFINES /W0")
 
 list(APPEND CMAKE_PREFIX_PATH "C:/Qt/5.15.2/msvc2019_64")
 
+# include_directories("include/")
+set(CMAKE_AUTOUIC_SEARCH_PATHS "ui/")
+
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
+include_directories(include src)
 
 
 # SETUP THE QT AND OPENGL LIBRARY SUPPORT
@@ -96,6 +101,8 @@ if(CMAKE_CUDA_COMPILER)
 
         set(CMAKE_CUDA_STANDARD 17)
         # add_link_options(/NODEFAULTLIB:LIBCMT.LIB)
+        
+        find_package(CUDAToolkit)
 
         include(FindCUDA/select_compute_arch)
         CUDA_DETECT_INSTALLED_GPUS(INSTALLED_GPU_CCS_1)
@@ -106,6 +113,8 @@ if(CMAKE_CUDA_COMPILER)
 
         add_compile_options($<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-openmp:experimental>)
         add_compile_options($<$<COMPILE_LANGUAGE:CUDA>:--disable-warnings>)
+        add_compile_options($<$<COMPILE_LANGUAGE:CUDA>:-dc>)
+        add_compile_options($<$<COMPILE_LANGUAGE:CUDA>:-rdc=true>)
     else()
         message(STATUS "Could not find CUB library. Disabling CUDA language")
         set(CMAKE_CUDA_COMPILER FALSE)
@@ -119,8 +128,8 @@ endif()
 # message(NOTICE "QT GUI interface was manually disabled!") # uncomment to disable the QT GUI
 # set(OpenMP_CXX_FOUND FALSE) # uncomment to disable the OpenMP support
 # message(NOTICE "OpenMP support was manually disabled!") # uncomment to disable the OpenMP support
-set(CMAKE_CUDA_COMPILER FALSE) # uncomment to disable the CUDA support
-message(NOTICE "CUDA support was manually disabled!") # uncomment to disable the CUDA support
+# set(CMAKE_CUDA_COMPILER FALSE) # uncomment to disable the CUDA support
+# message(NOTICE "CUDA support was manually disabled!") # uncomment to disable the CUDA support
 
 
 # SETUP THE PROPER SOURCE FILES TO COMPILE
@@ -135,25 +144,10 @@ set(SOURCE
     source_complex.cpp
     source_simple.cpp
     Util.cpp
-
-    simuConsts.h
-    Util.h
-
-    dcs_montecarlo.hh
-    simu_starter.hh
-    mask_test_c2.hh
-    obtain_time.hh
-
-    simuGlobals.hh
-    simulation_interface.h
-
-    source_complex.hh
-    source_simple.hh
-
+    
     sserializer.inl
     configure.inl
 
-    input_settings.h
     input_settings.cpp
 )
 
@@ -163,27 +157,49 @@ if(INSTALL_GUI)
         qcustomplot.cpp
         qdcs3dvis.cpp
 
-        make_plot_profiles.hh
-        qcustomplot.h
-
-        qdcs3dvis.h
-
-        parameter_settings.ui
-        simulation_window.ui
-        input_settings_prompt.ui
-
-        parameter_settings.h
         parameter_settings.cpp
     )
 endif()
 
-if(CMAKE_CUDA_COMPILER)
-    set_source_files_properties(source_complex.cpp PROPERTIES LANGUAGE CUDA)
+list(TRANSFORM SOURCE PREPEND "src/")
 
-    list(APPEND SOURCE
+
+file(GLOB SOURCES
+        "include/*.h"
+        ${SOURCE}
+)
+
+
+
+# PREPARE THE DEVICE CODE LIBRARY TO LINK WITH THE MAIN PROJECT
+
+if(CMAKE_CUDA_COMPILER)
+    message(STATUS "Setup static library with GPU device code")    
+
+    set(CUDA_SOURCE
         parallel_bin.cu
         Util_cuda.cu
     )
+
+    list(TRANSFORM CUDA_SOURCE PREPEND "src_cuda/")
+
+    file(GLOB CUDA_SOURCES
+        "include_cuda/*.cuh"
+        "include/simuConsts.h"
+        ${CUDA_SOURCE}
+    )
+
+    set(_CMAKE_CUDA_EXTRA_FLAGS "-forward-unknown-to-host-compiler -ccbin=\"${CMAKE_CXX_COMPILER}\"")
+
+    add_library(GPUBin STATIC ${CUDA_SOURCES})
+    set_target_properties(GPUBin PROPERTIES
+                            CUDA_SEPARABLE_COMPILATION ON
+                            CUDA_RESOLVE_DEVICE_SYMBOLS ON
+                            POSITION_INDEPENDENT_CODE ON
+                        )
+    
+    target_compile_definitions(GPUBin PRIVATE -DCUDA)
+    target_link_options(GPUBin PRIVATE /NODEFAULTLIB:LIBCMT.LIB)
 endif()
 
 
@@ -191,11 +207,12 @@ endif()
 # ADD THE RESOURCE FILE FOR THE EXE ICON ON WINDOWS
 
 if(WIN32)
-    set(app_WINRC ${CMAKE_SOURCE_DIR}/app_win32.rc)
+    set(app_WINRC ${CMAKE_SOURCE_DIR}/res/app_win32.rc)
     set_property(SOURCE app_WINRC APPEND PROPERTY
             OBJECT_DEPENDS ${CMAKE_SOURCE_DIR}/res/icons/simu_icon.ico
             )
 endif()
+
 
 
 # LIBRARY WRAPPER BUILD AND INSTALL SETTINGS
@@ -230,8 +247,8 @@ if(INSTALL_GUI)
     configure_file(cmake/DCSsimuWrapperConfig.cmake.in "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/DCSsimuWrapperConfig.cmake" @ONLY)
 
     # Just using a static lib (improves the "portability" of the final executable)
-    add_library(DCSsimuWrapper STATIC ${SOURCE})
-
+    add_library(DCSsimuWrapper STATIC ${SOURCES})
+    
     if(CMAKE_CUDA_COMPILER)
         if(OpenMP_CXX_FOUND)
             message(STATUS "Compiling simulation <LIB wrapper> with OpenMP and CUDA parallelization")
@@ -241,7 +258,9 @@ if(INSTALL_GUI)
             target_compile_definitions(DCSsimuWrapper PRIVATE -DENTRYPOINT=dummy -DLIB_DEF -DQT_EXISTS -DCUDA -DLIB_DATA_DIR="${CMAKE_INSTALL_PREFIX}/${INSTALL_DATA_DIR}")
         endif()
         set_target_properties(DCSsimuWrapper PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-        target_link_options(DCSsimuWrapper PRIVATE /NODEFAULTLIB:library)
+        
+        target_link_options(DCSsimuWrapper PRIVATE /NODEFAULTLIB:LIBCMT.LIB)
+        target_link_libraries(DCSsimuWrapper PRIVATE GPUBin)
     else()
         if(OpenMP_CXX_FOUND)
             message(STATUS "Compiling simulation <LIB wrapper> with OpenMP parallelization")
@@ -277,6 +296,10 @@ if(INSTALL_GUI)
     install(FILES ${CMAKE_SOURCE_DIR}/${INSTALL_HEADERS} DESTINATION ${INSTALL_INCLUDE_DIR}/DCSsimu)
     install(FILES ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/DCSsimuWrapperConfig.cmake DESTINATION ${INSTALL_CMAKE_DIR})
     install(EXPORT DCSsimuWrapper DESTINATION ${INSTALL_CMAKE_DIR})
+    
+    if(CMAKE_CUDA_COMPILER)
+        install(TARGETS GPUBin EXPORT DCSsimuWrapper)
+    endif()
 
     # TODO : Fix target exporting to the registry (avoiding setting the CMAKE_PREFIX_PATH on the client)
     export(EXPORT DCSsimuWrapper)
@@ -302,7 +325,7 @@ endif()
 # EXE BUILD SETTINGS
 
 # Keep the original target here, in case we want to build standalone with cmake 
-add_executable(DCSsimu ${SOURCE} ${app_WINRC})
+add_executable(DCSsimu ${SOURCES} ${app_WINRC})
 
 if(INSTALL_GUI)
     # Disable console if in release mode and with the interface installed
@@ -317,7 +340,9 @@ if(INSTALL_GUI)
             target_compile_definitions(DCSsimu PRIVATE -DENTRYPOINT=main -DQT_EXISTS -DCUDA)
         endif()
         set_target_properties(DCSsimu PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-        target_link_options(DCSsimu PRIVATE /NODEFAULTLIB:library)
+        
+        target_link_options(DCSsimu PRIVATE /NODEFAULTLIB:LIBCMT.LIB)
+        target_link_libraries(DCSsimu PRIVATE GPUBin)
     else()
         if(OpenMP_CXX_FOUND)
             message(STATUS "Compiling simulation <GUI application> with OpenMP parallelization")
@@ -358,7 +383,9 @@ else()
             target_compile_definitions(DCSsimu PRIVATE -DENTRYPOINT=main -DCUDA)
         endif()
         set_target_properties(DCSsimu PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-        target_link_options(DCSsimu PRIVATE /NODEFAULTLIB:library)
+        
+        target_link_options(DCSsimu PRIVATE /NODEFAULTLIB:LIBCMT.LIB)
+        target_link_libraries(DCSsimu PRIVATE GPUBin)
     else()
         if(OpenMP_CXX_FOUND)
             message(STATUS "Compiling simulation <console application> with OpenMP parallelization")

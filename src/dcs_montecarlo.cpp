@@ -6,10 +6,10 @@
 // Description : Entry point for the DCS simulation
 //============================================================================
 
-#include "dcs_montecarlo.hh"
-#include "Util.h"
+#include "../include/dcs_montecarlo.hh"
+#include "../include/Util.h"
 
-#include "input_settings.h" 
+#include "../include/input_settings.h" 
 
 #include "configure.inl"
 

@@ -5,8 +5,8 @@
  *      Author: danip
  */
 
-#include "source_simple.hh"
-#include "Util.h"
+#include "../include/source_simple.hh"
+#include "../include/Util.h"
 
 
 using namespace std;

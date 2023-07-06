@@ -4,7 +4,7 @@
 #define UTIL_CUDA_CUH_
 
 
-#include "simuConsts.h"
+#include "../include/simuConsts.h"
 
 
 namespace Util_CUDA {

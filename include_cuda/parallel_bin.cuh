@@ -6,7 +6,7 @@
 #include <curand.h>
 #include <curand_kernel.h>
 
-#include "simuConsts.h"
+#include "../include/simuConsts.h"
 
 class ParallelBin {
 

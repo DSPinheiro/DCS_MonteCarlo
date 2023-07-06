@@ -1,4 +1,4 @@
-#include "qdcs3dvis.h"
+#include "../include/qdcs3dvis.h"
 #include <QtWidgets/qplaintextedit.h>
 #include <sstream>
 #include <QString>

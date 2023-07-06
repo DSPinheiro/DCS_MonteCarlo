@@ -1,7 +1,7 @@
 #define _USE_MATH_DEFINES
 
 
-#include "Util.h"
+#include "../include/Util.h"
 
 #include <cstdlib>
 #include <math.h>
@@ -14,7 +14,7 @@
 
 #include <stdexcept>
 
-#include "simuGlobals.hh"
+#include "../include/simuGlobals.hh"
 #include <stdio.h>
 #include <algorithm>
 

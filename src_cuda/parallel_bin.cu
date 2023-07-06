@@ -7,9 +7,9 @@
 
 #include <cub/cub.cuh>
 
-#include "Util_cuda.cuh"
+#include "../include_cuda/Util_cuda.cuh"
 
-#include "parallel_bin.cuh"
+#include "../include_cuda/parallel_bin.cuh"
 
 
 void ParallelBin::makeBin(int totalBinEventCount, const int Events3D, BinParameters *bin, SetupParameters *setup, ReductionVars *reduce)
@@ -26,7 +26,7 @@ void ParallelBin::makeBin(int totalBinEventCount, const int Events3D, BinParamet
     int numSMs;
     cudaDeviceGetAttribute(&numSMs, cudaDevAttrMultiProcessorCount, devId);
     //Effective size of the input reduction variables, depending on the number of events to simulate
-    const int reduceSize = std::min({warpSize * numSMs * blockSize, totalBinEventCount});
+    const int reduceSize = (warpSize * numSMs * blockSize > totalBinEventCount) ? totalBinEventCount : warpSize * numSMs * blockSize;
 
     
     //State for the random generators 

@@ -3,7 +3,7 @@
 #include <cuda/std/chrono>
 
 
-#include "Util_cuda.cuh"
+#include "../include_cuda/Util_cuda.cuh"
 
 using namespace Util_CUDA;
 
