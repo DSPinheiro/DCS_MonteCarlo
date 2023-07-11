@@ -19,6 +19,11 @@ cmake --build . --config Release --target install
 
 ## Changelog
 
+**11/07/2023**\
+GPU Accelerated Simulation has been implemented.\
+Each bin can now be executed in the GPU (Nvidia) using CUDA libraries.\
+The device code is compiled as a seperate static library but that might change.\
+
 **03/07/2023**\
 Major main loop refactoring to simulate the bin in a seperate function.\
 Input parameters explanation.\
