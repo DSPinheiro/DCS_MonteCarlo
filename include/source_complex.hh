@@ -96,9 +96,25 @@ public:
         double n2y_anti;
         bool sec_crystal_Antiparallel_reach;
         int total_current_bins;
+        int numbins;
+        double tw_d1_para;
+        double tw_d2_para;
+        double tw_d2_anti;
+        double delrot;
+        double tilt_C2_para_temp;
+        double tilt_C2_anti_temp;
+        double n2z_para;
+        double n2z_anti;
+        double n2x_para_temp;
+        double n2y_para_temp;
+        double n2x_anti_temp;
+        double n2y_anti_temp;
+        double cos_difteC2_det_para;
+        double sin_difteC2_det_para;
 
-        BinParameters() : 
-        total_current_bins (0), sec_crystal_Antiparallel_reach (false), sec_crystal_Parallel_reach (false)
+        BinParameters(double tw_d1_para, double tw_d2_para, double tw_d2_anti, double delrot) :
+        tw_d1_para (tw_d1_para), tw_d2_para (tw_d2_para), tw_d2_anti (tw_d2_anti), delrot (delrot), total_current_bins (0), first_crystal_reach (false),
+        sec_crystal_Antiparallel_reach (false), sec_crystal_Parallel_reach (false), numbins (0)
         {}
 
     };
@@ -126,48 +142,32 @@ public:
         double n1z;
         double a_lamds_uni;
         double b_lamds_uni;
-        double tw_d1_para;
         double cos_tetartab;
         double sin_tetartab;
-        double tilt_C2_para_temp;
-        double tilt_C2_anti_temp;
         double cos_difteC1_Ta;
         double sin_difteC1_Ta;
         double dist_Cr1_Cr2_Db;
         double tetaref;
-        double delrot;
         double y_max_C2;
         double y_min_C2;
         double z_max_C2;
         double z_min_C2;
-        double tw_d2_para;
-        double n2x_para_temp;
-        double n2y_para_temp;
-        double n2z_para;
         double cos_tetartabdete_para;
         double sin_tetartabdete_para;
-        double cos_difteC2_det_para;
-        double sin_difteC2_det_para;
         double dist_Cr2_det_Db;
         double ydetc_2_max;
         double ydetc_2_min;
         double zdetc_2_max;
         double zdetc_2_min;
-        double tw_d2_anti;
-        double n2x_anti_temp;
-        double n2y_anti_temp;
-        double n2z_anti;
         double cos_tetartabdete_anti;
         double sin_tetartabdete_anti;
         int64_t total_expexted_bins;
-        int numbins;
 
-        SetupParameters(double tetaref, double tw_d1_para, double tw_d2_para, double tw_d2_anti, double S_aper_R_2, double S_aper_var_2, double S_aper_sqr,
-                        double S_sour_2, double z_sour_2, double y_sour_2, double zdetc_2_max, double zdetc_2_min, double ydetc_2_max, double ydetc_2_min,
-                        double delrot, int64_t total_expexted_bins) :
-                        tetaref (tetaref), tw_d1_para (tw_d1_para), tw_d2_para (tw_d2_para), tw_d2_anti (tw_d2_anti), S_aper_R_2 (S_aper_R_2), S_aper_var_2 (S_aper_var_2),
-                        S_aper_sqr (S_aper_sqr), S_sour_2 (S_sour_2), z_sour_2 (z_sour_2), y_sour_2 (y_sour_2), zdetc_2_max (zdetc_2_max), zdetc_2_min (zdetc_2_min),
-                        ydetc_2_max (ydetc_2_max), ydetc_2_min (ydetc_2_min), delrot (delrot), total_expexted_bins (total_expexted_bins), numbins (0)
+        SetupParameters(double tetaref, double S_aper_R_2, double S_aper_var_2, double S_aper_sqr, double S_sour_2, double z_sour_2, double y_sour_2,
+                        double zdetc_2_max, double zdetc_2_min, double ydetc_2_max, double ydetc_2_min, int64_t total_expexted_bins) :
+                        tetaref (tetaref), S_aper_R_2 (S_aper_R_2), S_aper_var_2 (S_aper_var_2), S_aper_sqr (S_aper_sqr), S_sour_2 (S_sour_2), z_sour_2 (z_sour_2),
+                        y_sour_2 (y_sour_2), zdetc_2_max (zdetc_2_max), zdetc_2_min (zdetc_2_min), ydetc_2_max (ydetc_2_max), ydetc_2_min (ydetc_2_min),
+                        total_expexted_bins (total_expexted_bins)
         {}
     
     };

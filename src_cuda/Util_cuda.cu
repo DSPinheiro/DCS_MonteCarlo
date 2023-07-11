@@ -2,15 +2,16 @@
 #include <curand_kernel.h>
 #include <cuda/std/chrono>
 
+#include <stdio.h> //DEBUG PURPOSES
 
 #include "../include_cuda/Util_cuda.cuh"
 
 using namespace Util_CUDA;
 
 
-__global__ void Util_CUDA::setupRand(curandState *state, unsigned int seed)
+__device__ void Util_CUDA::setupRand(curandState *state, unsigned int seed, int block, int thread)
 {
-    curand_init(seed, 1, 0, &state[1]);
+    curand_init(seed, block, thread, state);
 }
 
 
@@ -22,7 +23,8 @@ __device__ double Util_CUDA::GaussianBox(curandState *state, double sta_dev, dou
     return sqrt(v1 * v1 + v2 * v2);
 }
 
-__device__ double2 Util_CUDA::getYZ(double r_temp, double sin_tetap_temp, double cos_tetap_temp, double tan_tetadir_temp, double tan_fidir_temp, double L_temp) {
+__device__ double2 Util_CUDA::getYZ(double r_temp, double sin_tetap_temp, double cos_tetap_temp, double tan_tetadir_temp, double tan_fidir_temp, double L_temp)
+{
     double2 res;
 
     res.x = (r_temp * cos_tetap_temp + tan_tetadir_temp * L_temp);
@@ -32,7 +34,8 @@ __device__ double2 Util_CUDA::getYZ(double r_temp, double sin_tetap_temp, double
 }
 
 
-__device__ void Util_CUDA::Make(int crystal, double y, double z, MakeParameters *pars) {
+__device__ void Util_CUDA::Make(int crystal, double y, double z, MakeParameters *pars)
+{
 
     double max_plot_x_temp, max_plot_y_temp;
     int nx, ny;
@@ -47,67 +50,74 @@ __device__ void Util_CUDA::Make(int crystal, double y, double z, MakeParameters 
     if (crystal == 1) {
 
         if (!(nx > n_his_ima || ny > n_his_ima || nx <= 0 || ny <= 0)) {
-            pars->hist_image_plate_source[nx - 1][ny - 1]++;
-            pars->counts_sour++;
-
-            if (pars->max_hist[crystal - 1] < pars->hist_image_plate_source[nx - 1][ny - 1])
-                pars->max_hist[crystal - 1] = pars->hist_image_plate_source[nx - 1][ny - 1];
+            int i = (nx - 1) * n_his_ima + (ny - 1);
+            atomicAdd(&pars->hist_image_plate_source[i], 1);
+            atomicAdd(&pars->counts_sour, 1);
+            
+            if (pars->max_hist[crystal - 1] < pars->hist_image_plate_source[i])
+                atomicExch(&pars->max_hist[crystal - 1], pars->hist_image_plate_source[i]);
         }
     }
     else if (crystal == 2) {
 
         if (!(nx > n_his_ima || ny > n_his_ima || nx <= 0 || ny <= 0)) {
-            pars->hist_image_plate_crystal1[nx - 1][ny - 1]++;
-            pars->counts_C1++;
+            int i = (nx - 1) * n_his_ima + (ny - 1);
+            atomicAdd(&pars->hist_image_plate_crystal1[i], 1);
+            atomicAdd(&pars->counts_C1, 1);
 
-            if (pars->max_hist[crystal - 1] < pars->hist_image_plate_crystal1[nx - 1][ny - 1])
-                pars->max_hist[crystal - 1] = pars->hist_image_plate_crystal1[nx - 1][ny - 1];
+            if (pars->max_hist[crystal - 1] < pars->hist_image_plate_crystal1[i])
+                atomicExch(&pars->max_hist[crystal - 1], pars->hist_image_plate_crystal1[i]);
         }
     }
     else if (crystal == 3) {
 
         if (!(nx > n_his_ima || ny > n_his_ima || nx <= 0 || ny <= 0)) {
-            pars->hist_image_plate_crystal2_para[nx - 1][ny - 1]++;
-            pars->counts_C2_para++;
+            int i = (nx - 1) * n_his_ima + (ny - 1);
+            atomicAdd(&pars->hist_image_plate_crystal2_para[i], 1);
+            atomicAdd(&pars->counts_C2_para, 1);
 
-            if (pars->max_hist[crystal - 1] < pars->hist_image_plate_crystal2_para[nx - 1][ny - 1])
-                pars->max_hist[crystal - 1] = pars->hist_image_plate_crystal2_para[nx - 1][ny - 1];
+            if (pars->max_hist[crystal - 1] < pars->hist_image_plate_crystal2_para[i])
+                atomicExch(&pars->max_hist[crystal - 1], pars->hist_image_plate_crystal2_para[i]);
         }
     }
     else if (crystal == 4) {
 
         if (!(nx > n_his_ima || ny > n_his_ima || nx <= 0 || ny <= 0)) {
-            pars->hist_image_plate_detc_para[nx - 1][ny - 1]++;
-            pars->counts_detc_para++;
+            int i = (nx - 1) * n_his_ima + (ny - 1);
+            atomicAdd(&pars->hist_image_plate_detc_para[i], 1);
+            atomicAdd(&pars->counts_detc_para, 1);
 
-            if (pars->max_hist[crystal - 1] < pars->hist_image_plate_detc_para[nx - 1][ny - 1])
-                pars->max_hist[crystal - 1] = pars->hist_image_plate_detc_para[nx - 1][ny - 1];
+            if (pars->max_hist[crystal - 1] < pars->hist_image_plate_detc_para[i])
+                atomicExch(&pars->max_hist[crystal - 1], pars->hist_image_plate_detc_para[i]);
         }
     }
     else if (crystal == 5) {
 
         if (!(nx > n_his_ima || ny > n_his_ima || nx <= 0 || ny <= 0)) {
-            pars->hist_image_plate_crystal2_anti[nx - 1][ny - 1]++;
-            pars->counts_C2_anti++;
+            int i = (nx - 1) * n_his_ima + (ny - 1);
+            atomicAdd(&pars->hist_image_plate_crystal2_anti[i], 1);
+            atomicAdd(&pars->counts_C2_anti, 1);
 
-            if (pars->max_hist[crystal - 1] < pars->hist_image_plate_crystal2_anti[nx - 1][ny - 1])
-                pars->max_hist[crystal - 1] = pars->hist_image_plate_crystal2_anti[nx - 1][ny - 1];
+            if (pars->max_hist[crystal - 1] < pars->hist_image_plate_crystal2_anti[i])
+                atomicExch(&pars->max_hist[crystal - 1], pars->hist_image_plate_crystal2_anti[i]);
         }
     }
     else if (crystal == 6) {
 
         if (!(nx > n_his_ima || ny > n_his_ima || nx <= 0 || ny <= 0)) {
-            pars->hist_image_plate_detc_anti[nx - 1][ny - 1]++;
-            pars->counts_detc_anti++;
+            int i = (nx - 1) * n_his_ima + (ny - 1);
+            atomicAdd(&pars->hist_image_plate_detc_anti[i], 1);
+            atomicAdd(&pars->counts_detc_anti, 1);
 
-            if (pars->max_hist[crystal - 1] < pars->hist_image_plate_detc_anti[nx - 1][ny - 1])
-                pars->max_hist[crystal - 1] = pars->hist_image_plate_detc_anti[nx - 1][ny - 1];
+            if (pars->max_hist[crystal - 1] < pars->hist_image_plate_detc_anti[i])
+                atomicExch(&pars->max_hist[crystal - 1], pars->hist_image_plate_detc_anti[i]);
         }
     }
 }
 
 
-__device__ double2 Util_CUDA::horCorr(double y_pro_C1, double y_max_C1, double z_pro_C1, double z_max_C1, bool type_c, double R_cur_crys_1, double R_cur_crys_2) {
+__device__ double2 Util_CUDA::horCorr(double y_pro_C1, double y_max_C1, double z_pro_C1, double z_max_C1, bool type_c, double R_cur_crys_1, double R_cur_crys_2)
+{
 
     double R_cur_crys_t;
 
@@ -125,7 +135,8 @@ __device__ double2 Util_CUDA::horCorr(double y_pro_C1, double y_max_C1, double z
 }
 
 
-__device__ double4 Util_CUDA::getFullAngle(double r1x, double r1y, double r1z, double n1x, double n1y, double n1z) {
+__device__ double4 Util_CUDA::getFullAngle(double r1x, double r1y, double r1z, double n1x, double n1y, double n1z)
+{
     double inter_pro, angle, r2x, r2y, r2z;
 
     inter_pro = r1x * n1x + r1y * n1y + r1z * n1z;
@@ -145,7 +156,8 @@ __device__ double4 Util_CUDA::getFullAngle(double r1x, double r1y, double r1z, d
 }
 
 
-__device__ double Util_CUDA::getEnergy(curandState *state, double a_lamds_uni, double db_lamds_uni, double tw_d, EnergyParameters pars) {
+__device__ double Util_CUDA::getEnergy(curandState *state, double a_lamds_uni, double db_lamds_uni, double tw_d, EnergyParameters pars)
+{
 
     double p1, p2, natur_li, pm1, pm2, pm3, pm4, hit, rnd_inten, energy_t;
     int I_picks;
@@ -191,8 +203,8 @@ __device__ double Util_CUDA::getEnergy(curandState *state, double a_lamds_uni, d
     else {
         rnd_inten = curand_uniform_double(state);
         
-        energy_t = Util_CUDA::splint_te(pars.Energy_spectrum_vectors.size, pars.Energy_spectrum_vectors.cum_ints, pars.Energy_spectrum_vectors.lamdas, pars.Energy_spectrum_vectors.lamda_two_derivs, rnd_inten);
-
+        energy_t = Util_CUDA::splint_te(pars.Energy_spectrum_vectors->size, pars.Energy_spectrum_vectors->cum_ints, pars.Energy_spectrum_vectors->lamdas, pars.Energy_spectrum_vectors->lamda_two_derivs, rnd_inten);
+        
         return Convert_Ag_minusone_eV / energy_t;
     }
 
@@ -220,13 +232,14 @@ __device__ double Util_CUDA::getEnergy(curandState *state, double a_lamds_uni, d
 }
 
 //TODO: test if there is a faster alternative
-__device__ double Util_CUDA::splint_te(int64_t size, double *xa, double *ya, double *y2a, double x) {
+__device__ double Util_CUDA::splint_te(int64_t size, double *xa, double *ya, double *y2a, double x)
+{
     int k, klo;
     double a, b, h;
 
     klo = 1;
     size_t khi = size;
-
+    
     while (khi - klo > 1) {
         k = (khi + klo) / 2;
         if (xa[k - 1] > x)
@@ -244,8 +257,8 @@ __device__ double Util_CUDA::splint_te(int64_t size, double *xa, double *ya, dou
 }
 
 
-__device__ bool Util_CUDA::getReflection(curandState *state, double angle, double tetabra, double lamda, bool type_crystal, ReflectionParameters pars, bool poli_p) {
-
+__device__ bool Util_CUDA::getReflection(curandState *state, double angle, double tetabra, double lamda, bool type_crystal, ReflectionParameters pars, bool poli_p)
+{
     double p, dif, inte, inte1, inte2;
 
     dif = angle - tetabra;
@@ -254,19 +267,17 @@ __device__ bool Util_CUDA::getReflection(curandState *state, double angle, doubl
 
     int energy_resp_index;
 
-    int index = 0;
+
     for (int i = 0; i < pars.size; i++)
     {
         double energ = pars.available_energies[i];
 
         if (energ > energy)
         {
-            energy_resp_index = index - 1;
+            energy_resp_index = i - 1;
             break;
         }
-        index++;
     }
-
 
     double energy_min_angle_resp, energy_max_angle_resp;
     energy_min_angle_resp = max(pars.min_angle_resp[energy_resp_index], pars.min_angle_resp[energy_resp_index + 1]);
@@ -279,41 +290,42 @@ __device__ bool Util_CUDA::getReflection(curandState *state, double angle, doubl
         if (dif < energy_max_angle_resp) {
             if (type_crystal && pars.mka_poli) {
                 if (poli_p) {
-                    inte1 = Util_CUDA::splint_te(pars.Crystal_Responces[energy_resp_index].size,
-                                                pars.Crystal_Responces[energy_resp_index].degrees,
-                                                pars.Crystal_Responces[energy_resp_index].reflecti_total_ps,
-                                                pars.Crystal_Responces[energy_resp_index].reflecti_two_deriv_ps, dif);
+                    inte1 = Util_CUDA::splint_te(pars.Crystal_Responces[energy_resp_index]->size,
+                                                pars.Crystal_Responces[energy_resp_index]->degrees,
+                                                pars.Crystal_Responces[energy_resp_index]->reflecti_total_ps,
+                                                pars.Crystal_Responces[energy_resp_index]->reflecti_two_deriv_ps, dif);
 
-                    inte2 = Util_CUDA::splint_te(pars.Crystal_Responces[energy_resp_index].size,
-                                                pars.Crystal_Responces[energy_resp_index + 1].degrees,
-                                                pars.Crystal_Responces[energy_resp_index + 1].reflecti_total_ps,
-                                                pars.Crystal_Responces[energy_resp_index + 1].reflecti_total_ps, dif);
+                    inte2 = Util_CUDA::splint_te(pars.Crystal_Responces[energy_resp_index + 1]->size,
+                                                pars.Crystal_Responces[energy_resp_index + 1]->degrees,
+                                                pars.Crystal_Responces[energy_resp_index + 1]->reflecti_total_ps,
+                                                pars.Crystal_Responces[energy_resp_index + 1]->reflecti_total_ps, dif);
 
                     inte = ((inte2 - inte1) / (pars.available_energies[energy_resp_index + 1] - pars.available_energies[energy_resp_index])) * (energy - pars.available_energies[energy_resp_index]) + inte1;
                 }
                 else {
-                    inte1 = Util_CUDA::splint_te(pars.Crystal_Responces[energy_resp_index].size,
-                                                pars.Crystal_Responces[energy_resp_index].degrees,
-                                                pars.Crystal_Responces[energy_resp_index].reflecti_total_ss,
-                                                pars.Crystal_Responces[energy_resp_index].reflecti_two_deriv_ss, dif);
+                    inte1 = Util_CUDA::splint_te(pars.Crystal_Responces[energy_resp_index]->size,
+                                                pars.Crystal_Responces[energy_resp_index]->degrees,
+                                                pars.Crystal_Responces[energy_resp_index]->reflecti_total_ss,
+                                                pars.Crystal_Responces[energy_resp_index]->reflecti_two_deriv_ss, dif);
 
-                    inte2 = Util_CUDA::splint_te(pars.Crystal_Responces[energy_resp_index].size, pars.Crystal_Responces[energy_resp_index + 1].degrees,
-                                                pars.Crystal_Responces[energy_resp_index + 1].reflecti_total_ss,
-                                                pars.Crystal_Responces[energy_resp_index + 1].reflecti_two_deriv_ss, dif);
+                    inte2 = Util_CUDA::splint_te(pars.Crystal_Responces[energy_resp_index + 1]->size,
+                                                pars.Crystal_Responces[energy_resp_index + 1]->degrees,
+                                                pars.Crystal_Responces[energy_resp_index + 1]->reflecti_total_ss,
+                                                pars.Crystal_Responces[energy_resp_index + 1]->reflecti_two_deriv_ss, dif);
 
                     inte = ((inte2 - inte1) / (pars.available_energies[energy_resp_index + 1] - pars.available_energies[energy_resp_index])) * (energy - pars.available_energies[energy_resp_index]) + inte1;
                 }
             }
             else {
-                inte1 = Util_CUDA::splint_te(pars.Crystal_Responces[energy_resp_index].size,
-                                            pars.Crystal_Responces[energy_resp_index].degrees,
-                                            pars.Crystal_Responces[energy_resp_index].reflecti_totals,
-                                            pars.Crystal_Responces[energy_resp_index].reflecti_two_derivs, dif);
+                inte1 = Util_CUDA::splint_te(pars.Crystal_Responces[energy_resp_index]->size,
+                                            pars.Crystal_Responces[energy_resp_index]->degrees,
+                                            pars.Crystal_Responces[energy_resp_index]->reflecti_totals,
+                                            pars.Crystal_Responces[energy_resp_index]->reflecti_two_derivs, dif);
 
-                inte2 = Util_CUDA::splint_te(pars.Crystal_Responces[energy_resp_index].size,
-                                            pars.Crystal_Responces[energy_resp_index + 1].degrees,
-                                            pars.Crystal_Responces[energy_resp_index + 1].reflecti_totals,
-                                            pars.Crystal_Responces[energy_resp_index + 1].reflecti_two_derivs, dif);
+                inte2 = Util_CUDA::splint_te(pars.Crystal_Responces[energy_resp_index + 1]->size,
+                                            pars.Crystal_Responces[energy_resp_index + 1]->degrees,
+                                            pars.Crystal_Responces[energy_resp_index + 1]->reflecti_totals,
+                                            pars.Crystal_Responces[energy_resp_index + 1]->reflecti_two_derivs, dif);
 
                 inte = ((inte2 - inte1) / (pars.available_energies[energy_resp_index + 1] - pars.available_energies[energy_resp_index])) * (energy - pars.available_energies[energy_resp_index]) + inte1;
             }
@@ -334,7 +346,8 @@ __device__ bool Util_CUDA::getReflection(curandState *state, double angle, doubl
 }
 
 
-__device__ double4 Util_CUDA::getFullAngle2(double r2x, double r2y, double r2z, double n2x, double n2y, double n2z) {
+__device__ double4 Util_CUDA::getFullAngle2(double r2x, double r2y, double r2z, double n2x, double n2y, double n2z)
+{
 
     double inter_pro, angle, r3x, r3y, r3z;
 

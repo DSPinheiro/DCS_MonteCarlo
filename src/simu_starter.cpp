@@ -68,8 +68,8 @@ void Simu_Starter::Make_Simu(SimulationInterface* w){
         linelamda = picks[2].lamda;
         naturalwidth = picks[2].natural_varia;
     }else if(FullEnergySpectrumInput.make_more_lines == 0){
-        linelamda = picks[1].lamda;
-        naturalwidth = picks[1].natural_varia;
+        linelamda = picks[0].lamda;
+        naturalwidth = picks[0].natural_varia;
     }else{
         //This is just to link the input energy spectrum with the rest of the simulation... not really usefull
         vector<double> inten;
@@ -79,7 +79,10 @@ void Simu_Starter::Make_Simu(SimulationInterface* w){
         }
 
         linelamda = Convert_Ag_minusone_eV / Energy_spec[Util::FindLoc(inten, *max_element(inten.begin(), inten.end()))].lamda;
-        naturalwidth = 0.0;
+        naturalwidth = 0.1;
+
+        picks[0].lamda = linelamda;
+        picks[0].natural_varia = naturalwidth;
     }
 
     if(GeoParametersInput.center_1cry_at > GeolengthelementsInput.z_first_crys / 2.0){

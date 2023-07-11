@@ -199,7 +199,7 @@ if(CMAKE_CUDA_COMPILER)
                         )
     
     target_compile_definitions(GPUBin PRIVATE -DCUDA)
-    target_link_options(GPUBin PRIVATE /NODEFAULTLIB:LIBCMT.LIB)
+    # target_link_options(GPUBin PRIVATE /NODEFAULTLIB:LIBCMT.LIB)
 endif()
 
 
@@ -259,7 +259,7 @@ if(INSTALL_GUI)
         endif()
         set_target_properties(DCSsimuWrapper PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
         
-        target_link_options(DCSsimuWrapper PRIVATE /NODEFAULTLIB:LIBCMT.LIB)
+        # target_link_options(DCSsimuWrapper PRIVATE /NODEFAULTLIB:LIBCMT.LIB)
         target_link_libraries(DCSsimuWrapper PRIVATE GPUBin)
     else()
         if(OpenMP_CXX_FOUND)

@@ -10,15 +10,15 @@
 namespace Util_CUDA {
     struct MakeParameters
     {
-        double (&max_plot_x)[6];
-        double (&max_plot_y)[6];
-        double (&hist_image_plate_source)[n_his_ima][n_his_ima];
-        double (&hist_image_plate_crystal1)[n_his_ima][n_his_ima];
-        double (&hist_image_plate_crystal2_para)[n_his_ima][n_his_ima];
-        double (&hist_image_plate_crystal2_anti)[n_his_ima][n_his_ima];
-        double (&hist_image_plate_detc_para)[n_his_ima][n_his_ima];
-        double (&hist_image_plate_detc_anti)[n_his_ima][n_his_ima];
-        double (&max_hist)[6];
+        double *max_plot_x;
+        double *max_plot_y;
+        float *hist_image_plate_source;
+        float *hist_image_plate_crystal1;
+        float *hist_image_plate_crystal2_para;
+        float *hist_image_plate_crystal2_anti;
+        float *hist_image_plate_detc_para;
+        float *hist_image_plate_detc_anti;
+        float *max_hist;
 
         int &counts_sour;
         int &counts_C1;
@@ -27,15 +27,15 @@ namespace Util_CUDA {
         int &counts_C2_anti;
         int &counts_detc_anti;
 
-        __device__ MakeParameters(double (&max_plot_x)[6],
-                        double (&max_plot_y)[6],
-                        double (&hist_image_plate_source)[n_his_ima][n_his_ima],
-                        double (&hist_image_plate_crystal1)[n_his_ima][n_his_ima],
-                        double (&hist_image_plate_crystal2_para)[n_his_ima][n_his_ima],
-                        double (&hist_image_plate_crystal2_anti)[n_his_ima][n_his_ima],
-                        double (&hist_image_plate_detc_para)[n_his_ima][n_his_ima],
-                        double (&hist_image_plate_detc_anti)[n_his_ima][n_his_ima],
-                        double (&max_hist)[6],
+        __device__ MakeParameters(double *max_plot_x,
+                        double *max_plot_y,
+                        float *hist_image_plate_source,
+                        float *hist_image_plate_crystal1,
+                        float *hist_image_plate_crystal2_para,
+                        float *hist_image_plate_crystal2_anti,
+                        float *hist_image_plate_detc_para,
+                        float *hist_image_plate_detc_anti,
+                        float *max_hist,
                         int &counts_sour,
                         int &counts_C1,
                         int &counts_C2_para,
@@ -67,7 +67,7 @@ namespace Util_CUDA {
         double p1_ener;
         double p2_ener;
         double p3_ener;
-        energy_vecs_CUDA Energy_spectrum_vectors;
+        energy_vecs_CUDA *Energy_spectrum_vectors;
         pick picks[5];
         double gauss_Doop;
     };
@@ -78,11 +78,11 @@ namespace Util_CUDA {
         double *min_angle_resp;
         double *max_angle_resp;
         bool mka_poli;
-        plotresponc_vecs_CUDA *Crystal_Responces;
+        plotresponc_vecs_CUDA **Crystal_Responces;
         int64_t size;
     };
 
-    __global__ void setupRand(curandState *state, unsigned int seed);
+    __device__ void setupRand(curandState *state, unsigned int seed, int block, int thread);
     __device__ double GaussianBox(curandState *state, double sta_dev, double mean, bool box_muller = false);
     __device__ double2 getYZ(double r_temp, double sin_tetap_temp, double cos_tetap_temp, double tan_tetadir_temp, double tan_fidir_temp, double L_temp);
     __device__ void Make(int crystal, double y, double z, MakeParameters *pars);

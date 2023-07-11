@@ -89,12 +89,12 @@ double max_plot[2][2];
 double min_plot[2][2];
 
 
-double hist_image_plate_source[n_his_ima][n_his_ima];
-double hist_image_plate_crystal1[n_his_ima][n_his_ima];
-double hist_image_plate_crystal2_para[n_his_ima][n_his_ima];
-double hist_image_plate_crystal2_anti[n_his_ima][n_his_ima];
-double hist_image_plate_detc_para[n_his_ima][n_his_ima];
-double hist_image_plate_detc_anti[n_his_ima][n_his_ima];
+double hist_image_plate_source[n_his_ima * n_his_ima];
+double hist_image_plate_crystal1[n_his_ima * n_his_ima];
+double hist_image_plate_crystal2_para[n_his_ima * n_his_ima];
+double hist_image_plate_crystal2_anti[n_his_ima * n_his_ima];
+double hist_image_plate_detc_para[n_his_ima * n_his_ima];
+double hist_image_plate_detc_anti[n_his_ima * n_his_ima];
 
 
 double theta_chk;

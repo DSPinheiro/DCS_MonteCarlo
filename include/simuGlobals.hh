@@ -103,12 +103,12 @@ extern double max_plot[2][2];
 extern double min_plot[2][2];
 
 
-extern double hist_image_plate_source[n_his_ima][n_his_ima];
-extern double hist_image_plate_crystal1[n_his_ima][n_his_ima];
-extern double hist_image_plate_crystal2_para[n_his_ima][n_his_ima];
-extern double hist_image_plate_crystal2_anti[n_his_ima][n_his_ima];
-extern double hist_image_plate_detc_para[n_his_ima][n_his_ima];
-extern double hist_image_plate_detc_anti[n_his_ima][n_his_ima];
+extern double hist_image_plate_source[n_his_ima * n_his_ima];
+extern double hist_image_plate_crystal1[n_his_ima * n_his_ima];
+extern double hist_image_plate_crystal2_para[n_his_ima * n_his_ima];
+extern double hist_image_plate_crystal2_anti[n_his_ima * n_his_ima];
+extern double hist_image_plate_detc_para[n_his_ima * n_his_ima];
+extern double hist_image_plate_detc_anti[n_his_ima * n_his_ima];
 
 
 

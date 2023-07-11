@@ -41,6 +41,9 @@ int InputSettingsPrompt::configure(const std::string& inFile)
             if (line.size() < 1) continue;
             if(line[0] != '/' && line[1] != '/'){
 
+                if (line.find("//") != std::string::npos)
+                    line = split(line, "//")[0];
+
                 if(line.find("Geometry") != std::string::npos)
                     currStruct = "Geometry";
                 else if(line.find("UserSettings") != std::string::npos)
@@ -457,7 +460,7 @@ int InputSettingsPrompt::configure(const std::string& inFile)
                         FullEnergySpectrumInput.p1_ener = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "linelamda2"){
                         trim(items[1]);
-                        FullEnergySpectrumInput.linelamda2 = (items[1] == ".true.");
+                        FullEnergySpectrumInput.linelamda2 = std::stod(split(items[1], "d0")[0]);
                     }else if(items[0] == "naturalwidth2"){
                         trim(items[1]);
                         FullEnergySpectrumInput.naturalwidth2 = std::stod(split(items[1], "d0")[0]);

@@ -50,7 +50,7 @@ void SimulationInterface::headlessSimu(){
         reques_width[3] = FullEnergySpectrumInput.naturalwidth4;
 
     }else if(FullEnergySpectrumInput.make_more_lines == 0){
-        reques_energ[0] = linelamda;
+        reques_energ[0] = PhysicalParametersInput.linelamda;
         reques_energ[1] = FullEnergySpectrumInput.linelamda2;
         reques_energ[2] = FullEnergySpectrumInput.linelamda3;
         reques_energ[3] = FullEnergySpectrumInput.linelamda4;
@@ -65,6 +65,17 @@ void SimulationInterface::headlessSimu(){
         Util::Read_EnergySpectrum(FullEnergySpectrumInput.energy_spectrum_file);
         
         cout << "Input energy spectrum read." << endl;
+
+        //Setup the values for other parts of the code, even if unused in this mode, which might result in wrong values for the analysis
+        reques_energ[0] = PhysicalParametersInput.linelamda;
+        reques_energ[1] = FullEnergySpectrumInput.linelamda2;
+        reques_energ[2] = FullEnergySpectrumInput.linelamda3;
+        reques_energ[3] = FullEnergySpectrumInput.linelamda4;
+
+        reques_width[0] = PhysicalParametersInput.naturalwidth;
+        reques_width[1] = FullEnergySpectrumInput.naturalwidth2;
+        reques_width[2] = FullEnergySpectrumInput.naturalwidth3;
+        reques_width[3] = FullEnergySpectrumInput.naturalwidth4;
     }
 
     if(GeometryInput.crystal_Si){
@@ -131,17 +142,28 @@ void SimulationInterface::headlessSimu(){
         reques_width[1] = reques_width[1] / 2.0;
 
         if(PhysicalParametersInput.Unit_energy == evv_1){
-            picks[1].lamda = Convert_Ag_minusone_eV / reques_energ[1];
-            picks[1].natural_varia = Convert_Ag_minusone_eV * reques_width[1] / (pow(reques_energ[1], 2) - pow(reques_width[1], 2));
+            picks[0].lamda = Convert_Ag_minusone_eV / reques_energ[0];
+            picks[0].natural_varia = Convert_Ag_minusone_eV * reques_width[0] / (pow(reques_energ[0], 2) - pow(reques_width[0], 2));
         }else{
-            picks[1].lamda = reques_energ[1];
-            picks[1].natural_varia = reques_width[1];
+            picks[0].lamda = reques_energ[0];
+            picks[0].natural_varia = reques_width[0];
+        }
+    }else{
+        //Unused in this spectrum modes, but usefull to set for the analysis
+        reques_width[1] = reques_width[1] / 2.0;
+
+        if(PhysicalParametersInput.Unit_energy == evv_1){
+            picks[0].lamda = Convert_Ag_minusone_eV / reques_energ[0];
+            picks[0].natural_varia = Convert_Ag_minusone_eV * reques_width[0] / (pow(reques_energ[0], 2) - pow(reques_width[0], 2));
+        }else{
+            picks[0].lamda = reques_energ[0];
+            picks[0].natural_varia = reques_width[0];
         }
     }
 
 
     gauss_Doop_ev = PhysicalParametersInput.gauss_Doop;
-    PhysicalParametersInput.gauss_Doop = Convert_Ag_minusone_eV * PhysicalParametersInput.gauss_Doop / (pow(reques_energ[1], 2) - pow(PhysicalParametersInput.gauss_Doop, 2));
+    PhysicalParametersInput.gauss_Doop = Convert_Ag_minusone_eV * PhysicalParametersInput.gauss_Doop / (pow(reques_energ[0], 2) - pow(PhysicalParametersInput.gauss_Doop, 2));
 
 
     if(GeometryInput.mode_bragg_geo){
@@ -189,12 +211,12 @@ void SimulationInterface::guiSimu(){
         reques_width[3] = FullEnergySpectrumInput.naturalwidth4;
 
     }else if(FullEnergySpectrumInput.make_more_lines == 0){
-        reques_energ[0] = linelamda;
+        reques_energ[0] = PhysicalParametersInput.linelamda;
         reques_energ[1] = FullEnergySpectrumInput.linelamda2;
         reques_energ[2] = FullEnergySpectrumInput.linelamda3;
         reques_energ[3] = FullEnergySpectrumInput.linelamda4;
 
-        reques_width[0] = naturalwidth;
+        reques_width[0] = PhysicalParametersInput.naturalwidth;
         reques_width[1] = FullEnergySpectrumInput.naturalwidth2;
         reques_width[2] = FullEnergySpectrumInput.naturalwidth3;
         reques_width[3] = FullEnergySpectrumInput.naturalwidth4;
@@ -209,6 +231,16 @@ void SimulationInterface::guiSimu(){
         logString << "Input energy spectrum read." << endl;
         LogLine(logString.str());
 
+        //Setup the values for other parts of the code, even if unused in this mode, which might result in wrong values for the analysis
+        reques_energ[0] = PhysicalParametersInput.linelamda;
+        reques_energ[1] = FullEnergySpectrumInput.linelamda2;
+        reques_energ[2] = FullEnergySpectrumInput.linelamda3;
+        reques_energ[3] = FullEnergySpectrumInput.linelamda4;
+
+        reques_width[0] = PhysicalParametersInput.naturalwidth;
+        reques_width[1] = FullEnergySpectrumInput.naturalwidth2;
+        reques_width[2] = FullEnergySpectrumInput.naturalwidth3;
+        reques_width[3] = FullEnergySpectrumInput.naturalwidth4;
     }
 
     if(GeometryInput.crystal_Si){
@@ -275,17 +307,28 @@ void SimulationInterface::guiSimu(){
         reques_width[1] = reques_width[1] / 2.0;
 
         if(PhysicalParametersInput.Unit_energy == evv_1){
-            picks[1].lamda = Convert_Ag_minusone_eV / reques_energ[1];
-            picks[1].natural_varia = Convert_Ag_minusone_eV * reques_width[1] / (pow(reques_energ[1], 2) - pow(reques_width[1], 2));
+            picks[0].lamda = Convert_Ag_minusone_eV / reques_energ[0];
+            picks[0].natural_varia = Convert_Ag_minusone_eV * reques_width[0] / (pow(reques_energ[0], 2) - pow(reques_width[0], 2));
         }else{
-            picks[1].lamda = reques_energ[1];
-            picks[1].natural_varia = reques_width[1];
+            picks[0].lamda = reques_energ[0];
+            picks[0].natural_varia = reques_width[0];
+        }
+    }else{
+        //Unused in this spectrum modes, but usefull to set for the analysis
+        reques_width[1] = reques_width[1] / 2.0;
+
+        if(PhysicalParametersInput.Unit_energy == evv_1){
+            picks[0].lamda = Convert_Ag_minusone_eV / reques_energ[0];
+            picks[0].natural_varia = Convert_Ag_minusone_eV * reques_width[0] / (pow(reques_energ[0], 2) - pow(reques_width[0], 2));
+        }else{
+            picks[0].lamda = reques_energ[0];
+            picks[0].natural_varia = reques_width[0];
         }
     }
 
 
     gauss_Doop_ev = PhysicalParametersInput.gauss_Doop;
-    PhysicalParametersInput.gauss_Doop = Convert_Ag_minusone_eV * PhysicalParametersInput.gauss_Doop / (pow(reques_energ[1], 2) - pow(PhysicalParametersInput.gauss_Doop, 2));
+    PhysicalParametersInput.gauss_Doop = Convert_Ag_minusone_eV * PhysicalParametersInput.gauss_Doop / (pow(reques_energ[0], 2) - pow(PhysicalParametersInput.gauss_Doop, 2));
 
 
     if(GeometryInput.mode_bragg_geo){

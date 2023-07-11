@@ -1050,7 +1050,7 @@ void Util::analyse() {
     if (FullEnergySpectrumInput.make_more_lines == 1)
         energy_exact = Convert_Ag_minusone_eV / picks[2].lamda;
     else if (FullEnergySpectrumInput.make_more_lines == 0)
-        energy_exact = Convert_Ag_minusone_eV / picks[1].lamda;
+        energy_exact = Convert_Ag_minusone_eV / picks[0].lamda;
     else
         energy_exact = middle_energy;
 
@@ -1114,7 +1114,8 @@ void Util::analyse() {
         
     }
     #ifdef QT_EXISTS
-    logBox->appendPlainText(logString.str().c_str());
+    if(logBox != NULL)
+        logBox->appendPlainText(logString.str().c_str());
     #else
     std::cout << logString.str();
     #endif
@@ -1278,7 +1279,8 @@ bool Util::CheckSpectrum(std::string unit) {
 
     logString << Energy_spec[0].lamda << "\t" << Energy_spec[Energy_spec.size() - 1].lamda << std::endl;
     #ifdef QT_EXISTS
-    logBox->appendPlainText(logString.str().c_str());
+    if(logBox != NULL)
+        logBox->appendPlainText(logString.str().c_str());
     #else
     std::cout << logString.str();
     #endif
@@ -1462,7 +1464,8 @@ double Util::getNewTemp(int bin_tem, int& bin_fas, double& pha_tem) {
     if (TemperatureParametersInput.TT_tempera == 0) {
         logString << "Warning: Value for TT_tempera is 0" << std::endl;
         #ifdef QT_EXISTS
-        logBox->appendPlainText(logString.str().c_str());
+        if(logBox != NULL)
+            logBox->appendPlainText(logString.str().c_str());
         #else
         std::cout << logString.str();
         #endif
@@ -1749,61 +1752,67 @@ void Util::Make(int crystal, double y, double z,
     if (crystal == 1) {
 
         if (!(nx > n_his_ima || ny > n_his_ima || nx <= 0 || ny <= 0)) {
-            hist_image_plate_source[nx - 1][ny - 1]++;
+            int i = (nx - 1) * n_his_ima + (ny - 1);
+            hist_image_plate_source[i]++;
             counts_sour++;
 
-            if (max_hist[crystal - 1] < hist_image_plate_source[nx - 1][ny - 1])
-                max_hist[crystal - 1] = hist_image_plate_source[nx - 1][ny - 1];
+            if (max_hist[crystal - 1] < hist_image_plate_source[i])
+                max_hist[crystal - 1] = hist_image_plate_source[i];
         }
     }
     else if (crystal == 2) {
 
         if (!(nx > n_his_ima || ny > n_his_ima || nx <= 0 || ny <= 0)) {
-            hist_image_plate_crystal1[nx - 1][ny - 1]++;
+            int i = (nx - 1) * n_his_ima + (ny - 1);
+            hist_image_plate_crystal1[i]++;
             counts_C1++;
 
-            if (max_hist[crystal - 1] < hist_image_plate_crystal1[nx - 1][ny - 1])
-                max_hist[crystal - 1] = hist_image_plate_crystal1[nx - 1][ny - 1];
+            if (max_hist[crystal - 1] < hist_image_plate_crystal1[i])
+                max_hist[crystal - 1] = hist_image_plate_crystal1[i];
         }
     }
     else if (crystal == 3) {
 
         if (!(nx > n_his_ima || ny > n_his_ima || nx <= 0 || ny <= 0)) {
-            hist_image_plate_crystal2_para[nx - 1][ny - 1]++;
+            int i = (nx - 1) * n_his_ima + (ny - 1);
+            hist_image_plate_crystal2_para[i]++;
             counts_C2_para++;
 
-            if (max_hist[crystal - 1] < hist_image_plate_crystal2_para[nx - 1][ny - 1])
-                max_hist[crystal - 1] = hist_image_plate_crystal2_para[nx - 1][ny - 1];
+            if (max_hist[crystal - 1] < hist_image_plate_crystal2_para[i])
+                max_hist[crystal - 1] = hist_image_plate_crystal2_para[i];
         }
     }
     else if (crystal == 4) {
 
         if (!(nx > n_his_ima || ny > n_his_ima || nx <= 0 || ny <= 0)) {
-            hist_image_plate_detc_para[nx - 1][ny - 1]++;
+            int i = (nx - 1) * n_his_ima + (ny - 1);
+            hist_image_plate_detc_para[i]++;
             counts_detc_para++;
 
-            if (max_hist[crystal - 1] < hist_image_plate_detc_para[nx - 1][ny - 1])
-                max_hist[crystal - 1] = hist_image_plate_detc_para[nx - 1][ny - 1];
+            if (max_hist[crystal - 1] < hist_image_plate_detc_para[i])
+                max_hist[crystal - 1] = hist_image_plate_detc_para[i];
         }
     }
     else if (crystal == 5) {
 
         if (!(nx > n_his_ima || ny > n_his_ima || nx <= 0 || ny <= 0)) {
-            hist_image_plate_crystal2_anti[nx - 1][ny - 1]++;
+            int i = (nx - 1) * n_his_ima + (ny - 1);
+            hist_image_plate_crystal2_anti[i]++;
             counts_C2_anti++;
 
-            if (max_hist[crystal - 1] < hist_image_plate_crystal2_anti[nx - 1][ny - 1])
-                max_hist[crystal - 1] = hist_image_plate_crystal2_anti[nx - 1][ny - 1];
+            if (max_hist[crystal - 1] < hist_image_plate_crystal2_anti[i])
+                max_hist[crystal - 1] = hist_image_plate_crystal2_anti[i];
         }
     }
     else if (crystal == 6) {
 
         if (!(nx > n_his_ima || ny > n_his_ima || nx <= 0 || ny <= 0)) {
-            hist_image_plate_detc_anti[nx - 1][ny - 1]++;
+            int i = (nx - 1) * n_his_ima + (ny - 1);
+            hist_image_plate_detc_anti[i]++;
             counts_detc_anti++;
 
-            if (max_hist[crystal - 1] < hist_image_plate_detc_anti[nx - 1][ny - 1])
-                max_hist[crystal - 1] = hist_image_plate_detc_anti[nx - 1][ny - 1];
+            if (max_hist[crystal - 1] < hist_image_plate_detc_anti[i])
+                max_hist[crystal - 1] = hist_image_plate_detc_anti[i];
         }
     }
 }
@@ -1844,7 +1853,8 @@ void Util::fit(bool Parallel) {
     logString << std::endl;
 
     #ifdef QT_EXISTS
-    logBox->appendPlainText(logString.str().c_str());
+    if(logBox != NULL)
+        logBox->appendPlainText(logString.str().c_str());
     #else
     std::cout << logString.str();
     #endif
@@ -1957,7 +1967,8 @@ void Util::fit(bool Parallel) {
         a_error_anti_voig[i] = sqrt(covar[i][i] * npt_m_deg);
     }
     #ifdef QT_EXISTS
-    logBox->appendPlainText(logString.str().c_str());
+    if(logBox != NULL)
+        logBox->appendPlainText(logString.str().c_str());
     #else
     std::cout << logString.str();
     #endif
@@ -1983,7 +1994,8 @@ void Util::fit(bool Parallel) {
     logString << "FWMH-\t" << FWMH_V << std::endl;
     logString << std::endl;
     #ifdef QT_EXISTS
-    logBox->appendPlainText(logString.str().c_str());
+    if(logBox != NULL)
+        logBox->appendPlainText(logString.str().c_str());
     #else
     std::cout << logString.str();
     #endif
@@ -2067,7 +2079,8 @@ void Util::Read_CurveResponce() {
 
     }
     #ifdef QT_EXISTS
-    logBox->appendPlainText(logString.str().c_str());
+    if(logBox != NULL)
+        logBox->appendPlainText(logString.str().c_str());
     #else
     std::cout << logString.str();
     #endif
@@ -2095,7 +2108,8 @@ void Util::Read_CurveResponce() {
             logString.clear();
             logString << "File " << inFile_p << " does not exist" << std::endl;
             #ifdef QT_EXISTS
-            logBox->appendPlainText(logString.str().c_str());
+            if(logBox != NULL)
+                logBox->appendPlainText(logString.str().c_str());
             #else
             std::cout << logString.str();
             #endif
@@ -2138,7 +2152,8 @@ void Util::Read_CurveResponce() {
             logString.clear();
             logString << "File " << inFile_s << " does not exist" << std::endl;
             #ifdef QT_EXISTS
-            logBox->appendPlainText(logString.str().c_str());
+            if(logBox != NULL)
+                logBox->appendPlainText(logString.str().c_str());
             #else
             std::cout << logString.str();
             #endif
@@ -2599,7 +2614,8 @@ void Util::test_In() {
         logString << " or, in turn of reference angle:	" << -esti_para << " deg" << std::endl;
         logString << std::endl;
         #ifdef QT_EXISTS
-        logBox->appendPlainText(logString.str().c_str());
+        if(logBox != NULL)
+            logBox->appendPlainText(logString.str().c_str());
         #endif
     }
 
@@ -2622,7 +2638,8 @@ void Util::test_In() {
         logString << " or, in turn of reference angle:	" << -esti_anti << " deg" << std::endl;
         logString << std::endl;
         #ifdef QT_EXISTS
-        logBox->appendPlainText(logString.str().c_str());
+        if(logBox != NULL)
+            logBox->appendPlainText(logString.str().c_str());
         #endif
     }
 
@@ -2631,7 +2648,7 @@ void Util::test_In() {
         angle_dif = (ang_anti_pre - ang_para_pre) / 2 + 90 - refra_corr - vert_div_corr;
 
         angle_dif *= convrad;
-        energy_exact = Convert_Ag_minusone_eV / picks[1].lamda;
+        energy_exact = Convert_Ag_minusone_eV / picks[0].lamda;
         wave = 2 * d_lat * sin(angle_dif);
         energ = Convert_Ag_minusone_eV / wave;
 
@@ -2682,7 +2699,8 @@ void Util::test_In() {
         logString << " Checking common range to observe parallel peak -> " << low_bound_angl_para << " deg; " << high_bound_angl_para << " deg; peak: " << ang_para_pre << " deg" << std::endl;
         logString << " Checking common range to observe antiparallel peak -> " << low_bound_angl_anti << " deg; " << high_bound_angl_anti << " deg; peak: " << ang_anti_pre << " deg" << std::endl;
         #ifdef QT_EXISTS
-        logBox->appendPlainText(logString.str().c_str());
+        if(logBox != NULL)
+            logBox->appendPlainText(logString.str().c_str());
         #endif
     }
     else
@@ -2768,7 +2786,8 @@ void Util::test_In() {
         }
     }
     #ifdef QT_EXISTS
-    logBox->appendPlainText(logString.str().c_str());
+    if(logBox != NULL)
+        logBox->appendPlainText(logString.str().c_str());
     #endif
 
     logString.clear();
@@ -2799,7 +2818,8 @@ void Util::test_In() {
     }
 
     #ifdef QT_EXISTS
-    logBox->appendPlainText(logString.str().c_str());
+    if(logBox != NULL)
+        logBox->appendPlainText(logString.str().c_str());
     #else
     std::cout << logString.str();
     #endif

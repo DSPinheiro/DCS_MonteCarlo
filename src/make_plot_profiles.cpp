@@ -39,7 +39,7 @@ void Make_plot_profiles::plotProfiles(
         plot_anti.resize(PlotParametersInput.nubins, emptyPlot);
     }
 
-    double hist_image[n_his_ima][n_his_ima];
+    double hist_image[n_his_ima * n_his_ima];
 
     string X_plots[6] = {"Entrance of spectrometer		",
                          "first crystal					",
@@ -135,32 +135,32 @@ void Make_plot_profiles::plotProfiles(
                 X_leg = X_plots[crystal];
 
                 if(crystal == 0){
-                    copy(&hist_image_plate_source[0][0], &hist_image_plate_source[0][0]+ n_his_ima* n_his_ima,&hist_image[0][0]);
+                    copy(&hist_image_plate_source[0], &hist_image_plate_source[0]+ n_his_ima* n_his_ima,&hist_image[0]);
                     counts = counts_sour;
                     col1_y = 400 + crystal * 600;
                     col1_x = col1_x_va[0];
                 }else if(crystal == 1){
-                    copy(&hist_image_plate_crystal1[0][0], &hist_image_plate_crystal1[0][0]+ n_his_ima* n_his_ima,&hist_image[0][0]);
+                    copy(&hist_image_plate_crystal1[0], &hist_image_plate_crystal1[0]+ n_his_ima* n_his_ima,&hist_image[0]);
                     counts = counts_C1;
                     col1_y = 450 + crystal * 500;
                     col1_x = col1_x_va[0] - 40;
                 }else if(crystal == 2){
-                    copy(&hist_image_plate_crystal2_para[0][0], &hist_image_plate_crystal2_para[0][0]+ n_his_ima* n_his_ima,&hist_image[0][0]);
+                    copy(&hist_image_plate_crystal2_para[0], &hist_image_plate_crystal2_para[0]+ n_his_ima* n_his_ima,&hist_image[0]);
                     counts = counts_C2_para;
                     col1_y = 450 + crystal * 600;
                     col1_x = col1_x_va[1] - 20;
                 }else if(crystal == 3){
-                    copy(&hist_image_plate_detc_para[0][0], &hist_image_plate_detc_para[0][0]+ n_his_ima* n_his_ima,&hist_image[0][0]);
+                    copy(&hist_image_plate_detc_para[0], &hist_image_plate_detc_para[0]+ n_his_ima* n_his_ima,&hist_image[0]);
                     counts = counts_detc_para;
                     col1_y = 400 + crystal * 500;
                     col1_x = col1_x_va[1] + 120;
                 }else if(crystal == 4){
-                    copy(&hist_image_plate_crystal2_anti[0][0], &hist_image_plate_crystal2_anti[0][0]+ n_his_ima* n_his_ima,&hist_image[0][0]);
+                    copy(&hist_image_plate_crystal2_anti[0], &hist_image_plate_crystal2_anti[0]+ n_his_ima* n_his_ima,&hist_image[0]);
                     counts = counts_C2_anti;
                     col1_y = 450 + crystal * 600;
                     col1_x = col1_x_va[2] - 40;
                 }else if(crystal == 5){
-                    copy(&hist_image_plate_detc_anti[0][0], &hist_image_plate_detc_anti[0][0]+ n_his_ima* n_his_ima,&hist_image[0][0]);
+                    copy(&hist_image_plate_detc_anti[0], &hist_image_plate_detc_anti[0]+ n_his_ima* n_his_ima,&hist_image[0]);
                     counts = counts_detc_anti;
                     col1_y = 400 + crystal * 500;
                     col1_x = col1_x_va[2] + 85;
@@ -181,7 +181,7 @@ void Make_plot_profiles::plotProfiles(
                 plates.crystal = crystal;
                 // Not ideal (but at least does not crash)
                 // cgodinho 15/05/2023 (there is not much tought into this anyways)
-                memcpy(&plates.hist_image[0][0], &hist_image[0][0], n_his_ima * n_his_ima * sizeof(double));
+                memcpy(&plates.hist_image[0], &hist_image[0], n_his_ima * n_his_ima * sizeof(double));
                 plates.max_z = max_plot_z_temp;
                 emit w->changePlatesSignal(plates);
 

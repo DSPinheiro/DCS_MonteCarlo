@@ -243,6 +243,12 @@ struct plotresponc_vecs_CUDA {
     double *reflecti_total_ss;
     double *reflecti_two_deriv_ss;
     int64_t size;
+
+    plotresponc_vecs_CUDA (double *degrees, double *reflecti_totals, double *reflecti_two_derivs, double *reflecti_total_ps, double *reflecti_two_deriv_ps,
+                            double *reflecti_total_ss, double *reflecti_two_deriv_ss, int64_t size) :
+                            degrees (degrees), reflecti_totals (reflecti_totals), reflecti_two_derivs (reflecti_two_derivs), reflecti_total_ps (reflecti_total_ps),
+                            reflecti_two_deriv_ps (reflecti_two_deriv_ps), reflecti_total_ss (reflecti_total_ss), reflecti_two_deriv_ss (reflecti_two_deriv_ss), size (size)
+    {}
 };
 #endif
 
@@ -502,6 +508,11 @@ static inline void trim(std::string& s) {
 
 #ifndef shape_corr
 #define shape_corr 0
+#endif
+
+
+#ifndef invalidEventCoord
+#define invalidEventCoord -10000.0f
 #endif
 
 

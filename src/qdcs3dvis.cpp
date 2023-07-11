@@ -190,7 +190,8 @@ bool QDCS3Dvis::loadOBJ(const char *path,
         std::stringstream logString;
 
         logString << "Impossible to open the file at: " << path << std::endl;
-        logBox->appendPlainText(QString(logString.str().c_str()));
+        if(logBox != NULL)
+            logBox->appendPlainText(QString(logString.str().c_str()));
         
         return false;
     }
@@ -324,100 +325,129 @@ void QDCS3Dvis::initializeGL()
 
     bool res = loadOBJ(baseCubeModelPath.c_str(), baseCubeVertices, baseCubeUVs, baseCubeNormals);
 
-    if (res)
-        logBox->appendPlainText("Base cube model loaded successfully.\n");
-    else
-        logBox->appendPlainText("Error loading base cube model.\n");
+    if(logBox != NULL)
+    {
+        if (res)
+            logBox->appendPlainText("Base cube model loaded successfully.\n");
+        else
+            logBox->appendPlainText("Error loading base cube model.\n");
+    }
     
     //Load base cube model from disk into arrays
     std::string baseCylinderModelPath = std::string(File_simu) + "\\DCSModels\\cylinder.obj";
 
     res = loadOBJ(baseCylinderModelPath.c_str(), baseCylinderVertices, baseCylinderUVs, baseCylinderNormals);
 
-    if (res)
-        logBox->appendPlainText("Base cylinder model loaded successfully.\n");
-    else
-        logBox->appendPlainText("Error loading base cylinder model.\n");
+    if(logBox != NULL)
+    {
+        if (res)
+            logBox->appendPlainText("Base cylinder model loaded successfully.\n");
+        else
+            logBox->appendPlainText("Error loading base cylinder model.\n");
+    }
         
     //Load C1 text model from disk into arrays
     std::string C1TextModelPath = std::string(File_simu) + "\\DCSModels\\C1text.obj";
 
     res = loadOBJ(C1TextModelPath.c_str(), C1TextVertices, C1TextUVs, C1TextNormals);
-
-    if (res)
-        logBox->appendPlainText("C1 Text model loaded successfully.\n");
-    else
-        logBox->appendPlainText("Error loading C1 Text model.\n");
-        
+    
+    if(logBox != NULL)
+    {
+        if (res)
+            logBox->appendPlainText("C1 Text model loaded successfully.\n");
+        else
+            logBox->appendPlainText("Error loading C1 Text model.\n");
+    }    
     //Load C2 text model from disk into arrays
     std::string C2TextModelPath = std::string(File_simu) + "\\DCSModels\\C2text.obj";
 
     res = loadOBJ(C2TextModelPath.c_str(), C2TextVertices, C2TextUVs, C2TextNormals);
 
-    if (res)
-        logBox->appendPlainText("C2 Text model loaded successfully.\n");
-    else
-        logBox->appendPlainText("Error loading C2 Text model.\n");
+    if(logBox != NULL)
+    {
+        if (res)
+            logBox->appendPlainText("C2 Text model loaded successfully.\n");
+        else
+            logBox->appendPlainText("Error loading C2 Text model.\n");
+    }
 
     //Load Source text model from disk into arrays
     std::string SourceTextModelPath = std::string(File_simu) + "\\DCSModels\\Sourcetext.obj";
 
     res = loadOBJ(SourceTextModelPath.c_str(), SourceTextVertices, SourceTextUVs, SourceTextNormals);
 
-    if (res)
-        logBox->appendPlainText("Source Text model loaded successfully.\n");
-    else
-        logBox->appendPlainText("Error loading Source Text model.\n");
+    if(logBox != NULL)
+    {
+        if (res)
+            logBox->appendPlainText("Source Text model loaded successfully.\n");
+        else
+            logBox->appendPlainText("Error loading Source Text model.\n");
+    }
         
     //Load Apperture text model from disk into arrays
     std::string AppertureTextModelPath = std::string(File_simu) + "\\DCSModels\\Apperturetext.obj";
 
     res = loadOBJ(AppertureTextModelPath.c_str(), AppertureTextVertices, AppertureTextUVs, AppertureTextNormals);
 
-    if (res)
-        logBox->appendPlainText("Apperture Text model loaded successfully.\n");
-    else
-        logBox->appendPlainText("Error loading Apperture Text model.\n");
+    if(logBox != NULL)
+    {
+        if (res)
+            logBox->appendPlainText("Apperture Text model loaded successfully.\n");
+        else
+            logBox->appendPlainText("Error loading Apperture Text model.\n");
+    }
     
     //Load Table text model from disk into arrays
     std::string TableTextModelPath = std::string(File_simu) + "\\DCSModels\\Tabletext.obj";
 
     res = loadOBJ(TableTextModelPath.c_str(), TableTextVertices, TableTextUVs, TableTextNormals);
 
-    if (res)
-        logBox->appendPlainText("Table Text model loaded successfully.\n");
-    else
-        logBox->appendPlainText("Error loading Table Text model.\n");
+    if(logBox != NULL)
+    {
+        if (res)
+            logBox->appendPlainText("Table Text model loaded successfully.\n");
+        else
+            logBox->appendPlainText("Error loading Table Text model.\n");
+    }
 
     //Load Detector text model from disk into arrays
     std::string DetectorTextModelPath = std::string(File_simu) + "\\DCSModels\\Detectortext.obj";
 
     res = loadOBJ(DetectorTextModelPath.c_str(), DetectorTextVertices, DetectorTextUVs, DetectorTextNormals);
 
-    if (res)
-        logBox->appendPlainText("Detector Text model loaded successfully.\n");
-    else
-        logBox->appendPlainText("Error loading Detector Text model.\n");
+    if(logBox != NULL)
+    {
+        if (res)
+            logBox->appendPlainText("Detector Text model loaded successfully.\n");
+        else
+            logBox->appendPlainText("Error loading Detector Text model.\n");
+    }
 
     //Load Para Configuration text model from disk into arrays
     std::string ParaTextModelPath = std::string(File_simu) + "\\DCSModels\\ParaConfigtext.obj";
 
     res = loadOBJ(ParaTextModelPath.c_str(), ParaTextVertices, ParaTextUVs, ParaTextNormals);
 
-    if (res)
-        logBox->appendPlainText("Para Configuration Text model loaded successfully.\n");
-    else
-        logBox->appendPlainText("Error loading Para Configuration Text model.\n");
+    if(logBox != NULL)
+    {
+        if (res)
+            logBox->appendPlainText("Para Configuration Text model loaded successfully.\n");
+        else
+            logBox->appendPlainText("Error loading Para Configuration Text model.\n");
+    }
 
     //Load Anti Configuration text model from disk into arrays
     std::string AntiTextModelPath = std::string(File_simu) + "\\DCSModels\\AntiConfigtext.obj";
 
     res = loadOBJ(AntiTextModelPath.c_str(), AntiTextVertices, AntiTextUVs, AntiTextNormals);
 
-    if (res)
-        logBox->appendPlainText("Para Configuration Text model loaded successfully.\n");
-    else
-        logBox->appendPlainText("Error loading Para Configuration Text model.\n");
+    if(logBox != NULL)
+    {
+        if (res)
+            logBox->appendPlainText("Para Configuration Text model loaded successfully.\n");
+        else
+            logBox->appendPlainText("Error loading Para Configuration Text model.\n");
+    }
 
     //Load base cube texture from disk
     std::string baseCubeTexturePath = std::string(File_simu) + "\\DCSModels\\cubeTex.png";
@@ -1311,11 +1341,11 @@ void QDCS3Dvis::drawParallelEvents(QMatrix4x4& m) {
     for (std::vector<double> event : eventsToTrace_para) {
         
         if (event.size() > 5) {
-            float sc1_HWDx = (event.at(4) + event.at(1)) / 4;
-            float sc1_HWDz = (event.at(5) + event.at(2)) / 4;
+            double sc1_HWDx = (event.at(4) + event.at(1)) / 4;
+            double sc1_HWDz = (event.at(5) + event.at(2)) / 4;
 
-            float sc1_anglex = atanf(2 * sc1_HWDx / abs(source_posy));
-            float sc1_anglez = atanf(2 * sc1_HWDz / abs(source_posy));
+            double sc1_anglex = atanf(2 * sc1_HWDx / abs(source_posy));
+            double sc1_anglez = atanf(2 * sc1_HWDz / abs(source_posy));
 
             //Transform to the source reference frame
             m.translate(source_posx / 2 + sc1_HWDx, source_posy / 2 - event.at(0), source_posz + sc1_HWDz);
@@ -1334,11 +1364,11 @@ void QDCS3Dvis::drawParallelEvents(QMatrix4x4& m) {
 
 
             if (event.size() > 6) {
-                float c1c2_HWDy = (event.at(7) + event.at(4)) / 4;
-                float c1c2_HWDz = (event.at(8) + event.at(5)) / 4;
+                double c1c2_HWDy = (event.at(7) + event.at(4)) / 4;
+                double c1c2_HWDz = (event.at(8) + event.at(5)) / 4;
 
-                float c1c2_angley = atanf(2 * c1c2_HWDy / abs(c2_posx));
-                float c1c2_anglez = atanf(2 * c1c2_HWDz / abs(c2_posx));
+                double c1c2_angley = atanf(2 * c1c2_HWDy / abs(c2_posx));
+                double c1c2_anglez = atanf(2 * c1c2_HWDz / abs(c2_posx));
 
                 //Transform to the second crystal reference frame in parallel
                 m.rotate(table_angle, 0.0, 0.0, 1.0);
@@ -1359,11 +1389,11 @@ void QDCS3Dvis::drawParallelEvents(QMatrix4x4& m) {
             }
 
             if (event.size() > 9) {
-                float c2det_HWDy = (event.at(10) + event.at(7)) / 4;
-                float c2det_HWDz = (event.at(11) + event.at(8)) / 4;
+                double c2det_HWDy = (event.at(10) + event.at(7)) / 4;
+                double c2det_HWDz = (event.at(11) + event.at(8)) / 4;
 
-                float c2det_angley = atanf(2 * c2det_HWDy / abs(detec_posx));
-                float c2det_anglez = atanf(2 * c2det_HWDz / abs(detec_posx));
+                double c2det_angley = atanf(2 * c2det_HWDy / abs(detec_posx));
+                double c2det_anglez = atanf(2 * c2det_HWDz / abs(detec_posx));
 
                 //Transform to the detector reference frame in antiparallel
                 m.rotate(table_angle, 0.0, 0.0, 1.0);
@@ -1409,11 +1439,11 @@ void QDCS3Dvis::drawAntiparallelEvents(QMatrix4x4& m) {
             //if (event.at(1) > (GeolengthelementsInput.S_sour + 1) / 2) {
             //    std::cout << "erettr" << std::endl;
             //}
-            float sc1_HWDx = (event.at(4) + event.at(1)) / 4;
-            float sc1_HWDz = (event.at(5) + event.at(2)) / 4;
+            double sc1_HWDx = (event.at(4) + event.at(1)) / 4;
+            double sc1_HWDz = (event.at(5) + event.at(2)) / 4;
 
-            float sc1_anglex = atanf(2 * sc1_HWDx / abs(source_posy));
-            float sc1_anglez = atanf(2 * sc1_HWDz / abs(source_posy));
+            double sc1_anglex = atanf(2 * sc1_HWDx / abs(source_posy));
+            double sc1_anglez = atanf(2 * sc1_HWDz / abs(source_posy));
 
             //Transform to the source reference frame
             m.translate(source_posx / 2 + sc1_HWDx, source_posy / 2 + event.at(0), source_posz + sc1_HWDz);
@@ -1432,11 +1462,11 @@ void QDCS3Dvis::drawAntiparallelEvents(QMatrix4x4& m) {
 
 
             if (event.size() > 6) {
-                float c1c2_HWDy = (event.at(7) + event.at(4)) / 4;
-                float c1c2_HWDz = (event.at(8) + event.at(5)) / 4;
+                double c1c2_HWDy = (event.at(7) + event.at(4)) / 4;
+                double c1c2_HWDz = (event.at(8) + event.at(5)) / 4;
 
-                float c1c2_angley = atanf(2 * c1c2_HWDy / abs(c2_posx));
-                float c1c2_anglez = atanf(2 * c1c2_HWDz / abs(c2_posx));
+                double c1c2_angley = atanf(2 * c1c2_HWDy / abs(c2_posx));
+                double c1c2_anglez = atanf(2 * c1c2_HWDz / abs(c2_posx));
 
                 //Transform to the second crystal reference frame in parallel
                 m.rotate(table_angle, 0.0, 0.0, 1.0);
@@ -1457,11 +1487,11 @@ void QDCS3Dvis::drawAntiparallelEvents(QMatrix4x4& m) {
             }
 
             if (event.size() > 9) {
-                float c2det_HWDy = (event.at(10) + event.at(7)) / 4;
-                float c2det_HWDz = (event.at(11) + event.at(8)) / 4;
+                double c2det_HWDy = (event.at(10) + event.at(7)) / 4;
+                double c2det_HWDz = (event.at(11) + event.at(8)) / 4;
 
-                float c2det_angley = atanf(2 * c2det_HWDy / abs(detec_posx));
-                float c2det_anglez = atanf(2 * c2det_HWDz / abs(detec_posx));
+                double c2det_angley = atanf(2 * c2det_HWDy / abs(detec_posx));
+                double c2det_anglez = atanf(2 * c2det_HWDz / abs(detec_posx));
 
                 //Transform to the detector reference frame in antiparallel
                 m.rotate(table_angle, 0.0, 0.0, 1.0);

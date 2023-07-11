@@ -27,23 +27,7 @@ bool Source_complex::run_Source(SimulationInterface *w){
     #endif
 
     stringstream logString;
-    
-    //setup the variables that will be used during bin count MC simulation
-    #ifdef CUDA
-    ParallelBin::BinParameters *bin_CUDA = nullptr;
-    BinParameters *bin = nullptr;
-    if(ParallelSettingsInput.Make_GPU)
-    {
-        bin_CUDA = new ParallelBin::BinParameters();
-    }
-    else
-    {
-        bin = new BinParameters();
-    }
-    #else
-    //setup the variables that will be used during bin count MC simulation
-    BinParameters *bin = new BinParameters();
-    #endif
+
     
     //setup the lattice constant for the temperature
     double d_lat1_para, d_lat2_para, d_lat1_anti, d_lat2_anti;
@@ -65,51 +49,107 @@ bool Source_complex::run_Source(SimulationInterface *w){
     delrot_inc = (delrot_max - delrot_min) / (double)PlotParametersInput.nubins;
 
 
+
+    //setup the variables that will be used during bin count MC simulation
+    #ifdef CUDA
+    ParallelBin::BinParameters *bin_CUDA;
+    BinParameters *bin;
+    if(ParallelSettingsInput.Make_GPU)
+    {
+        bin_CUDA = new ParallelBin::BinParameters(2 * d_lat1_para, 2 * d_lat2_para, 2 * d_lat2_anti, delrot_max);
+    }
+    else
+    {
+        bin = new BinParameters(2 * d_lat1_para, 2 * d_lat2_para, 2 * d_lat2_anti, delrot_max);
+    }
+    #else
+    //setup the variables that will be used during bin count MC simulation
+    BinParameters *bin = new BinParameters(2 * d_lat1_para, 2 * d_lat2_para, 2 * d_lat2_anti, delrot_max);
+    #endif
+
+
     //setup the variables that are constant throughout the simulation, or per bin.
     //some of them are initialized in the constructor, other are conditionaly initialized.
     
     #ifdef CUDA
-    ParallelBin::SetupParameters *setup_CUDA = nullptr;
-    SetupParameters *setup = nullptr;
+    ParallelBin::SetupParameters *setup_CUDA;
+    SetupParameters *setup;
     if(ParallelSettingsInput.Make_GPU)
     {
-        setup_CUDA = new ParallelBin::SetupParameters(M_PI / 2 - (teta_crys1 * M_PI / 180), 2 * d_lat1_para, 2 * d_lat2_para, 2 * d_lat2_anti, \
-                                                    GeolengthelementsInput.S_aper / 2, GeolengthelementsInput.S_aper_var / 2, pow(GeolengthelementsInput.S_aper / 2, 2), \
-                                                    GeolengthelementsInput.S_sour / 2, GeolengthelementsInput.z_sour / 2, GeolengthelementsInput.y_sour / 2, \
-                                                    GeolengthelementsInput.zdetc / 2 + GeolengthelementsInput.shift_det_ver, \
+        char type_source[3];
+        strcpy(type_source, GeoParapathlengthsInput.type_source.c_str());
+
+        energy_vecs_CUDA *Energy_Spectrum_Vectors_CUDA = new energy_vecs_CUDA();
+        Energy_Spectrum_Vectors_CUDA->lamdas = Energy_Spectrum_Vectors.lamdas.data();
+        Energy_Spectrum_Vectors_CUDA->intensities = Energy_Spectrum_Vectors.intensities.data();
+        Energy_Spectrum_Vectors_CUDA->cum_ints = Energy_Spectrum_Vectors.cum_ints.data();
+        Energy_Spectrum_Vectors_CUDA->intensity_two_derivs = Energy_Spectrum_Vectors.intensity_two_derivs.data();
+        Energy_Spectrum_Vectors_CUDA->lamda_two_derivs = Energy_Spectrum_Vectors.lamda_two_derivs.data();
+        Energy_Spectrum_Vectors_CUDA->size = static_cast<int64_t>(Energy_Spectrum_Vectors.lamdas.size());
+        
+
+        plotresponc_vecs_CUDA **Crystal_Responces_CUDA = new plotresponc_vecs_CUDA*[available_energies.size()];
+
+        for(int i = 0; i < available_energies.size(); i++)
+        {
+            plotresponc_vecs_CUDA *tmp_vecs = new plotresponc_vecs_CUDA(
+                Crystal_Responces[i].degrees.data(),
+                Crystal_Responces[i].reflecti_totals.data(),
+                Crystal_Responces[i].reflecti_two_derivs.data(),
+                Crystal_Responces[i].reflecti_total_ps.data(),
+                Crystal_Responces[i].reflecti_two_deriv_ps.data(),
+                Crystal_Responces[i].reflecti_total_ss.data(),
+                Crystal_Responces[i].reflecti_two_deriv_ss.data(),
+                static_cast<int64_t>(Crystal_Responces[i].degrees.size())
+            );
+
+            Crystal_Responces_CUDA[i] = tmp_vecs;
+        }
+
+        setup_CUDA = new ParallelBin::SetupParameters(GeoParametersInput.teta_table, GeoParametersInput.table_resolution, GeoParametersInput.make_table_noise, \
+                                                    UserSettingsInput.Make_Horizontal, UserSettingsInput.Make_Vertical, GeoParametersInput.xsi, \
+                                                    type_source, GeolengthelementsInput.S_shi_ver_B, GeolengthelementsInput.S_shi_hor_B, \
+                                                    GeolengthelementsInput.S_sour, GeolengthelementsInput.z_sour, GeolengthelementsInput.y_sour, \
+                                                    GeolengthelementsInput.S_shi_ver_A, GeolengthelementsInput.S_shi_hor_A, GraphOptionsInput.make_image_plates, \
+                                                    GraphOptionsInput.make_imageC1_After_refle, CurvedCrystalInput.Curve_crystall, PolarizationParametersInput.mka_poli, \
+                                                    UserSettingsInput.see_para, GraphOptionsInput.make_imageC2_After_refle, NumberRaysInput.number_events, \
+                                                    UserSettingsInput.see_anti, PolarizationParametersInput.relationP_S, FullEnergySpectrumInput.make_more_lines, \
+                                                    FullEnergySpectrumInput.Do_background, FullEnergySpectrumInput.p1_ener, FullEnergySpectrumInput.p2_ener, \
+                                                    FullEnergySpectrumInput.p3_ener, PhysicalParametersInput.gauss_Doop, Energy_Spectrum_Vectors_CUDA, picks, \
+                                                    available_energies.data(), available_energies.size(), min_angle_resp.data(), max_angle_resp.data(), Crystal_Responces_CUDA, \
+                                                    M_PI / 2 - (teta_crys1 * M_PI / 180), GeolengthelementsInput.S_aper / 2, GeolengthelementsInput.S_aper_var / 2, \
+                                                    pow(GeolengthelementsInput.S_aper / 2, 2), GeolengthelementsInput.S_sour / 2, GeolengthelementsInput.z_sour / 2, \
+                                                    GeolengthelementsInput.y_sour / 2, GeolengthelementsInput.zdetc / 2 + GeolengthelementsInput.shift_det_ver, \
                                                     -GeolengthelementsInput.zdetc / 2 + GeolengthelementsInput.shift_det_ver, \
                                                     GeolengthelementsInput.ydetc / 2 + GeolengthelementsInput.shift_det_ver, \
                                                     -GeolengthelementsInput.ydetc / 2 + GeolengthelementsInput.shift_det_ver, \
-                                                    delrot_max, NumberRaysInput.number_rotati * NumberRaysInput.nbeams * PlotParametersInput.nubins);
-            
+                                                    NumberRaysInput.number_rotati * NumberRaysInput.nbeams * PlotParametersInput.nubins);
     }
     else
     {
-        setup = new SetupParameters(M_PI / 2 - (teta_crys1 * M_PI / 180), 2 * d_lat1_para, 2 * d_lat2_para, 2 * d_lat2_anti, \
-                                                GeolengthelementsInput.S_aper / 2, GeolengthelementsInput.S_aper_var / 2, pow(GeolengthelementsInput.S_aper / 2, 2), \
-                                                GeolengthelementsInput.S_sour / 2, GeolengthelementsInput.z_sour / 2, GeolengthelementsInput.y_sour / 2, \
-                                                GeolengthelementsInput.zdetc / 2 + GeolengthelementsInput.shift_det_ver, \
+        setup = new SetupParameters(M_PI / 2 - (teta_crys1 * M_PI / 180), GeolengthelementsInput.S_aper / 2, GeolengthelementsInput.S_aper_var / 2,
+                                                pow(GeolengthelementsInput.S_aper / 2, 2), GeolengthelementsInput.S_sour / 2, GeolengthelementsInput.z_sour / 2, \
+                                                GeolengthelementsInput.y_sour / 2, GeolengthelementsInput.zdetc / 2 + GeolengthelementsInput.shift_det_ver, \
                                                 -GeolengthelementsInput.zdetc / 2 + GeolengthelementsInput.shift_det_ver, \
                                                 GeolengthelementsInput.ydetc / 2 + GeolengthelementsInput.shift_det_ver, \
                                                 -GeolengthelementsInput.ydetc / 2 + GeolengthelementsInput.shift_det_ver, \
-                                                delrot_max, NumberRaysInput.number_rotati * NumberRaysInput.nbeams * PlotParametersInput.nubins);
+                                                NumberRaysInput.number_rotati * NumberRaysInput.nbeams * PlotParametersInput.nubins);
     }
     #else
-    SetupParameters *setup = new SetupParameters(M_PI / 2 - (teta_crys1 * M_PI / 180), 2 * d_lat1_para, 2 * d_lat2_para, 2 * d_lat2_anti, \
-                                                GeolengthelementsInput.S_aper / 2, GeolengthelementsInput.S_aper_var / 2, pow(GeolengthelementsInput.S_aper / 2, 2), \
-                                                GeolengthelementsInput.S_sour / 2, GeolengthelementsInput.z_sour / 2, GeolengthelementsInput.y_sour / 2, \
-                                                GeolengthelementsInput.zdetc / 2 + GeolengthelementsInput.shift_det_ver, \
+    SetupParameters *setup = new SetupParameters(M_PI / 2 - (teta_crys1 * M_PI / 180), GeolengthelementsInput.S_aper / 2, GeolengthelementsInput.S_aper_var / 2, \
+                                                pow(GeolengthelementsInput.S_aper / 2, 2), GeolengthelementsInput.S_sour / 2, GeolengthelementsInput.z_sour / 2, \
+                                                GeolengthelementsInput.y_sour / 2, GeolengthelementsInput.zdetc / 2 + GeolengthelementsInput.shift_det_ver, \
                                                 -GeolengthelementsInput.zdetc / 2 + GeolengthelementsInput.shift_det_ver, \
                                                 GeolengthelementsInput.ydetc / 2 + GeolengthelementsInput.shift_det_ver, \
                                                 -GeolengthelementsInput.ydetc / 2 + GeolengthelementsInput.shift_det_ver, \
-                                                delrot_max, NumberRaysInput.number_rotati * NumberRaysInput.nbeams * PlotParametersInput.nubins);
+                                                NumberRaysInput.number_rotati * NumberRaysInput.nbeams * PlotParametersInput.nubins);
     #endif
     
 
     //setup the variables that are going to be reduced in the MC loops to calculate the counts on the final spectrum
     #ifdef CUDA
-    ParallelBin::ReductionVars *reduce_CUDA = nullptr;
-    ReductionVars *reduce = nullptr;
+    ParallelBin::ReductionVars *reduce_CUDA;
+    ReductionVars *reduce;
     if(ParallelSettingsInput.Make_GPU)
     {
         reduce_CUDA = new ParallelBin::ReductionVars(NumberRaysInput.number_events);
@@ -312,12 +352,12 @@ bool Source_complex::run_Source(SimulationInterface *w){
         #ifdef CUDA
         if(ParallelSettingsInput.Make_GPU)
         {
-            auxBragg = asin(picks[1].lamda / setup_CUDA->tw_d1_para);
+            auxBragg = asin(picks[0].lamda / bin_CUDA->tw_d1_para);
         }
         else
         {
         #endif
-        auxBragg = asin(picks[1].lamda / setup->tw_d1_para);
+        auxBragg = asin(picks[0].lamda / bin->tw_d1_para);
         #ifdef CUDA
         }
         #endif
@@ -454,11 +494,11 @@ bool Source_complex::run_Source(SimulationInterface *w){
     #ifdef CUDA
     if(ParallelSettingsInput.Make_GPU)
     {
-        if(tw_d1_anti < setup_CUDA->tw_d2_anti){
+        if(tw_d1_anti < bin_CUDA->tw_d2_anti){
             setup_CUDA->a_lamds_uni = tw_d1_anti * sin(setup_CUDA->tetaref + delrot_min - 0.2);
-            setup_CUDA->b_lamds_uni = setup_CUDA->tw_d2_anti * sin(setup_CUDA->tetaref + delrot_max + 0.2);
+            setup_CUDA->b_lamds_uni = bin_CUDA->tw_d2_anti * sin(setup_CUDA->tetaref + delrot_max + 0.2);
         }else{
-            setup_CUDA->a_lamds_uni = setup_CUDA->tw_d2_anti * sin(setup_CUDA->tetaref + delrot_min - 0.2);
+            setup_CUDA->a_lamds_uni = bin_CUDA->tw_d2_anti * sin(setup_CUDA->tetaref + delrot_min - 0.2);
             setup_CUDA->b_lamds_uni = tw_d1_anti * sin(setup_CUDA->tetaref + delrot_max + 0.2);
         }
 
@@ -467,11 +507,11 @@ bool Source_complex::run_Source(SimulationInterface *w){
     else
     {
     #endif
-    if(tw_d1_anti < setup->tw_d2_anti){
+    if(tw_d1_anti < bin->tw_d2_anti){
         setup->a_lamds_uni = tw_d1_anti * sin(setup->tetaref + delrot_min - 0.2);
-        setup->b_lamds_uni = setup->tw_d2_anti * sin(setup->tetaref + delrot_max + 0.2);
+        setup->b_lamds_uni = bin->tw_d2_anti * sin(setup->tetaref + delrot_max + 0.2);
     }else{
-        setup->a_lamds_uni = setup->tw_d2_anti * sin(setup->tetaref + delrot_min - 0.2);
+        setup->a_lamds_uni = bin->tw_d2_anti * sin(setup->tetaref + delrot_min - 0.2);
         setup->b_lamds_uni = tw_d1_anti * sin(setup->tetaref + delrot_max + 0.2);
     }
 
@@ -671,6 +711,14 @@ bool Source_complex::run_Source(SimulationInterface *w){
 
     if(GraphOptionsInput.make_image_plates){
         Util::initPlates();
+
+        #ifdef CUDA
+        if(ParallelSettingsInput.Make_GPU)
+        {
+            setup_CUDA->max_plot_x = max_plot_x;
+            setup_CUDA->max_plot_y = max_plot_y;
+        }
+        #endif
     }
 
     int_time_out.push_back(0);
@@ -717,25 +765,31 @@ bool Source_complex::run_Source(SimulationInterface *w){
     }
     #endif
 
+    #ifdef CUDA
+    if(ParallelSettingsInput.Make_GPU)
+    {
+        ParallelBin::loadConstantParameters(setup_CUDA);
+    }
+    #endif
 
     //wierd hack but seems to work
     while(
         #ifdef CUDA
-        ((ParallelSettingsInput.Make_GPU) ? setup_CUDA->numbins : setup->numbins)
+        ((ParallelSettingsInput.Make_GPU) ? bin_CUDA->numbins : bin->numbins)
         #else
-        setup->numbins
+        bin->numbins
         #endif
         < PlotParametersInput.nubins)
     {
         #ifdef CUDA
         if(ParallelSettingsInput.Make_GPU)
         {
-            setup_CUDA->numbins++;
+            bin_CUDA->numbins++;
         }
         else
         {
         #endif
-        setup->numbins++;
+        bin->numbins++;
         #ifdef CUDA
         }
         #endif
@@ -764,16 +818,16 @@ bool Source_complex::run_Source(SimulationInterface *w){
             #ifdef CUDA
             if(ParallelSettingsInput.Make_GPU)
             {
-                setup_CUDA->tw_d1_para = 2 * d_lat1_para;
-                setup_CUDA->tw_d2_para = 2 * d_lat2_para;
-                setup_CUDA->tw_d2_anti = 2 * d_lat2_anti;
+                bin_CUDA->tw_d1_para = 2 * d_lat1_para;
+                bin_CUDA->tw_d2_para = 2 * d_lat2_para;
+                bin_CUDA->tw_d2_anti = 2 * d_lat2_anti;
             }
             else
             {
             #endif
-            setup->tw_d1_para = 2 * d_lat1_para;
-            setup->tw_d2_para = 2 * d_lat2_para;
-            setup->tw_d2_anti = 2 * d_lat2_anti;
+            bin->tw_d1_para = 2 * d_lat1_para;
+            bin->tw_d2_para = 2 * d_lat2_para;
+            bin->tw_d2_anti = 2 * d_lat2_anti;
             #ifdef CUDA
             }
             #endif
@@ -793,14 +847,14 @@ bool Source_complex::run_Source(SimulationInterface *w){
         #ifdef CUDA
         if(ParallelSettingsInput.Make_GPU)
         {
-            angle_para = setup_CUDA->delrot * 180 / M_PI + teta_crys1;
-            angle_anti = setup_CUDA->delrot * 180 / M_PI - teta_crys1;
+            angle_para = bin_CUDA->delrot * 180 / M_PI + teta_crys1;
+            angle_anti = bin_CUDA->delrot * 180 / M_PI - teta_crys1;
         }
         else
         {
         #endif
-        angle_para = setup->delrot * 180 / M_PI + teta_crys1;
-        angle_anti = setup->delrot * 180 / M_PI - teta_crys1;
+        angle_para = bin->delrot * 180 / M_PI + teta_crys1;
+        angle_anti = bin->delrot * 180 / M_PI - teta_crys1;
         #ifdef CUDA
         }
         #endif
@@ -809,22 +863,22 @@ bool Source_complex::run_Source(SimulationInterface *w){
         if(ParallelSettingsInput.Make_GPU)
         {
             if(CurveVerticalTiltInput.make_CurveTilt){
-                setup_CUDA->tilt_C2_para_temp = Util::ObtainVert(2, angle_para);
-                setup_CUDA->tilt_C2_anti_temp = Util::ObtainVert(2, angle_anti);
+                bin_CUDA->tilt_C2_para_temp = Util::ObtainVert(2, angle_para);
+                bin_CUDA->tilt_C2_anti_temp = Util::ObtainVert(2, angle_anti);
             }else{
-                setup_CUDA->tilt_C2_para_temp = GeoParametersInput.tilt_C2 * convrad;
-                setup_CUDA->tilt_C2_anti_temp = GeoParametersInput.tilt_C2 * convrad;
+                bin_CUDA->tilt_C2_para_temp = GeoParametersInput.tilt_C2 * convrad;
+                bin_CUDA->tilt_C2_anti_temp = GeoParametersInput.tilt_C2 * convrad;
             }
         }
         else
         {
         #endif
         if(CurveVerticalTiltInput.make_CurveTilt){
-            setup->tilt_C2_para_temp = Util::ObtainVert(2, angle_para);
-            setup->tilt_C2_anti_temp = Util::ObtainVert(2, angle_anti);
+            bin->tilt_C2_para_temp = Util::ObtainVert(2, angle_para);
+            bin->tilt_C2_anti_temp = Util::ObtainVert(2, angle_anti);
         }else{
-            setup->tilt_C2_para_temp = GeoParametersInput.tilt_C2 * convrad;
-            setup->tilt_C2_anti_temp = GeoParametersInput.tilt_C2 * convrad;
+            bin->tilt_C2_para_temp = GeoParametersInput.tilt_C2 * convrad;
+            bin->tilt_C2_anti_temp = GeoParametersInput.tilt_C2 * convrad;
         }
         #ifdef CUDA
         }
@@ -849,22 +903,22 @@ bool Source_complex::run_Source(SimulationInterface *w){
         #ifdef CUDA
         if(ParallelSettingsInput.Make_GPU)
         {
-            bin_CUDA->n2x_para = cos(setup_CUDA->tilt_C2_para_temp) * sin(GeoParametersInput.teta_table * convrad - setup_CUDA->tetaref + setup_CUDA->delrot);
-            bin_CUDA->n2y_para = - cos(setup_CUDA->tilt_C2_para_temp) * cos(GeoParametersInput.teta_table * convrad - setup_CUDA->tetaref + setup_CUDA->delrot);
-            setup_CUDA->n2z_para = sin(setup_CUDA->tilt_C2_para_temp);
-            bin_CUDA->n2x_anti = - cos(setup_CUDA->tilt_C2_anti_temp) * sin(GeoParametersInput.teta_table * convrad + setup_CUDA->tetaref + setup_CUDA->delrot);
-            bin_CUDA->n2y_anti = cos(setup_CUDA->tilt_C2_anti_temp) * cos(GeoParametersInput.teta_table * convrad + setup_CUDA->tetaref + setup_CUDA->delrot);
-            setup_CUDA->n2z_anti = sin(setup_CUDA->tilt_C2_anti_temp);
+            bin_CUDA->n2x_para = cos(bin_CUDA->tilt_C2_para_temp) * sin(GeoParametersInput.teta_table * convrad - setup_CUDA->tetaref + bin_CUDA->delrot);
+            bin_CUDA->n2y_para = - cos(bin_CUDA->tilt_C2_para_temp) * cos(GeoParametersInput.teta_table * convrad - setup_CUDA->tetaref + bin_CUDA->delrot);
+            bin_CUDA->n2z_para = sin(bin_CUDA->tilt_C2_para_temp);
+            bin_CUDA->n2x_anti = - cos(bin_CUDA->tilt_C2_anti_temp) * sin(GeoParametersInput.teta_table * convrad + setup_CUDA->tetaref + bin_CUDA->delrot);
+            bin_CUDA->n2y_anti = cos(bin_CUDA->tilt_C2_anti_temp) * cos(GeoParametersInput.teta_table * convrad + setup_CUDA->tetaref + bin_CUDA->delrot);
+            bin_CUDA->n2z_anti = sin(bin_CUDA->tilt_C2_anti_temp);
         }
         else
         {
         #endif
-        bin->n2x_para = cos(setup->tilt_C2_para_temp) * sin(GeoParametersInput.teta_table * convrad - setup->tetaref + setup->delrot);
-        bin->n2y_para = - cos(setup->tilt_C2_para_temp) * cos(GeoParametersInput.teta_table * convrad - setup->tetaref + setup->delrot);
-        setup->n2z_para = sin(setup->tilt_C2_para_temp);
-        bin->n2x_anti = - cos(setup->tilt_C2_anti_temp) * sin(GeoParametersInput.teta_table * convrad + setup->tetaref + setup->delrot);
-        bin->n2y_anti = cos(setup->tilt_C2_anti_temp) * cos(GeoParametersInput.teta_table * convrad + setup->tetaref + setup->delrot);
-        setup->n2z_anti = sin(setup->tilt_C2_anti_temp);
+        bin->n2x_para = cos(bin->tilt_C2_para_temp) * sin(GeoParametersInput.teta_table * convrad - setup->tetaref + bin->delrot);
+        bin->n2y_para = - cos(bin->tilt_C2_para_temp) * cos(GeoParametersInput.teta_table * convrad - setup->tetaref + bin->delrot);
+        bin->n2z_para = sin(bin->tilt_C2_para_temp);
+        bin->n2x_anti = - cos(bin->tilt_C2_anti_temp) * sin(GeoParametersInput.teta_table * convrad + setup->tetaref + bin->delrot);
+        bin->n2y_anti = cos(bin->tilt_C2_anti_temp) * cos(GeoParametersInput.teta_table * convrad + setup->tetaref + bin->delrot);
+        bin->n2z_anti = sin(bin->tilt_C2_anti_temp);
         #ifdef CUDA
         }
         #endif
@@ -873,18 +927,18 @@ bool Source_complex::run_Source(SimulationInterface *w){
             #ifdef CUDA
             if(ParallelSettingsInput.Make_GPU)
             {
-                setup_CUDA->n2x_para_temp = bin_CUDA->n2x_para;
-                setup_CUDA->n2y_para_temp = bin_CUDA->n2y_para;
-                setup_CUDA->n2x_anti_temp = bin_CUDA->n2x_anti;
-                setup_CUDA->n2y_anti_temp = bin_CUDA->n2y_anti;
+                bin_CUDA->n2x_para_temp = bin_CUDA->n2x_para;
+                bin_CUDA->n2y_para_temp = bin_CUDA->n2y_para;
+                bin_CUDA->n2x_anti_temp = bin_CUDA->n2x_anti;
+                bin_CUDA->n2y_anti_temp = bin_CUDA->n2y_anti;
             }
             else
             {
             #endif
-            setup->n2x_para_temp = bin->n2x_para;
-            setup->n2y_para_temp = bin->n2y_para;
-            setup->n2x_anti_temp = bin->n2x_anti;
-            setup->n2y_anti_temp = bin->n2y_anti;
+            bin->n2x_para_temp = bin->n2x_para;
+            bin->n2y_para_temp = bin->n2y_para;
+            bin->n2x_anti_temp = bin->n2x_anti;
+            bin->n2y_anti_temp = bin->n2y_anti;
             #ifdef CUDA
             }
             #endif
@@ -893,14 +947,14 @@ bool Source_complex::run_Source(SimulationInterface *w){
         #ifdef CUDA
         if(ParallelSettingsInput.Make_GPU)
         {
-            setup_CUDA->cos_difteC2_det_para = cos(setup_CUDA->tetaref - setup_CUDA->delrot + GeoParametersInput.teta_table * convrad + GeoParametersInput.teta_detec_para * convrad);
-            setup_CUDA->sin_difteC2_det_para = sin(setup_CUDA->tetaref - setup_CUDA->delrot + GeoParametersInput.teta_table * convrad + GeoParametersInput.teta_detec_para * convrad);
+            bin_CUDA->cos_difteC2_det_para = cos(setup_CUDA->tetaref - bin_CUDA->delrot + GeoParametersInput.teta_table * convrad + GeoParametersInput.teta_detec_para * convrad);
+            bin_CUDA->sin_difteC2_det_para = sin(setup_CUDA->tetaref - bin_CUDA->delrot + GeoParametersInput.teta_table * convrad + GeoParametersInput.teta_detec_para * convrad);
         }
         else
         {
         #endif
-        setup->cos_difteC2_det_para = cos(setup->tetaref - setup->delrot + GeoParametersInput.teta_table * convrad + GeoParametersInput.teta_detec_para * convrad);
-        setup->sin_difteC2_det_para = sin(setup->tetaref - setup->delrot + GeoParametersInput.teta_table * convrad + GeoParametersInput.teta_detec_para * convrad);
+        bin->cos_difteC2_det_para = cos(setup->tetaref - bin->delrot + GeoParametersInput.teta_table * convrad + GeoParametersInput.teta_detec_para * convrad);
+        bin->sin_difteC2_det_para = sin(setup->tetaref - bin->delrot + GeoParametersInput.teta_table * convrad + GeoParametersInput.teta_detec_para * convrad);
         #ifdef CUDA
         }
         #endif
@@ -920,15 +974,22 @@ bool Source_complex::run_Source(SimulationInterface *w){
         #endif
 
         #ifdef OPENMP
+        if(!ParallelSettingsInput.Make_GPU)
+        {
             reduce->energy_sum_para_thread = 0;
             reduce->energy_sum_anti_thread = 0;
+        }
         #endif
+        
 
         #ifdef CUDA
         if(ParallelSettingsInput.Make_GPU)
         {
-            ParallelBin::makeBin(NumberRaysInput.nbeams * NumberRaysInput.number_rotati, NumberRaysInput.number_events,
-                                bin_CUDA, setup_CUDA, reduce_CUDA);
+            ParallelBin::makeBin(NumberRaysInput.nbeams * NumberRaysInput.number_rotati, bin_CUDA, reduce_CUDA);
+
+            #ifdef QT_EXISTS
+            w->setPctDone(static_cast<float>(bin_CUDA->total_current_bins) / setup_CUDA->total_expexted_bins);
+            #endif
         }
         else
         {
@@ -941,30 +1002,65 @@ bool Source_complex::run_Source(SimulationInterface *w){
         #ifdef CUDA
         if(ParallelSettingsInput.Make_GPU)
         {
-            eventsToTrace_para.resize(bin_CUDA->curr3DEventCount_para);
-            eventsToTrace_anti.resize(bin_CUDA->curr3DEventCount_anti);
+            copy(&reduce_CUDA->hist_image_plate_source[0], &reduce_CUDA->hist_image_plate_source[0] + n_his_ima * n_his_ima, &hist_image_plate_source[0]);
+            copy(&reduce_CUDA->hist_image_plate_crystal1[0], &reduce_CUDA->hist_image_plate_crystal1[0] + n_his_ima * n_his_ima, &hist_image_plate_crystal1[0]);
+            copy(&reduce_CUDA->hist_image_plate_crystal2_anti[0], &reduce_CUDA->hist_image_plate_crystal2_anti[0] + n_his_ima * n_his_ima, &hist_image_plate_crystal2_anti[0]);
+            copy(&reduce_CUDA->hist_image_plate_crystal2_para[0], &reduce_CUDA->hist_image_plate_crystal2_para[0] + n_his_ima * n_his_ima, &hist_image_plate_crystal2_para[0]);
+            copy(&reduce_CUDA->hist_image_plate_detc_anti[0], &reduce_CUDA->hist_image_plate_detc_anti[0] + n_his_ima * n_his_ima, &hist_image_plate_detc_anti[0]);
+            copy(&reduce_CUDA->hist_image_plate_detc_para[0], &reduce_CUDA->hist_image_plate_detc_para[0] + n_his_ima * n_his_ima, &hist_image_plate_detc_para[0]);
+            
+            copy(&reduce_CUDA->max_hist[0], &reduce_CUDA->max_hist[0] + 6, &max_hist[0]);
 
-            for(int i = 0; i < bin_CUDA->curr3DEventCount_para; i++)
+
+            eventsToTrace_para.resize(std::min(bin_CUDA->curr3DEventCount_para, reduce_CUDA->Events3D));
+            eventsToTrace_anti.resize(std::min(bin_CUDA->curr3DEventCount_anti, reduce_CUDA->Events3D));
+
+            for(int i = 0; i < std::min(bin_CUDA->curr3DEventCount_para, reduce_CUDA->Events3D); i++)
             {
-                std::vector<double> tmpEvent(12);
-                tmpEvent.insert(tmpEvent.end(), &reduce_CUDA->eventsToTrace_paraCUDA[i][0], &reduce_CUDA->eventsToTrace_paraCUDA[i][12]);
-                eventsToTrace_para.push_back(tmpEvent);
+                std::vector<double> tmpEvent;
+                for (int j = 0; j < 12; j++)
+                {
+                    if (reduce_CUDA->eventsToTrace_paraCUDA[i * 12 + j] != invalidEventCoord)
+                    {
+                        tmpEvent.push_back(reduce_CUDA->eventsToTrace_paraCUDA[i * 12 + j]);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                
+                if(tmpEvent.size() == 3 || tmpEvent.size() == 6 || tmpEvent.size() == 9 || tmpEvent.size() == 12)
+                    eventsToTrace_para[i] = tmpEvent;
             }
             
-            for(int i = 0; i < bin_CUDA->curr3DEventCount_anti; i++)
+            for(int i = 0; i < std::min(bin_CUDA->curr3DEventCount_anti, reduce_CUDA->Events3D); i++)
             {
-                std::vector<double> tmpEvent(12);
-                tmpEvent.insert(tmpEvent.end(), &reduce_CUDA->eventsToTrace_antiCUDA[i][0], &reduce_CUDA->eventsToTrace_antiCUDA[i][12]);
-                eventsToTrace_anti.push_back(tmpEvent);
+                std::vector<double> tmpEvent;
+                for (int j = 0; j < 12; j++)
+                {
+                    if (reduce_CUDA->eventsToTrace_antiCUDA[i * 12 + j] != invalidEventCoord)
+                    {
+                        tmpEvent.push_back(reduce_CUDA->eventsToTrace_antiCUDA[i * 12 + j]);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                if (tmpEvent.size() == 3 || tmpEvent.size() == 6 || tmpEvent.size() == 9 || tmpEvent.size() == 12)
+                    eventsToTrace_anti[i] = tmpEvent;
             }
+
         }
         #endif
 
         #ifdef CUDA
         if(ParallelSettingsInput.Make_GPU)
         {
-            energy_sum_para[setup_CUDA->numbins - 1] = reduce_CUDA->energy_sum_para_thread;
-            energy_sum_anti[setup_CUDA->numbins - 1] = reduce_CUDA->energy_sum_anti_thread;    
+            energy_sum_para[bin_CUDA->numbins - 1] = reduce_CUDA->energy_sum_para_thread;
+            energy_sum_anti[bin_CUDA->numbins - 1] = reduce_CUDA->energy_sum_anti_thread;    
         }
         else
         {
@@ -973,14 +1069,14 @@ bool Source_complex::run_Source(SimulationInterface *w){
         #ifdef CUDA
         if(ParallelSettingsInput.Make_GPU)
         {
-            energy_sum_para[setup->numbins - 1] = reduce_CUDA->energy_sum_para_thread;
-            energy_sum_anti[setup->numbins - 1] = reduce_CUDA->energy_sum_anti_thread;
+            energy_sum_para[bin->numbins - 1] = reduce_CUDA->energy_sum_para_thread;
+            energy_sum_anti[bin->numbins - 1] = reduce_CUDA->energy_sum_anti_thread;
         }
         #endif
 
         #ifdef OPENMP
-        energy_sum_para[setup->numbins - 1] = reduce->energy_sum_para_thread;
-        energy_sum_anti[setup->numbins - 1] = reduce->energy_sum_anti_thread;
+        energy_sum_para[bin->numbins - 1] = reduce->energy_sum_para_thread;
+        energy_sum_anti[bin->numbins - 1] = reduce->energy_sum_anti_thread;
         #endif
 
         #ifdef CUDA
@@ -1016,7 +1112,7 @@ bool Source_complex::run_Source(SimulationInterface *w){
                     (ParallelSettingsInput.Make_GPU) ? reduce_CUDA->counts_C2_anti : reduce->counts_C2_anti ,
                     (ParallelSettingsInput.Make_GPU) ? reduce_CUDA->counts_detc_para : reduce->counts_detc_para ,
                     (ParallelSettingsInput.Make_GPU) ? reduce_CUDA->counts_detc_anti : reduce->counts_detc_anti ,
-                    (ParallelSettingsInput.Make_GPU) ? setup_CUDA->delrot : setup->delrot,
+                    (ParallelSettingsInput.Make_GPU) ? bin_CUDA->delrot : bin->delrot,
                     #else
                     reduce->counts_sour,
                     reduce->counts_C1,
@@ -1024,7 +1120,7 @@ bool Source_complex::run_Source(SimulationInterface *w){
                     reduce->counts_C2_anti,
                     reduce->counts_detc_para,
                     reduce->counts_detc_anti,
-                    setup->delrot,
+                    bin->delrot,
                     #endif
                     eventsToTrace_para,
                     eventsToTrace_anti
@@ -1036,28 +1132,28 @@ bool Source_complex::run_Source(SimulationInterface *w){
         #ifdef CUDA
         if(ParallelSettingsInput.Make_GPU)
         {
-            toint_para_total[setup_CUDA->numbins - 1] += reduce_CUDA->toint_para;
-            total_para = toint_para_total[setup_CUDA->numbins - 1];
+            toint_para_total[bin_CUDA->numbins - 1] += reduce_CUDA->toint_para;
+            total_para = toint_para_total[bin_CUDA->numbins - 1];
 
-            toint_anti_total[setup_CUDA->numbins - 1] += reduce_CUDA->toint_anti;
-            total_anti = toint_anti_total[setup_CUDA->numbins - 1];
+            toint_anti_total[bin_CUDA->numbins - 1] += reduce_CUDA->toint_anti;
+            total_anti = toint_anti_total[bin_CUDA->numbins - 1];
 
 
-            angle_para = setup_CUDA->delrot * 180 / M_PI + teta_crys1;
-            angle_anti = setup_CUDA->delrot * 180 / M_PI - teta_crys1;
+            angle_para = bin_CUDA->delrot * 180 / M_PI + teta_crys1;
+            angle_anti = bin_CUDA->delrot * 180 / M_PI - teta_crys1;
         }
         else
         {
         #endif
-        toint_para_total[setup->numbins - 1] += reduce->toint_para;
-        total_para = toint_para_total[setup->numbins - 1];
+        toint_para_total[bin->numbins - 1] += reduce->toint_para;
+        total_para = toint_para_total[bin->numbins - 1];
 
-        toint_anti_total[setup->numbins - 1] += reduce->toint_anti;
-        total_anti = toint_anti_total[setup->numbins - 1];
+        toint_anti_total[bin->numbins - 1] += reduce->toint_anti;
+        total_anti = toint_anti_total[bin->numbins - 1];
 
 
-        angle_para = setup->delrot * 180 / M_PI + teta_crys1;
-        angle_anti = setup->delrot * 180 / M_PI - teta_crys1;
+        angle_para = bin->delrot * 180 / M_PI + teta_crys1;
+        angle_anti = bin->delrot * 180 / M_PI - teta_crys1;
         #ifdef CUDA
         }
         #endif
@@ -1087,13 +1183,13 @@ bool Source_complex::run_Source(SimulationInterface *w){
                 if(ParallelSettingsInput.Make_GPU)
                 {
                     Make_plot_profiles::plotProfiles(
-                        energy_sum_para[setup_CUDA->numbins - 1] / total_para,
+                        energy_sum_para[bin_CUDA->numbins - 1] / total_para,
                         angle_para,
                         total_para,
-                        energy_sum_anti[setup_CUDA->numbins - 1] / total_anti,
+                        energy_sum_anti[bin_CUDA->numbins - 1] / total_anti,
                         angle_anti,
                         total_anti,
-                        setup_CUDA->numbins,
+                        bin_CUDA->numbins,
                         reduce_CUDA->counts_sour,
                         reduce_CUDA->counts_C1,
                         reduce_CUDA->counts_C2_para,
@@ -1107,20 +1203,20 @@ bool Source_complex::run_Source(SimulationInterface *w){
                 #endif
                 Make_plot_profiles::plotProfiles(
                     #ifndef OPENMP
-                    reduce->energy_sum_para->at(setup->numbins - 1) / total_para,
+                    reduce->energy_sum_para->at(bin->numbins - 1) / total_para,
                     #else
-                    energy_sum_para[setup->numbins - 1] / total_para,
+                    energy_sum_para[bin->numbins - 1] / total_para,
                     #endif
                     angle_para,
                     total_para,
                     #ifndef OPENMP
-                    reduce->energy_sum_anti->at(setup->numbins - 1) / total_anti,
+                    reduce->energy_sum_anti->at(bin->numbins - 1) / total_anti,
                     #else
-                    energy_sum_anti[setup->numbins - 1] / total_anti,
+                    energy_sum_anti[bin->numbins - 1] / total_anti,
                     #endif
                     angle_anti,
                     total_anti,
-                    setup->numbins,
+                    bin->numbins,
                     reduce->counts_sour,
                     reduce->counts_C1,
                     reduce->counts_C2_para,
@@ -1137,9 +1233,9 @@ bool Source_complex::run_Source(SimulationInterface *w){
 
         if(
             #ifdef CUDA
-            (ParallelSettingsInput.Make_GPU) ? setup_CUDA->numbins : setup->numbins
+            (ParallelSettingsInput.Make_GPU) ? bin_CUDA->numbins : bin->numbins
             #else
-            setup->numbins
+            bin->numbins
             #endif
             == PlotParametersInput.nubins
         )
@@ -1147,9 +1243,9 @@ bool Source_complex::run_Source(SimulationInterface *w){
             if(UserSettingsInput.fitting){
                 Util::FitData(
                     #ifdef CUDA
-                    (ParallelSettingsInput.Make_GPU) ? setup_CUDA->numbins : setup->numbins ,
+                    (ParallelSettingsInput.Make_GPU) ? bin_CUDA->numbins : bin->numbins ,
                     #else
-                    setup->numbins,
+                    bin->numbins,
                     #endif
                     angle_para,
                     total_para,
@@ -1174,9 +1270,9 @@ bool Source_complex::run_Source(SimulationInterface *w){
 
         if (
             #ifdef CUDA
-            (ParallelSettingsInput.Make_GPU) ? setup_CUDA->numbins : setup->numbins
+            (ParallelSettingsInput.Make_GPU) ? bin_CUDA->numbins : bin->numbins
             #else
-            setup->numbins
+            bin->numbins
             #endif
             % 5 == 0
         )
@@ -1184,9 +1280,9 @@ bool Source_complex::run_Source(SimulationInterface *w){
             int_time_out = Obtain_time::simuTime(
                 1,
                 #ifdef CUDA
-                (ParallelSettingsInput.Make_GPU) ? (int)((PlotParametersInput.nubins - setup_CUDA->numbins) / 5) : (int)((PlotParametersInput.nubins - setup->numbins) / 5) ,
+                (ParallelSettingsInput.Make_GPU) ? (int)((PlotParametersInput.nubins - bin_CUDA->numbins) / 5) : (int)((PlotParametersInput.nubins - bin->numbins) / 5) ,
                 #else
-                (int)((PlotParametersInput.nubins - setup->numbins) / 5),
+                (int)((PlotParametersInput.nubins - bin->numbins) / 5),
                 #endif    
                 int_time_out[0],
                 int_time_out[1],
@@ -1232,10 +1328,10 @@ bool Source_complex::run_Source(SimulationInterface *w){
         #ifdef CUDA
         if(ParallelSettingsInput.Make_GPU)
         {
-            fill(&reduce_CUDA->hist_image_plate_crystal2_para[0][0], &reduce_CUDA->hist_image_plate_crystal2_para[0][0] + n_his_ima * n_his_ima, 0);
-            fill(&reduce_CUDA->hist_image_plate_crystal2_anti[0][0], &reduce_CUDA->hist_image_plate_crystal2_anti[0][0] + n_his_ima * n_his_ima, 0);
-            fill(&reduce_CUDA->hist_image_plate_detc_para[0][0], &reduce_CUDA->hist_image_plate_detc_para[0][0] + n_his_ima * n_his_ima, 0);
-            fill(&reduce_CUDA->hist_image_plate_detc_anti[0][0], &reduce_CUDA->hist_image_plate_detc_anti[0][0] + n_his_ima * n_his_ima, 0);
+            fill(&reduce_CUDA->hist_image_plate_crystal2_para[0], &reduce_CUDA->hist_image_plate_crystal2_para[0] + n_his_ima * n_his_ima, 0);
+            fill(&reduce_CUDA->hist_image_plate_crystal2_anti[0], &reduce_CUDA->hist_image_plate_crystal2_anti[0] + n_his_ima * n_his_ima, 0);
+            fill(&reduce_CUDA->hist_image_plate_detc_para[0], &reduce_CUDA->hist_image_plate_detc_para[0] + n_his_ima * n_his_ima, 0);
+            fill(&reduce_CUDA->hist_image_plate_detc_anti[0], &reduce_CUDA->hist_image_plate_detc_anti[0] + n_his_ima * n_his_ima, 0);
 
             reduce_CUDA->max_hist[2] = 0;
             reduce_CUDA->max_hist[3] = 0;
@@ -1245,10 +1341,10 @@ bool Source_complex::run_Source(SimulationInterface *w){
         else
         {
         #endif
-        fill(&hist_image_plate_crystal2_para[0][0], &hist_image_plate_crystal2_para[0][0] + n_his_ima * n_his_ima, 0);
-        fill(&hist_image_plate_crystal2_anti[0][0], &hist_image_plate_crystal2_anti[0][0] + n_his_ima * n_his_ima, 0);
-        fill(&hist_image_plate_detc_para[0][0], &hist_image_plate_detc_para[0][0] + n_his_ima * n_his_ima, 0);
-        fill(&hist_image_plate_detc_anti[0][0], &hist_image_plate_detc_anti[0][0] + n_his_ima * n_his_ima, 0);
+        fill(&hist_image_plate_crystal2_para[0], &hist_image_plate_crystal2_para[0] + n_his_ima * n_his_ima, 0);
+        fill(&hist_image_plate_crystal2_anti[0], &hist_image_plate_crystal2_anti[0] + n_his_ima * n_his_ima, 0);
+        fill(&hist_image_plate_detc_para[0], &hist_image_plate_detc_para[0] + n_his_ima * n_his_ima, 0);
+        fill(&hist_image_plate_detc_anti[0], &hist_image_plate_detc_anti[0] + n_his_ima * n_his_ima, 0);
         
         max_hist[2] = 0;
         max_hist[3] = 0;
@@ -1261,12 +1357,12 @@ bool Source_complex::run_Source(SimulationInterface *w){
         #ifdef CUDA
         if(ParallelSettingsInput.Make_GPU)
         {
-            setup_CUDA->delrot = setup_CUDA->delrot - delrot_inc;
+            bin_CUDA->delrot = bin_CUDA->delrot - delrot_inc;
         }
         else
         {
         #endif
-        setup->delrot = setup->delrot - delrot_inc;
+        bin->delrot = bin->delrot - delrot_inc;
         #ifdef CUDA
         }
         #endif
@@ -1605,9 +1701,9 @@ void Source_complex::makeBin(SimulationInterface *w, SetupParameters *setup, Bin
                 r2y = angleRes[2];
                 r2z = angleRes[3];
 
-                lamda = Util::getEnergy(setup->a_lamds_uni, setup->b_lamds_uni, setup->tw_d1_para);
+                lamda = Util::getEnergy(setup->a_lamds_uni, setup->b_lamds_uni, bin->tw_d1_para);
                 
-                tetabra1 = asin(lamda / setup->tw_d1_para);
+                tetabra1 = asin(lamda / bin->tw_d1_para);
 
                 //logString.clear();
                 //logString << angle << "\t" << tetabra1 << endl;
@@ -1644,6 +1740,15 @@ void Source_complex::makeBin(SimulationInterface *w, SetupParameters *setup, Bin
                                         counts_detc_para,
                                         counts_C2_anti,
                                         counts_detc_anti);
+
+                            //Event point at the first crystal
+                            tmpEvent_para.push_back(0); //X
+                            tmpEvent_para.push_back(y_pro_C1); //Y
+                            tmpEvent_para.push_back(z_pro_C1); //Z
+
+                            tmpEvent_anti.push_back(0); //X
+                            tmpEvent_anti.push_back(y_pro_C1); //Y
+                            tmpEvent_anti.push_back(z_pro_C1); //Z
                         }
                     }
                     
@@ -1665,8 +1770,8 @@ void Source_complex::makeBin(SimulationInterface *w, SetupParameters *setup, Bin
                     fidir = atan(var_temp);
                     tan_fidir = var_temp;
                     cos_fidir = cos(fidir);
-                    cos_fidirtilt2_para = cos(fidir + setup->tilt_C2_para_temp);
-                    cos_fidirtilt2_anti = cos(fidir + setup->tilt_C2_anti_temp);
+                    cos_fidirtilt2_para = cos(fidir + bin->tilt_C2_para_temp);
+                    cos_fidirtilt2_anti = cos(fidir + bin->tilt_C2_anti_temp);
 
                     corr_dis = y_pro_C1 * setup->cos_difteC1_Ta;
 
@@ -1704,7 +1809,7 @@ void Source_complex::makeBin(SimulationInterface *w, SetupParameters *setup, Bin
 
 
                     if(UserSettingsInput.see_para){
-                        sin_tetatab_del_dir = sin(setup->tetaref - setup->delrot + tetadir);
+                        sin_tetatab_del_dir = sin(setup->tetaref - bin->delrot + tetadir);
                         y_pro_C1 = y * cos_tetadir / sin_tetatab_del_dir;
                         z_pro_C1 = z * cos_fidir / cos_fidirtilt2_para;
                         
@@ -1732,7 +1837,7 @@ void Source_complex::makeBin(SimulationInterface *w, SetupParameters *setup, Bin
                             }
 
                             
-                            tetabra2 = asin(lamda / setup->tw_d2_para);
+                            tetabra2 = asin(lamda / bin->tw_d2_para);
 
 
                             if(CurvedCrystalInput.Curve_crystall){
@@ -1746,12 +1851,12 @@ void Source_complex::makeBin(SimulationInterface *w, SetupParameters *setup, Bin
                                 Costeta_CHC = corrRes[0];
                                 Sinteta_CHC = corrRes[1];
 
-                                n2x_para = setup->n2x_para_temp * Costeta_CHC + setup->n2y_para_temp * Sinteta_CHC;
-                                n2y_para = setup->n2y_para_temp * Costeta_CHC - setup->n2x_para_temp * Sinteta_CHC;
+                                n2x_para = bin->n2x_para_temp * Costeta_CHC + bin->n2y_para_temp * Sinteta_CHC;
+                                n2y_para = bin->n2y_para_temp * Costeta_CHC - bin->n2x_para_temp * Sinteta_CHC;
                             }
 
 
-                            vector<double> angleRes = Util::getFullAngle2(r2x, r2y, r2z, n2x_para, n2y_para, setup->n2z_para);
+                            vector<double> angleRes = Util::getFullAngle2(r2x, r2y, r2z, n2x_para, n2y_para, bin->n2z_para);
                             angle = angleRes[0];
                             r3x = angleRes[1];
                             r3y = angleRes[2];
@@ -1775,6 +1880,11 @@ void Source_complex::makeBin(SimulationInterface *w, SetupParameters *setup, Bin
                                                     counts_detc_para,
                                                     counts_C2_anti,
                                                     counts_detc_anti);
+
+                                        //Event point at second crystal in parallel
+                                        tmpEvent_para.push_back(0); //X
+                                        tmpEvent_para.push_back(y_pro_C1); //Y
+                                        tmpEvent_para.push_back(z_pro_C1); //Z
                                     }
                                 }
 
@@ -1795,10 +1905,10 @@ void Source_complex::makeBin(SimulationInterface *w, SetupParameters *setup, Bin
                                 fidir_det = atan(var_temp);
                                 tan_fidir_det = var_temp;
                                 cos_fidir_det = cos(fidir_det);
-                                cos_fidirtilt2_para = cos(fidir + setup->tilt_C2_para_temp);
+                                cos_fidirtilt2_para = cos(fidir + bin->tilt_C2_para_temp);
 
-                                corr_dis_d_pa = -y_pro_C1 * setup->cos_difteC2_det_para;
-                                y_pro_C1_d_pa = -y_pro_C1 * setup->sin_difteC2_det_para;
+                                corr_dis_d_pa = -y_pro_C1 * bin->cos_difteC2_det_para;
+                                y_pro_C1_d_pa = -y_pro_C1 * bin->sin_difteC2_det_para;
 
 
                                 if(y_pro_C1_d_pa == 0){
@@ -1861,7 +1971,7 @@ void Source_complex::makeBin(SimulationInterface *w, SetupParameters *setup, Bin
                                     #ifdef OPENMP
                                     energy_sum_para_thread += Convert_Ag_minusone_eV / lamda;
                                     #else
-                                    reduce->energy_sum_para->at(setup->numbins - 1) += Convert_Ag_minusone_eV / lamda;
+                                    reduce->energy_sum_para->at(bin->numbins - 1) += Convert_Ag_minusone_eV / lamda;
                                     #endif
                                 }
                                 else {
@@ -1918,7 +2028,7 @@ void Source_complex::makeBin(SimulationInterface *w, SetupParameters *setup, Bin
                     if(UserSettingsInput.see_anti){
 
 
-                        sin_tetatab_del_dir = sin(setup->tetaref + setup->delrot - tetadir);
+                        sin_tetatab_del_dir = sin(setup->tetaref + bin->delrot - tetadir);
 
                         y_pro_C1 = y * cos_tetadir / sin_tetatab_del_dir;
                         z_pro_C1 = z * cos_fidir / cos_fidirtilt2_anti;
@@ -1945,7 +2055,7 @@ void Source_complex::makeBin(SimulationInterface *w, SetupParameters *setup, Bin
                             }
 
                             
-                            tetabra2 = asin(lamda / setup->tw_d2_anti);
+                            tetabra2 = asin(lamda / bin->tw_d2_anti);
 
                             if(CurvedCrystalInput.Curve_crystall){
                                 vector<double> corrRes = Util::horCorr(
@@ -1958,12 +2068,12 @@ void Source_complex::makeBin(SimulationInterface *w, SetupParameters *setup, Bin
                                 Costeta_CHC = corrRes[0];
                                 Sinteta_CHC = corrRes[1];
 
-                                n2x_anti = setup->n2x_anti_temp * Costeta_CHC + setup->n2y_anti_temp * Sinteta_CHC;
-                                n2y_anti = setup->n2y_anti_temp * Costeta_CHC - setup->n2x_anti_temp * Sinteta_CHC;
+                                n2x_anti = bin->n2x_anti_temp * Costeta_CHC + bin->n2y_anti_temp * Sinteta_CHC;
+                                n2y_anti = bin->n2y_anti_temp * Costeta_CHC - bin->n2x_anti_temp * Sinteta_CHC;
                             }
 
 
-                            vector<double> angleRes = Util::getFullAngle2(r2x, r2y, r2z, n2x_anti, n2y_anti, setup->n2z_anti);
+                            vector<double> angleRes = Util::getFullAngle2(r2x, r2y, r2z, n2x_anti, n2y_anti, bin->n2z_anti);
                             angle = angleRes[0];
                             r3x = angleRes[1];
                             r3y = angleRes[2];
@@ -1988,6 +2098,11 @@ void Source_complex::makeBin(SimulationInterface *w, SetupParameters *setup, Bin
                                                     counts_detc_para,
                                                     counts_C2_anti,
                                                     counts_detc_anti);
+
+                                        //Event point at second crystal in antiparallel
+                                        tmpEvent_anti.push_back(0); //X
+                                        tmpEvent_anti.push_back(y_pro_C1); //Y
+                                        tmpEvent_anti.push_back(z_pro_C1); //Z
                                     }
                                 }
 
@@ -2006,10 +2121,10 @@ void Source_complex::makeBin(SimulationInterface *w, SetupParameters *setup, Bin
                                 fidir_det = atan(var_temp);
                                 tan_fidir_det = var_temp;
                                 cos_fidir_det = cos(fidir_det);
-                                cos_fidirtilt2_anti = cos(fidir + setup->tilt_C2_anti_temp);
+                                cos_fidirtilt2_anti = cos(fidir + bin->tilt_C2_anti_temp);
 
-                                corr_dis_d_pa = y_pro_C1 * setup->cos_difteC2_det_para;
-                                y_pro_C1_d_pa = y_pro_C1 * setup->sin_difteC2_det_para;
+                                corr_dis_d_pa = y_pro_C1 * bin->cos_difteC2_det_para;
+                                y_pro_C1_d_pa = y_pro_C1 * bin->sin_difteC2_det_para;
 
 
                                 if(y_pro_C1_d_pa == 0){
@@ -2073,7 +2188,7 @@ void Source_complex::makeBin(SimulationInterface *w, SetupParameters *setup, Bin
                                     #ifdef OPENMP
                                     energy_sum_anti_thread += Convert_Ag_minusone_eV / lamda;
                                     #else
-                                    reduce->energy_sum_anti->at(setup->numbins - 1) += Convert_Ag_minusone_eV / lamda;
+                                    reduce->energy_sum_anti->at(bin->numbins - 1) += Convert_Ag_minusone_eV / lamda;
                                     #endif
                                 }
                                 else {
