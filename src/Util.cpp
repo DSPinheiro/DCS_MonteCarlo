@@ -19,6 +19,7 @@
 #include <algorithm>
 
 #include <string>
+#include <chrono>
 
 #ifdef OPENMP
 #include <omp.h>

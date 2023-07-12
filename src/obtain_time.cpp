@@ -23,11 +23,6 @@ Obtain_time::Obtain_time(SimulationInterface *w)
 
 
     SimulationInterface::Times times = { 0, Hour, Min, Sec };
-    #ifdef QT_EXISTS
-        emit w->changeTimesSignal(times);
-    #else
-        std::cout << "Simulation start at: " << Hour << " h " << Min << " m " << Sec << " s" << std::endl;
-    #endif
 
     std::stringstream logString;
     
@@ -94,8 +89,8 @@ void Obtain_time::simuTime(bool finished, double pctDone, SimulationInterface *w
         int Sec = local_tm.tm_sec;
     
         int HourT = std::chrono::duration_cast<std::chrono::hours>(updateTotalDuration).count();
-        int MinT = std::chrono::duration_cast<std::chrono::minutes>(updateTotalDuration).count() - Hour * 60;
-        int SecT = std::chrono::duration_cast<std::chrono::seconds>(updateTotalDuration).count() - Hour * 3600 - Min * 60;
+        int MinT = std::chrono::duration_cast<std::chrono::minutes>(updateTotalDuration).count() - HourT * 60;
+        int SecT = std::chrono::duration_cast<std::chrono::seconds>(updateTotalDuration).count() - HourT * 3600 - MinT * 60;
 
         logString.clear();
         logString << "Simulation end at: " << Hour << " h " << Min << " m " << Sec << " s" << std::endl;

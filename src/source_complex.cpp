@@ -2248,11 +2248,12 @@ void Source_complex::makeBin(SimulationInterface *w, SetupParameters *setup, Bin
         #endif
         I++;
 
+        #ifdef OPENMP
+        #pragma omp atomic
+        #endif
+        total_current_bins += 1;
+
         #ifdef QT_EXISTS
-            #ifdef OPENMP
-            #pragma omp atomic
-            #endif
-            total_current_bins += 1;
             w->setPctDone(static_cast<double>(total_current_bins) / setup->total_expexted_bins);
         #endif
     }

@@ -548,12 +548,12 @@ int InputSettingsPrompt::configure(const std::string& inFile)
 
         return ret;
     #else
-        cout << "Could not open input file: " << inFile << endl;
+        std::cout << "Could not open input file: " << inFile << std::endl;
     #endif
     }
     
     inputFile.close();
-    //cout << "Input file read." << endl;
+    //std::cout << "Input file read." << std::endl;
 
     // Make aditional configurations
     Unit_energy = PhysicalParametersInput.Unit_energy;
@@ -573,19 +573,27 @@ int InputSettingsPrompt::configure(const std::string& inFile)
         {
             ParallelSettingsInput.OMP_threads = ParallelSettingsInput.system_max_threads;
 
+            #ifdef QT_EXISTS
             QString message = "The user specified number of threads to use in the simulation is more than the system's logic processor count: ";
             message.append(std::to_string(ParallelSettingsInput.OMP_threads).c_str());
             message.append("\nSetting this number to the logic processor count.");
             QMessageBox::warning(nullptr, tr("Too Many OpenMP Threads!"), message, QMessageBox::Ok);
+            #else
+            std::cout << "The user specified number of threads to use in the simulation is more than the system's logic processor count: " << ParallelSettingsInput.OMP_threads << " / " << ParallelSettingsInput.system_max_threads << std::endl;
+            #endif
         }
         else
         {
+            #ifdef QT_EXISTS
             QString message = "Starting the simulation with the maximum thread count: ";
             message.append(std::to_string(ParallelSettingsInput.OMP_threads).c_str());
             message.append(" out of ");
             message.append(std::to_string(ParallelSettingsInput.system_max_threads).c_str());
             message.append(" maximum threads.");
             QMessageBox::information(nullptr, tr("OpenMP Maximum Thread Count"), message, QMessageBox::Ok);
+            #else
+            std::cout << "Starting the simulation with the maximum thread count: " << ParallelSettingsInput.OMP_threads << " / " << ParallelSettingsInput.system_max_threads << std::endl;
+            #endif
         }
     #endif
 
