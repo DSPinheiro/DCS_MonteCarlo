@@ -721,11 +721,7 @@ bool Source_complex::run_Source(SimulationInterface *w){
         #endif
     }
 
-    int_time_out.push_back(0);
-    int_time_out.push_back(0);
-    int_time_out = Obtain_time::simuTime(0, 0, int_time_out[0], int_time_out[1], w);
-    int_time_out_begg = int_time_out[0];
-    int_time_mili_out_begg = int_time_out[1];
+    Obtain_time *simuClock = new Obtain_time(w);
 
     
     #if ! defined(OPENMP) && ! defined(CUDA)
@@ -1097,6 +1093,8 @@ bool Source_complex::run_Source(SimulationInterface *w){
 
                 w->setPctDone(1.0f);
 
+                simuClock->simuTime(true, 1.0f, w);
+
                 return false;
             }
 
@@ -1277,16 +1275,7 @@ bool Source_complex::run_Source(SimulationInterface *w){
             % 5 == 0
         )
         {
-            int_time_out = Obtain_time::simuTime(
-                1,
-                #ifdef CUDA
-                (ParallelSettingsInput.Make_GPU) ? (int)((PlotParametersInput.nubins - bin_CUDA->numbins) / 5) : (int)((PlotParametersInput.nubins - bin->numbins) / 5) ,
-                #else
-                (int)((PlotParametersInput.nubins - bin->numbins) / 5),
-                #endif    
-                int_time_out[0],
-                int_time_out[1],
-                w);
+            simuClock->simuTime(false, static_cast<float>(bin_CUDA->total_current_bins) / setup_CUDA->total_expexted_bins, w);
         }
 
         #ifdef CUDA
@@ -1395,6 +1384,8 @@ bool Source_complex::run_Source(SimulationInterface *w){
         gener_out << legen_counts_5 << "\t" << counts_C2_anti_t << endl;
         gener_out << legen_counts_6 << "\t" << counts_detc_anti_t << endl;
     }
+
+    simuClock->simuTime(true, 1.0f, w);
 
     return true;
 

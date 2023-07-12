@@ -132,17 +132,7 @@ void Source_simple::run_Source(){
 
     del_teta = teta_max - teta_min;
 
-    int_time_out.push_back(0);
-    int_time_out.push_back(0);
-    int_time_out = Obtain_time::simuTime(
-        0,
-        0,
-        int_time_out[0],
-        int_time_out[1],
-        nullptr);
-
-    int_time_out_begg = int_time_out[0];
-    int_time_mili_out_begg = int_time_out[1];
+    Obtain_time *simuClock = new Obtain_time(nullptr);
 
 
     while(numbins <= PlotParametersInput.nubins){
@@ -389,23 +379,13 @@ void Source_simple::run_Source(){
 
         }
 
-        int_time_out = Obtain_time::simuTime(
-            1,
-            PlotParametersInput.nubins - numbins,
-            int_time_out[0],
-            int_time_out[1],
-            nullptr);
+        simuClock->simuTime(false, static_cast<float>(numbins) / PlotParametersInput.nubins, nullptr);
 
         cout << numbins << " of " << PlotParametersInput.nubins << " done" << endl;
         delrot = delrot - delrot_inc;
     }
 
-    int_time_out = Obtain_time::simuTime(
-        1,
-        PlotParametersInput.nubins - numbins,
-        int_time_out_begg,
-        int_time_mili_out_begg,
-        nullptr);
+    simuClock->simuTime(true, 1.0f, nullptr);
 
     if(GraphOptionsInput.make_graph_profile){
         //TODO

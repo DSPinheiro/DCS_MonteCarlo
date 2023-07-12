@@ -1004,8 +1004,8 @@ __global__ static void makeBinKernel(int totalBinEventCount, ParallelBin::BinPar
                                         tmpSize_para = 12;
 
 
-                                        int oldValue = atomicCAS(&bin->curr3DEventCount_para, setup->number_events - 4, setup->number_events - 4);
-                                        if (oldValue <= setup->number_events - 4) {
+                                        int oldValue = atomicCAS(&bin->curr3DEventCount_para, setup->number_events, setup->number_events);
+                                        if (oldValue <= setup->number_events) {
                                             atomicAdd(&(bin->curr3DEventCount_para), 1);
                                             for (int _i = 0; _i < tmpSize_para; _i++)
                                             {
@@ -1035,8 +1035,8 @@ __global__ static void makeBinKernel(int totalBinEventCount, ParallelBin::BinPar
                                 else {
                                     if (setup->make_image_plates) {
                                         //If the event does not reach the detector then only add when we have less than maxEventNum
-                                        int oldValue = atomicCAS(&bin->curr3DEventCount_para, setup->number_events - 4, setup->number_events - 4);
-                                        if (oldValue <= setup->number_events - 4 && tmpSize_para >= 6) {
+                                        int oldValue = atomicCAS(&bin->curr3DEventCount_para, setup->number_events, setup->number_events);
+                                        if (oldValue <= setup->number_events && tmpSize_para >= 6) {
                                             atomicAdd(&(bin->curr3DEventCount_para), 1);
                                             for (int _i = 0; _i < tmpSize_para; _i++)
                                             {
@@ -1049,8 +1049,8 @@ __global__ static void makeBinKernel(int totalBinEventCount, ParallelBin::BinPar
                             else {
                                 if (setup->make_image_plates) {
                                     //If the event does not reach the detector then only add when we have less than maxEventNum
-                                    int oldValue = atomicCAS(&bin->curr3DEventCount_para, setup->number_events - 4, setup->number_events - 4);
-                                    if (oldValue <= setup->number_events - 4 && tmpSize_para >= 6) {
+                                    int oldValue = atomicCAS(&bin->curr3DEventCount_para, setup->number_events, setup->number_events);
+                                    if (oldValue <= setup->number_events && tmpSize_para >= 6) {
                                         atomicAdd(&(bin->curr3DEventCount_para), 1);
                                         for (int _i = 0; _i < tmpSize_para; _i++)
                                         {
@@ -1063,8 +1063,8 @@ __global__ static void makeBinKernel(int totalBinEventCount, ParallelBin::BinPar
                         else {
                             if (setup->make_image_plates) {
                                 //If the event does not reach the detector then only add when we have less than maxEventNum
-                                int oldValue = atomicCAS(&bin->curr3DEventCount_para, setup->number_events - 4, setup->number_events - 4);
-                                if (oldValue <= setup->number_events - 4 && tmpSize_para >= 6) {
+                                int oldValue = atomicCAS(&bin->curr3DEventCount_para, setup->number_events, setup->number_events);
+                                if (oldValue <= setup->number_events && tmpSize_para >= 6) {
                                     atomicAdd(&(bin->curr3DEventCount_para), 1);
                                     for (int _i = 0; _i < tmpSize_para; _i++)
                                     {
@@ -1276,8 +1276,8 @@ __global__ static void makeBinKernel(int totalBinEventCount, ParallelBin::BinPar
                                         tmpEvent_anti[11] = z_det; //Z
                                         tmpSize_anti = 12;
                                         
-                                        int oldValue = atomicCAS(&bin->curr3DEventCount_anti, setup->number_events - 4, setup->number_events - 4);
-                                        if (oldValue <= setup->number_events - 4) {
+                                        int oldValue = atomicCAS(&bin->curr3DEventCount_anti, setup->number_events, setup->number_events);
+                                        if (oldValue <= setup->number_events) {
                                             atomicAdd(&(bin->curr3DEventCount_anti), 1);
                                             for (int _i = 0; _i < tmpSize_anti; _i++)
                                             {
@@ -1307,8 +1307,8 @@ __global__ static void makeBinKernel(int totalBinEventCount, ParallelBin::BinPar
                                 else {
                                     if (setup->make_image_plates) {
                                         //If the event does not reach the detector then only add when we have less than maxEventNum
-                                        int oldValue = atomicCAS(&bin->curr3DEventCount_anti, setup->number_events - 4, setup->number_events - 4);
-                                        if (oldValue <= setup->number_events - 4 && tmpSize_anti >= 6) {
+                                        int oldValue = atomicCAS(&bin->curr3DEventCount_anti, setup->number_events, setup->number_events);
+                                        if (oldValue <= setup->number_events && tmpSize_anti >= 6) {
                                             atomicAdd(&(bin->curr3DEventCount_anti), 1);
                                             for (int _i = 0; _i < tmpSize_anti; _i++)
                                             {
@@ -1322,8 +1322,8 @@ __global__ static void makeBinKernel(int totalBinEventCount, ParallelBin::BinPar
                             else {
                                 if (setup->make_image_plates) {
                                     //If the event does not reach the detector then only add when we have less than maxEventNum
-                                    int oldValue = atomicCAS(&bin->curr3DEventCount_anti, setup->number_events - 4, setup->number_events - 4);
-                                    if (oldValue <= setup->number_events - 4 && tmpSize_anti >= 6) {
+                                    int oldValue = atomicCAS(&bin->curr3DEventCount_anti, setup->number_events, setup->number_events);
+                                    if (oldValue <= setup->number_events && tmpSize_anti >= 6) {
                                         atomicAdd(&(bin->curr3DEventCount_anti), 1);
                                         for (int _i = 0; _i < tmpSize_anti; _i++)
                                         {
@@ -1337,8 +1337,8 @@ __global__ static void makeBinKernel(int totalBinEventCount, ParallelBin::BinPar
                         else {
                             if (setup->make_image_plates) {
                                 //If the event does not reach the detector then only add when we have less than maxEventNum
-                                int oldValue = atomicCAS(&bin->curr3DEventCount_anti, setup->number_events - 4, setup->number_events - 4);
-                                if (oldValue <= setup->number_events - 4 && tmpSize_anti >= 6) {
+                                int oldValue = atomicCAS(&bin->curr3DEventCount_anti, setup->number_events, setup->number_events);
+                                if (oldValue <= setup->number_events && tmpSize_anti >= 6) {
                                     atomicAdd(&(bin->curr3DEventCount_anti), 1);
                                     for (int _i = 0; _i < tmpSize_anti; _i++)
                                     {

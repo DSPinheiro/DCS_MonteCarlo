@@ -9,158 +9,109 @@
 #include "../include/obtain_time.hh"
 
 
-using namespace std;
+Obtain_time::Obtain_time(SimulationInterface *w)
+{
+    startingTime = std::chrono::system_clock::now();
+    
+    time_t tt = std::chrono::system_clock::to_time_t(startingTime);
+
+    tm local_tm = *localtime(&tt);
+
+    int Hour = local_tm.tm_hour;
+    int Min = local_tm.tm_min;
+    int Sec = local_tm.tm_sec;
 
 
+    SimulationInterface::Times times = { 0, Hour, Min, Sec };
+    #ifdef QT_EXISTS
+        emit w->changeTimesSignal(times);
+    #else
+        std::cout << "Simulation start at: " << Hour << " h " << Min << " m " << Sec << " s" << std::endl;
+    #endif
 
-vector<int> Obtain_time::simuTime(
-    int First_call,
-    int process_remain,
-    int int_time,
-    int int_time_mili,
-    SimulationInterface *w){
+    std::stringstream logString;
+    
+    logString.clear();
+    logString << std::endl;
+    logString << "Simulation start at: " << Hour << " h " << Min << " m " << Sec << " s" << std::endl;
+    logString << std::endl;
 
-    int int_time_temp, int_time_mili_temp, dif_time_a[3], int_time_out, int_time_mili_out;
+    #ifdef QT_EXISTS
+        emit w->LogLineSignal(logString.str());
+    #else
+        std::cout << logString.str();
+    #endif
+    
+    gener_out << std::endl;
+    gener_out << "Simulation start at: " << Hour << " h " << Min << " m " << Sec << " s" << std::endl;
+    gener_out << std::endl;
+}
 
-    double dif_time, dif_mili;
 
-    stringstream logString;
+void Obtain_time::simuTime(bool finished, float pctDone, SimulationInterface *w)
+{
+    
+    std::stringstream logString;
 
-    if(First_call == 0){
+    std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
 
-        auto now = chrono::system_clock::now();
-        auto timer = chrono::system_clock::to_time_t(now);
+    updateTotalDuration = now - startingTime;
 
-        tm localTime = *localtime(&timer);
+    std::chrono::duration<float, std::nano> totalSimuTime = updateTotalDuration / pctDone;
+    std::chrono::duration<float, std::nano> remainSimuTime = totalSimuTime - updateTotalDuration;
 
-        int Hour   = localTime.tm_hour;
-        int Min    = localTime.tm_min;
-        int Sec    = localTime.tm_sec;
 
-        SimulationInterface::Times times = { 0, Hour, Min, Sec };
+    if(!finished)
+    {
+        int Hour = std::chrono::duration_cast<std::chrono::hours>(remainSimuTime).count();
+        int Min = std::chrono::duration_cast<std::chrono::minutes>(remainSimuTime).count();
+        int Sec = std::chrono::duration_cast<std::chrono::seconds>(remainSimuTime).count();
+
+        SimulationInterface::Times times = { 1, Hour, Min, Sec };
+
         #ifdef QT_EXISTS
             emit w->changeTimesSignal(times);
-        #else
-            cout << "Simulation start at: " << Hour << " h " << Min << " m " << Sec << " s" << endl;
         #endif
 
-        int_time_out = 60 * ((60 * Hour) + Min) + Sec;
-        int_time_mili_out = chrono::duration_cast<chrono::milliseconds>(now.time_since_epoch()).count();
+        logString.clear();
+        logString << "Remainder time estimate: " << Hour << " h " << Min << " m " << Sec << " s" << std::endl;
+        logString << std::endl;
 
-        if(UserSettingsInput.Simple_simu){
-            logString.clear();
-            logString << endl;
-            logString << "Simulation start at: " << Hour << " h " << Min << " m " << Sec << " s" << endl;
-            logString << endl;
-
-            #ifdef QT_EXISTS
-                emit w->LogLineSignal(logString.str());
-            #else
-                cout << logString.str();
-            #endif
-        }
-
-        gener_out << endl;
-        gener_out << "Simulation start at: " << Hour << " h " << Min << " m " << Sec << " s" << endl;
-        gener_out << endl;
-
-        //TODO implement gui
-        //if(Graph_options.make_image_plates){
-        //	if(UserSettings.Simple_simu){
-        //
-        //	}else{
-        //
-        //	}
-        //}
-
-    }else{
-        int_time_temp = int_time;
-        int_time_mili_temp = int_time_mili;
-
-        auto now = chrono::system_clock::now();
-        auto timer = chrono::system_clock::to_time_t(now);
-
-        tm localTime = *localtime(&timer);
-
-        int Hour   = localTime.tm_hour;
-        int Min    = localTime.tm_min;
-        int Sec    = localTime.tm_sec;
-
-        int_time_out = 60 * ((60 * Hour) + Min) + Sec;
-        int_time_mili_out = chrono::duration_cast<chrono::milliseconds>(now.time_since_epoch()).count();
-
-
-        dif_time = int_time_out - int_time_temp;
-        dif_mili = (int_time_mili_out - int_time_mili_temp) / 1000;
-        dif_time += dif_mili;
-        dif_time *= process_remain;
-
-        dif_time_a[0] = 0;
-        dif_time_a[1] = 0;
-        dif_time_a[2] = 0;
-
-        if(dif_time > 3599){
-            dif_time_a[0] = (int)(dif_time / 3600);
-            dif_time -= dif_time_a[0] * 3600;
-        }
-
-        if(dif_time > 59){
-            dif_time_a[1] = (int)(dif_time / 60);
-            dif_time -= dif_time_a[1] * 60;
-        }
-
-        dif_time_a[2] = dif_time;
-
-        if(First_call == 1){
-            SimulationInterface::Times times = { 1, dif_time_a[0], dif_time_a[1], dif_time_a[2] };
-
-            #ifdef QT_EXISTS
-                emit w->changeTimesSignal(times);
-            #endif
-
-            logString.clear();
-            logString << "Remainder time estimate: " << dif_time_a[0] << " h " << dif_time_a[1] << " m " << dif_time_a[2] << " s" << endl;
-            logString << endl;
-
-            #ifdef QT_EXISTS
-                emit w->LogLineSignal(logString.str());
-            #else
-                cout << logString.str();
-            #endif
-
-            //TODO implement gui
-            //if(Graph_options.make_image_plates){
-            //	if(UserSettings.Simple_simu){
-            //
-            //	}else{
-            //
-            //	}
-            //}
-        }else{
-            logString.clear();
-            logString << "Simulation end at: " << Hour << " h " << Min << " m " << Sec << " s" << endl;
-            logString << endl;
-            logString << "Total time of simulation: " << dif_time_a[0] << " h " << dif_time_a[1] << " m " << dif_time_a[2] << " s" << endl;
-            logString << endl;
-
-            #ifdef QT_EXISTS
-                emit w->LogLineSignal(logString.str());
-            #else
-                cout << logString.str();
-            #endif
-
-            gener_out << "Simulation end at: " << Hour << " h " << Min << " m " << Sec << " s" << endl;
-            gener_out << endl;
-            gener_out << "Total time of simulation: " << dif_time_a[0] << " h " << dif_time_a[1] << " m " << dif_time_a[2] << " s" << endl;
-            gener_out << endl;
-        }
-
+        #ifdef QT_EXISTS
+            emit w->LogLineSignal(logString.str());
+        #else
+            std::cout << logString.str();
+        #endif
     }
+    else
+    {
+        time_t tt = std::chrono::system_clock::to_time_t(now);
 
-    vector<int> res;
-    res.push_back(int_time_out);
-    res.push_back(int_time_mili_out);
+        tm local_tm = *localtime(&tt);
 
-    return res;
+        int Hour = local_tm.tm_hour;
+        int Min = local_tm.tm_min;
+        int Sec = local_tm.tm_sec;
+    
+        int HourT = std::chrono::duration_cast<std::chrono::hours>(updateTotalDuration).count();
+        int MinT = std::chrono::duration_cast<std::chrono::minutes>(updateTotalDuration).count();
+        int SecT = std::chrono::duration_cast<std::chrono::seconds>(updateTotalDuration).count();
 
+        logString.clear();
+        logString << "Simulation end at: " << Hour << " h " << Min << " m " << Sec << " s" << std::endl;
+        logString << std::endl;
+        logString << "Total time of simulation: " << HourT << " h " << MinT << " m " << SecT << " s" << std::endl;
+        logString << std::endl;
+
+        #ifdef QT_EXISTS
+            emit w->LogLineSignal(logString.str());
+        #else
+            std::cout << logString.str();
+        #endif
+
+        gener_out << "Simulation end at: " << Hour << " h " << Min << " m " << Sec << " s" << std::endl;
+        gener_out << std::endl;
+        gener_out << "Total time of simulation: " << HourT << " h " << MinT << " m " << SecT << " s" << std::endl;
+        gener_out << std::endl;
+    }
 }
