@@ -469,7 +469,7 @@ GUISettingsWindow::GUISettingsWindow(QWidget *parent) :
 
         if (!exist_file) {
             energyFileMissingDialog();
-            wsimu->setPctDone(1.0f);
+            wsimu->setPctDone(1.0);
         }
         else
         {
@@ -489,7 +489,7 @@ GUISettingsWindow::GUISettingsWindow(QWidget *parent) :
 
         if (!exist_file) {
             energyFileMissingDialog();
-            wsimu->setPctDone(1.0f);
+            wsimu->setPctDone(1.0);
         }
         else
         {
@@ -505,17 +505,17 @@ GUISettingsWindow::GUISettingsWindow(QWidget *parent) :
 
     connect(ui->startSim_button, &QPushButton::clicked, this, [this]() { timer->start(100); });
     connect(timer, &QTimer::timeout, this, [this]() {
-        float pct = wsimu->getPctDone();
+        double pct = wsimu->getPctDone();
         ui->startSim_button->setStyleSheet(QString(
             "border-color: rgb(0, 0, 0);"
             "background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0,"
             "stop:0 rgba(0, 100, 0, 255), stop:%1 rgba(0, 170, 0, 255),"
             "stop:%2 rgba(100, 100, 100, 255), stop:1 rgba(100, 100, 100, 255));"
-        ).arg(std::max(pct-0.02f, 0.0f)).arg(pct));
-        int ipct = static_cast<int>(pct * 100.0f);
+        ).arg(std::max(pct-0.02, 0.0)).arg(pct));
+        int ipct = static_cast<int>(pct * 100.0);
         ui->startSim_button->setText(QString::number(ipct) + "%");
 
-        if(pct >= 0.999f)
+        if(pct >= 0.999)
         {
             timer->stop();
             ui->startSim_button->setStyleSheet(QString(

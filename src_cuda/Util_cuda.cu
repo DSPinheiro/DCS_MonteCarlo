@@ -232,7 +232,7 @@ __device__ double Util_CUDA::getEnergy(curandState *state, double a_lamds_uni, d
 }
 
 //TODO: test if there is a faster alternative
-__device__ double Util_CUDA::splint_te(int64_t size, double *xa, double *ya, double *y2a, double x)
+__device__ double Util_CUDA::splint_te(size_t size, double *xa, double *ya, double *y2a, double x)
 {
     int k, klo;
     double a, b, h;

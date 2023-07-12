@@ -174,7 +174,7 @@ public:
         double zdetc_2_min;
         double cos_tetartabdete_anti;
         double sin_tetartabdete_anti;
-        int64_t total_expexted_bins;
+        size_t total_expexted_bins;
         double R_cur_crys_1;
         double R_cur_crys_2;
         int make_more_lines;
@@ -201,7 +201,7 @@ public:
                         energy_vecs_CUDA *Energy_spectrum_vectors, pick picks[5], double *available_energies, int available_energies_size, double *min_angle_resp,
                         double *max_angle_resp, plotresponc_vecs_CUDA **Crystal_Responces, double tetaref, double S_aper_R_2, double S_aper_var_2, double S_aper_sqr,
                         double S_sour_2, double z_sour_2, double y_sour_2, double zdetc_2_max, double zdetc_2_min, double ydetc_2_max, double ydetc_2_min,
-                        int64_t total_expexted_bins) :
+                        size_t total_expexted_bins) :
                         teta_table (teta_table), table_resolution (table_resolution), make_table_noise (make_table_noise), Make_Horizontal (Make_Horizontal),
                         Make_Vertical (Make_Vertical), xsi (xsi), S_shi_ver_B (S_shi_ver_B), S_shi_hor_B (S_shi_hor_B), S_sour (S_sour),
                         z_sour (z_sour), y_sour (y_sour), S_shi_ver_A (S_shi_ver_A), S_shi_hor_A (S_shi_hor_A), make_image_plates (make_image_plates),

@@ -34,7 +34,7 @@ list(APPEND CMAKE_PREFIX_PATH "C:/Qt/5.15.2/msvc2019_64")
 # include_directories("include/")
 set(CMAKE_AUTOUIC_SEARCH_PATHS "ui/")
 
-set(CMAKE_VERBOSE_MAKEFILE ON)
+# set(CMAKE_VERBOSE_MAKEFILE ON)
 
 include_directories(include src)
 

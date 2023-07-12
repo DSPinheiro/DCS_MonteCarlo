@@ -161,10 +161,10 @@ public:
         double zdetc_2_min;
         double cos_tetartabdete_anti;
         double sin_tetartabdete_anti;
-        int64_t total_expexted_bins;
+        size_t total_expexted_bins;
 
         SetupParameters(double tetaref, double S_aper_R_2, double S_aper_var_2, double S_aper_sqr, double S_sour_2, double z_sour_2, double y_sour_2,
-                        double zdetc_2_max, double zdetc_2_min, double ydetc_2_max, double ydetc_2_min, int64_t total_expexted_bins) :
+                        double zdetc_2_max, double zdetc_2_min, double ydetc_2_max, double ydetc_2_min, size_t total_expexted_bins) :
                         tetaref (tetaref), S_aper_R_2 (S_aper_R_2), S_aper_var_2 (S_aper_var_2), S_aper_sqr (S_aper_sqr), S_sour_2 (S_sour_2), z_sour_2 (z_sour_2),
                         y_sour_2 (y_sour_2), zdetc_2_max (zdetc_2_max), zdetc_2_min (zdetc_2_min), ydetc_2_max (ydetc_2_max), ydetc_2_min (ydetc_2_min),
                         total_expexted_bins (total_expexted_bins)

@@ -19,7 +19,7 @@ bool Make_Angle_brode, rotate_C1 = false;
 void Simu_Starter::Make_Simu(SimulationInterface* w){
     
     #ifdef QT_EXISTS
-        w->setPctDone(0.0f);
+        w->setPctDone(0.0);
     #endif
     
     double center_2cry_at_temp, sin_t, theta_b, line_ener, termFW;

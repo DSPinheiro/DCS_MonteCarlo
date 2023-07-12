@@ -27,7 +27,7 @@ public:
 
     inline bool isRunning() const { return running; }
     inline float getPctDone() const { return simulation_pct.load(); }
-    inline void setPctDone(float pct) { simulation_pct.store(pct); }
+    inline void setPctDone(double pct) { simulation_pct.store(pct); }
     inline bool isOpen() const { return open; }
     
     struct Stats
@@ -87,7 +87,7 @@ private:
     Ui::SimulationWindow *ui;
     bool running;
     bool open;
-    std::atomic<float> simulation_pct;
+    std::atomic<double> simulation_pct;
 
     long int lastHistogramUpdate;
 

@@ -379,7 +379,7 @@ void Source_simple::run_Source(){
 
         }
 
-        simuClock->simuTime(false, static_cast<float>(numbins) / PlotParametersInput.nubins, nullptr);
+        simuClock->simuTime(false, static_cast<double>(numbins) / PlotParametersInput.nubins, nullptr);
 
         cout << numbins << " of " << PlotParametersInput.nubins << " done" << endl;
         delrot = delrot - delrot_inc;

@@ -79,7 +79,7 @@ namespace Util_CUDA {
         double *max_angle_resp;
         bool mka_poli;
         plotresponc_vecs_CUDA **Crystal_Responces;
-        int64_t size;
+        size_t size;
     };
 
     __device__ void setupRand(curandState *state, unsigned int seed, int block, int thread);
@@ -89,7 +89,7 @@ namespace Util_CUDA {
     __device__ double2 horCorr(double y_pro_C1, double y_max_C1, double z_pro_C1, double z_max_C1, bool type_c, double R_cur_crys_1, double R_cur_crys_2);
     __device__ double4 getFullAngle(double r1x, double r1y, double r1z, double n1x, double n1y, double n1z);
     __device__ double getEnergy(curandState *state, double a_lamds_uni, double db_lamds_uni, double tw_d, EnergyParameters pars);
-    __device__ double splint_te(int64_t size, double *xa, double *ya, double *y2a, double x);
+    __device__ double splint_te(size_t size, double *xa, double *ya, double *y2a, double x);
     __device__ bool getReflection(curandState *state, double angle, double tetabra, double lamda, bool type_crystal, ReflectionParameters pars, bool poli_p = false);
     __device__ double4 getFullAngle2(double r2x, double r2y, double r2z, double n2x, double n2y, double n2z);
 }

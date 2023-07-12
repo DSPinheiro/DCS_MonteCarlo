@@ -85,7 +85,7 @@ bool Source_complex::run_Source(SimulationInterface *w){
         Energy_Spectrum_Vectors_CUDA->cum_ints = Energy_Spectrum_Vectors.cum_ints.data();
         Energy_Spectrum_Vectors_CUDA->intensity_two_derivs = Energy_Spectrum_Vectors.intensity_two_derivs.data();
         Energy_Spectrum_Vectors_CUDA->lamda_two_derivs = Energy_Spectrum_Vectors.lamda_two_derivs.data();
-        Energy_Spectrum_Vectors_CUDA->size = static_cast<int64_t>(Energy_Spectrum_Vectors.lamdas.size());
+        Energy_Spectrum_Vectors_CUDA->size = static_cast<size_t>(Energy_Spectrum_Vectors.lamdas.size());
         
 
         plotresponc_vecs_CUDA **Crystal_Responces_CUDA = new plotresponc_vecs_CUDA*[available_energies.size()];
@@ -100,7 +100,7 @@ bool Source_complex::run_Source(SimulationInterface *w){
                 Crystal_Responces[i].reflecti_two_deriv_ps.data(),
                 Crystal_Responces[i].reflecti_total_ss.data(),
                 Crystal_Responces[i].reflecti_two_deriv_ss.data(),
-                static_cast<int64_t>(Crystal_Responces[i].degrees.size())
+                static_cast<size_t>(Crystal_Responces[i].degrees.size())
             );
 
             Crystal_Responces_CUDA[i] = tmp_vecs;
@@ -984,7 +984,7 @@ bool Source_complex::run_Source(SimulationInterface *w){
             ParallelBin::makeBin(NumberRaysInput.nbeams * NumberRaysInput.number_rotati, bin_CUDA, reduce_CUDA);
 
             #ifdef QT_EXISTS
-            w->setPctDone(static_cast<float>(bin_CUDA->total_current_bins) / setup_CUDA->total_expexted_bins);
+            w->setPctDone(static_cast<double>(bin_CUDA->total_current_bins) / setup_CUDA->total_expexted_bins);
             #endif
         }
         else
@@ -1091,7 +1091,7 @@ bool Source_complex::run_Source(SimulationInterface *w){
                 gener_out << "********************************" << endl;
                 gener_out << endl;
 
-                w->setPctDone(1.0f);
+                w->setPctDone(1.0);
 
                 simuClock->simuTime(true, 1.0f, w);
 
@@ -1275,7 +1275,14 @@ bool Source_complex::run_Source(SimulationInterface *w){
             % 5 == 0
         )
         {
-            simuClock->simuTime(false, static_cast<float>(bin_CUDA->total_current_bins) / setup_CUDA->total_expexted_bins, w);
+            simuClock->simuTime(false, 
+            #ifdef CUDA
+            (ParallelSettingsInput.Make_GPU) ? static_cast<double>(bin_CUDA->total_current_bins) / setup_CUDA->total_expexted_bins :
+            static_cast<double>(bin->total_current_bins) / setup->total_expexted_bins,
+            #else
+            static_cast<double>(bin->total_current_bins) / setup->total_expexted_bins,
+            #endif
+            w);
         }
 
         #ifdef CUDA
@@ -2246,7 +2253,7 @@ void Source_complex::makeBin(SimulationInterface *w, SetupParameters *setup, Bin
             #pragma omp atomic
             #endif
             total_current_bins += 1;
-            w->setPctDone(static_cast<float>(total_current_bins) / setup->total_expexted_bins);
+            w->setPctDone(static_cast<double>(total_current_bins) / setup->total_expexted_bins);
         #endif
     }
 

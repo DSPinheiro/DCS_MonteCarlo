@@ -24,7 +24,7 @@ public:
     Obtain_time(SimulationInterface *w);
     ~Obtain_time();
 
-    void simuTime(bool finished, float pctDone, SimulationInterface* w);
+    void simuTime(bool finished, double pctDone, SimulationInterface* w);
 
 private:
     std::chrono::system_clock::time_point startingTime;

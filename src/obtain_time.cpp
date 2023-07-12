@@ -48,7 +48,7 @@ Obtain_time::Obtain_time(SimulationInterface *w)
 }
 
 
-void Obtain_time::simuTime(bool finished, float pctDone, SimulationInterface *w)
+void Obtain_time::simuTime(bool finished, double pctDone, SimulationInterface *w)
 {
     
     std::stringstream logString;
@@ -64,8 +64,8 @@ void Obtain_time::simuTime(bool finished, float pctDone, SimulationInterface *w)
     if(!finished)
     {
         int Hour = std::chrono::duration_cast<std::chrono::hours>(remainSimuTime).count();
-        int Min = std::chrono::duration_cast<std::chrono::minutes>(remainSimuTime).count();
-        int Sec = std::chrono::duration_cast<std::chrono::seconds>(remainSimuTime).count();
+        int Min = std::chrono::duration_cast<std::chrono::minutes>(remainSimuTime).count() - Hour * 60;
+        int Sec = std::chrono::duration_cast<std::chrono::seconds>(remainSimuTime).count() - Hour * 3600 - Min * 60;
 
         SimulationInterface::Times times = { 1, Hour, Min, Sec };
 
@@ -94,8 +94,8 @@ void Obtain_time::simuTime(bool finished, float pctDone, SimulationInterface *w)
         int Sec = local_tm.tm_sec;
     
         int HourT = std::chrono::duration_cast<std::chrono::hours>(updateTotalDuration).count();
-        int MinT = std::chrono::duration_cast<std::chrono::minutes>(updateTotalDuration).count();
-        int SecT = std::chrono::duration_cast<std::chrono::seconds>(updateTotalDuration).count();
+        int MinT = std::chrono::duration_cast<std::chrono::minutes>(updateTotalDuration).count() - Hour * 60;
+        int SecT = std::chrono::duration_cast<std::chrono::seconds>(updateTotalDuration).count() - Hour * 3600 - Min * 60;
 
         logString.clear();
         logString << "Simulation end at: " << Hour << " h " << Min << " m " << Sec << " s" << std::endl;
