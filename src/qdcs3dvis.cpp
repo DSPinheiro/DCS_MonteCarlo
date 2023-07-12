@@ -1341,14 +1341,14 @@ void QDCS3Dvis::drawParallelEvents(QMatrix4x4& m) {
     for (std::vector<double> event : eventsToTrace_para) {
         
         if (event.size() > 5) {
-            double sc1_HWDx = (event.at(4) + event.at(1)) / 4;
-            double sc1_HWDz = (event.at(5) + event.at(2)) / 4;
+            double sc1_HWDx = (event.at(4) + event.at(1)) / 2;
+            double sc1_HWDz = (event.at(5) + event.at(2)) / 2;
 
             double sc1_anglex = atanf(2 * sc1_HWDx / abs(source_posy));
             double sc1_anglez = atanf(2 * sc1_HWDz / abs(source_posy));
 
             //Transform to the source reference frame
-            m.translate(source_posx / 2 + sc1_HWDx, source_posy / 2 - event.at(0), source_posz + sc1_HWDz);
+            m.translate(source_posx + sc1_HWDx, source_posy / 2 - event.at(0), source_posz + sc1_HWDz);
             m.rotate(sc1_anglex, 1.0, 0.0, 0.0);
             m.rotate(sc1_anglez, 0.0, 0.0, 1.0);
             m.scale(eventLineSize, source_posy / 2, eventLineSize);
@@ -1360,12 +1360,12 @@ void QDCS3Dvis::drawParallelEvents(QMatrix4x4& m) {
             m.scale(1 / eventLineSize, 2 / source_posy, 1 / eventLineSize);
             m.rotate(-sc1_anglex, 1.0, 0.0, 0.0);
             m.rotate(-sc1_anglez, 0.0, 0.0, 1.0);
-            m.translate(-source_posx / 2 - sc1_HWDx, -source_posy / 2 + event.at(0), -source_posz - sc1_HWDz);
+            m.translate(-source_posx - sc1_HWDx, -source_posy / 2 + event.at(0), -source_posz - sc1_HWDz);
 
 
             if (event.size() > 6) {
-                double c1c2_HWDy = (event.at(7) + event.at(4)) / 4;
-                double c1c2_HWDz = (event.at(8) + event.at(5)) / 4;
+                double c1c2_HWDy = (event.at(7) + event.at(4)) / 2;
+                double c1c2_HWDz = (event.at(8) + event.at(5)) / 2;
 
                 double c1c2_angley = atanf(2 * c1c2_HWDy / abs(c2_posx));
                 double c1c2_anglez = atanf(2 * c1c2_HWDz / abs(c2_posx));
@@ -1389,8 +1389,8 @@ void QDCS3Dvis::drawParallelEvents(QMatrix4x4& m) {
             }
 
             if (event.size() > 9) {
-                double c2det_HWDy = (event.at(10) + event.at(7)) / 4;
-                double c2det_HWDz = (event.at(11) + event.at(8)) / 4;
+                double c2det_HWDy = (event.at(10) + event.at(7)) / 2;
+                double c2det_HWDz = (event.at(11) + event.at(8)) / 2;
 
                 double c2det_angley = atanf(2 * c2det_HWDy / abs(detec_posx));
                 double c2det_anglez = atanf(2 * c2det_HWDz / abs(detec_posx));
@@ -1398,7 +1398,7 @@ void QDCS3Dvis::drawParallelEvents(QMatrix4x4& m) {
                 //Transform to the detector reference frame in antiparallel
                 m.rotate(table_angle, 0.0, 0.0, 1.0);
                 m.translate(c2_posx, c2_posy, c2_posz);
-                m.rotate(detec_angle_anti, 0.0, 0.0, 1.0);
+                m.rotate(detec_angle_para, 0.0, 0.0, 1.0);
                 m.translate(detec_posx / 2, detec_posy + c2det_HWDy, detec_posz + c2det_HWDz);
                 m.rotate(90 + c2det_anglez, 0.0, 0.0, 1.0);
                 m.rotate(c2det_angley, 0.0, 1.0, 0.0);
@@ -1412,7 +1412,7 @@ void QDCS3Dvis::drawParallelEvents(QMatrix4x4& m) {
                 m.rotate(-90 - c2det_anglez, 0.0, 0.0, 1.0);
                 m.rotate(-c2det_angley, 0.0, 1.0, 0.0);
                 m.translate(-detec_posx / 2, -detec_posy - c2det_HWDy, -detec_posz - c2det_HWDz);
-                m.rotate(-detec_angle_anti, 0.0, 0.0, 1.0);
+                m.rotate(-detec_angle_para, 0.0, 0.0, 1.0);
                 m.translate(-c2_posx, -c2_posy, -c2_posz);
                 m.rotate(-table_angle, 0.0, 0.0, 1.0);
             }
@@ -1436,17 +1436,14 @@ void QDCS3Dvis::drawAntiparallelEvents(QMatrix4x4& m) {
     for (std::vector<double> event : eventsToTrace_anti) {
 
         if (event.size() > 5) {
-            //if (event.at(1) > (GeolengthelementsInput.S_sour + 1) / 2) {
-            //    std::cout << "erettr" << std::endl;
-            //}
-            double sc1_HWDx = (event.at(4) + event.at(1)) / 4;
-            double sc1_HWDz = (event.at(5) + event.at(2)) / 4;
+            double sc1_HWDx = (event.at(4) + event.at(1)) / 2;
+            double sc1_HWDz = (event.at(5) + event.at(2)) / 2;
 
             double sc1_anglex = atanf(2 * sc1_HWDx / abs(source_posy));
             double sc1_anglez = atanf(2 * sc1_HWDz / abs(source_posy));
 
             //Transform to the source reference frame
-            m.translate(source_posx / 2 + sc1_HWDx, source_posy / 2 + event.at(0), source_posz + sc1_HWDz);
+            m.translate(source_posx + sc1_HWDx, source_posy / 2 + event.at(0), source_posz + sc1_HWDz);
             m.rotate(sc1_anglex, 1.0, 0.0, 0.0);
             m.rotate(sc1_anglez, 0.0, 0.0, 1.0);
             m.scale(eventLineSize, source_posy / 2, eventLineSize);
@@ -1458,12 +1455,12 @@ void QDCS3Dvis::drawAntiparallelEvents(QMatrix4x4& m) {
             m.scale(1 / eventLineSize, 2 / source_posy, 1 / eventLineSize);
             m.rotate(-sc1_anglex, 1.0, 0.0, 0.0);
             m.rotate(-sc1_anglez, 0.0, 0.0, 1.0);
-            m.translate(-source_posx / 2 - sc1_HWDx, -source_posy / 2 - event.at(0), -source_posz - sc1_HWDz);
+            m.translate(-source_posx - sc1_HWDx, -source_posy / 2 - event.at(0), -source_posz - sc1_HWDz);
 
 
             if (event.size() > 6) {
-                double c1c2_HWDy = (event.at(7) + event.at(4)) / 4;
-                double c1c2_HWDz = (event.at(8) + event.at(5)) / 4;
+                double c1c2_HWDy = (event.at(7) + event.at(4)) / 2;
+                double c1c2_HWDz = (event.at(8) + event.at(5)) / 2;
 
                 double c1c2_angley = atanf(2 * c1c2_HWDy / abs(c2_posx));
                 double c1c2_anglez = atanf(2 * c1c2_HWDz / abs(c2_posx));
@@ -1487,8 +1484,8 @@ void QDCS3Dvis::drawAntiparallelEvents(QMatrix4x4& m) {
             }
 
             if (event.size() > 9) {
-                double c2det_HWDy = (event.at(10) + event.at(7)) / 4;
-                double c2det_HWDz = (event.at(11) + event.at(8)) / 4;
+                double c2det_HWDy = (event.at(10) + event.at(7)) / 2;
+                double c2det_HWDz = (event.at(11) + event.at(8)) / 2;
 
                 double c2det_angley = atanf(2 * c2det_HWDy / abs(detec_posx));
                 double c2det_anglez = atanf(2 * c2det_HWDz / abs(detec_posx));
