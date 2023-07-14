@@ -68,7 +68,7 @@ namespace Util_CUDA {
         double p2_ener;
         double p3_ener;
         energy_vecs_CUDA *Energy_spectrum_vectors;
-        pick picks[5];
+        pick *picks;
         double gauss_Doop;
     };
 

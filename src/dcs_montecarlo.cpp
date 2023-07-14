@@ -67,7 +67,7 @@ int ENTRYPOINT(int argc, char *argv[]){
     }
     else
     {
-        strcat(Output_dir, "output");
+        strcat(Output_dir, "output/");
     }
 
     if(!filesystem::is_directory(Output_dir) || !filesystem::exists(Output_dir))

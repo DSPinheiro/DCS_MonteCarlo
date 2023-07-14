@@ -17,10 +17,33 @@ __device__ void Util_CUDA::setupRand(curandState *state, unsigned int seed, int 
 
 __device__ double Util_CUDA::GaussianBox(curandState *state, double sta_dev, double mean, bool box_muller)
 {
-    double v1 = sta_dev * curand_normal_double(state) + mean;
-    double v2 = sta_dev * curand_normal_double(state) + mean;
+    if (box_muller)
+    {
+        double v1, v2;
 
-    return sqrt(v1 * v1 + v2 * v2);
+        double fac, rsq;
+
+        while (true) {
+            v1 = 2 * curand_uniform_double(state) - 1;
+            v2 = 2 * curand_uniform_double(state) - 1;
+            rsq = pow(v1, 2) + pow(v2, 2);
+
+            if (!(rsq >= 1 || rsq == 0))
+                break;
+
+        }
+
+        fac = sqrt(-2 * log(rsq) / rsq);
+
+        return mean + sta_dev * v2 * fac;
+    }
+    else
+    {
+        double v1 = sta_dev * curand_normal_double(state) + mean;
+        double v2 = sta_dev * curand_normal_double(state) + mean;
+
+        return sqrt(v1 * v1 + v2 * v2);
+    }
 }
 
 __device__ double2 Util_CUDA::getYZ(double r_temp, double sin_tetap_temp, double cos_tetap_temp, double tan_tetadir_temp, double tan_fidir_temp, double L_temp)
@@ -164,7 +187,7 @@ __device__ double Util_CUDA::getEnergy(curandState *state, double a_lamds_uni, d
 
 
     if (pars.make_more_lines == 0)
-        I_picks = 2;
+        I_picks = 1;
     else if (pars.make_more_lines == 1) {
         if (pars.Do_background) {
             pm1 = 0.1875;
@@ -225,7 +248,7 @@ __device__ double Util_CUDA::getEnergy(curandState *state, double a_lamds_uni, d
             }
         }
 
-        hit = Util_CUDA::GaussianBox(state, pars.gauss_Doop, hit);
+        hit = Util_CUDA::GaussianBox(state, pars.gauss_Doop, hit, true);
         return hit;
 
     }

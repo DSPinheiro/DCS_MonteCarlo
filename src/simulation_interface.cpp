@@ -409,6 +409,9 @@ SimulationInterface::SimulationInterface(QWidget *parent) :
     
     ui->P_histogram->xAxis->setTickLabelRotation(28);
 
+    P_hist = ui->P_histogram;
+    AP_hist = ui->AP_histogram;
+
     lastHistogramUpdate = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
 
     /*

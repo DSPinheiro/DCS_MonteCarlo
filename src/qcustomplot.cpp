@@ -14534,11 +14534,7 @@ bool QCustomPlot::savePdf(const QString &fileName, int width, int height, QCP::E
   }
   
   QPrinter printer(QPrinter::ScreenResolution);
-  printer.setOutputFileName(fileName);
-  printer.setOutputFormat(QPrinter::PdfFormat);
-  printer.setColorMode(QPrinter::Color);
-  printer.printEngine()->setProperty(QPrintEngine::PPK_Creator, pdfCreator);
-  printer.printEngine()->setProperty(QPrintEngine::PPK_DocumentName, pdfTitle);
+  
   QRect oldViewport = viewport();
   setViewport(QRect(0, 0, newWidth, newHeight));
 #if QT_VERSION < QT_VERSION_CHECK(5, 3, 0)
@@ -14552,6 +14548,13 @@ bool QCustomPlot::savePdf(const QString &fileName, int width, int height, QCP::E
   pageLayout.setPageSize(QPageSize(viewport().size(), QPageSize::Point, QString(), QPageSize::ExactMatch));
   printer.setPageLayout(pageLayout);
 #endif
+
+  printer.setOutputFileName(fileName);
+  printer.setOutputFormat(QPrinter::PdfFormat);
+  printer.setColorMode(QPrinter::Color);
+  printer.printEngine()->setProperty(QPrintEngine::PPK_Creator, pdfCreator);
+  printer.printEngine()->setProperty(QPrintEngine::PPK_DocumentName, pdfTitle);
+  
   QCPPainter printpainter;
   if (printpainter.begin(&printer))
   {

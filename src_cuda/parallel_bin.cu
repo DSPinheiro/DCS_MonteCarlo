@@ -685,7 +685,7 @@ __global__ static void makeBinKernel(int totalBinEventCount, ParallelBin::BinPar
                     setup->p2_ener,
                     setup->p3_ener,
                     setup->Energy_spectrum_vectors,
-                    setup->picks[5],
+                    setup->picks,
                     setup->gauss_Doop
                 };
                 

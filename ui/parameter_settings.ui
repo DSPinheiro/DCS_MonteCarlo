@@ -107,7 +107,7 @@ background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgb
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>-474</y>
+              <y>0</y>
               <width>343</width>
               <height>690</height>
              </rect>
@@ -807,10 +807,10 @@ background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgb
              <item>
               <widget class="QCheckBox" name="print_scan">
                <property name="enabled">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
                <property name="text">
-                <string>Output TIF Image</string>
+                <string>Output .pdf and images</string>
                </property>
               </widget>
              </item>
@@ -989,7 +989,7 @@ background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgb
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>-395</y>
+              <y>0</y>
               <width>343</width>
               <height>611</height>
              </rect>
@@ -1718,7 +1718,7 @@ background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgb
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>-655</y>
+              <y>0</y>
               <width>343</width>
               <height>871</height>
              </rect>

@@ -112,6 +112,7 @@ void Make_plot_profiles::plotProfiles(
         step_x = (-min_plot[i][0] + max_plot[i][0]) / 5;
         step_y = (-min_plot[i][1] + max_plot[i][1]) / 5;
 
+        #ifdef QT_EXISTS
         if(! (n_plot == 1)){
 
             if(n_plot % 6 == 0){
@@ -120,7 +121,7 @@ void Make_plot_profiles::plotProfiles(
             }
 
         }
-
+        #endif
     }
 
 
@@ -177,6 +178,7 @@ void Make_plot_profiles::plotProfiles(
                 step_y_hist = max_plot_y_temp * 0.4;
                 step_z_hist = max_plot_z_temp / 5;
 
+                #ifdef QT_EXISTS
                 SimulationInterface::Plates plates;
                 plates.crystal = crystal;
                 // Not ideal (but at least does not crash)
@@ -184,7 +186,7 @@ void Make_plot_profiles::plotProfiles(
                 memcpy(&plates.hist_image[0], &hist_image[0], n_his_ima * n_his_ima * sizeof(double));
                 plates.max_z = max_plot_z_temp;
                 emit w->changePlatesSignal(plates);
-
+                #endif
             }
         }
     }

@@ -345,8 +345,8 @@ GUISettingsWindow::GUISettingsWindow(QWidget *parent) :
                 break;
             case 2: 
                 FullEnergySpectrumInput.make_more_lines = 0;
-                ui->src_aprt_55->setEnabled(true);
-                ui->src_aprt_56->setEnabled(true);
+                ui->src_aprt_55->setEnabled(false);
+                ui->src_aprt_56->setEnabled(false);
                 ui->src_aprt_57->setEnabled(false);
                 ui->src_aprt_58->setEnabled(false);
                 ui->src_aprt_59->setEnabled(false);
@@ -394,7 +394,11 @@ GUISettingsWindow::GUISettingsWindow(QWidget *parent) :
     connect(ui->make_pol, &QCheckBox::stateChanged, this, [this](int s) { PolarizationParametersInput.mka_poli = (bool)s; });
     connect(ui->src_aprt_46, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { PolarizationParametersInput.relationP_S = v; });
 
-    connect(ui->make_gpu, &QCheckBox::stateChanged, this, [this](int s) { ParallelSettingsInput.Make_GPU = (bool)s; ui->src_aprt_63->setEnabled(!s); });
+    connect(ui->make_gpu, &QCheckBox::stateChanged, this, [this](int s) { ParallelSettingsInput.Make_GPU = (bool)s;
+    #ifdef CUDA
+    ui->src_aprt_63->setEnabled(!s);
+    #endif
+    });
     connect(ui->src_aprt_63, QOverload<int>::of(&QSpinBox::valueChanged), this, [this](int v) { ParallelSettingsInput.OMP_threads = v; });
 
     // ================================================================================================
@@ -717,7 +721,9 @@ void GUISettingsWindow::updateElements()
     ui->src_aprt_66->setValue(FullEnergySpectrumInput.naturalwidth4);
     ui->make_bg->setChecked(FullEnergySpectrumInput.Do_background);
     ui->make_gpu->setChecked(ParallelSettingsInput.Make_GPU);
+    #ifdef CUDA
     ui->src_aprt_63->setEnabled(!ParallelSettingsInput.Make_GPU);
+    #endif
     ui->src_aprt_63->setValue(ParallelSettingsInput.OMP_threads);
     ui->make_pol->setChecked(PolarizationParametersInput.mka_poli);
     ui->src_aprt_46->setValue(PolarizationParametersInput.relationP_S);

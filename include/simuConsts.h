@@ -296,6 +296,45 @@ static inline void trim(std::string& s) {
 }
 
 
+static inline double interpolate( double val, double y0, double x0, double y1, double x1 )
+{
+    return (val-x0)*(y1-y0)/(x1-x0) + y0;
+}
+
+static inline double blue( double grayscale )
+{
+    if ( grayscale < -0.33 )
+        return 0.0;
+    else if ( grayscale < 0.33 )
+        return interpolate( grayscale, 1.0, -0.33, 0.0, 0.33 );
+    else
+        return 0.0;
+}
+
+static inline double green( double grayscale )
+{
+    if ( grayscale < -1.0 )
+        return 0.0; // unexpected grayscale value
+    if  ( grayscale < -0.33 )
+        return interpolate( grayscale, 0.0, -1.0, 1.0, -0.33 );
+    else if ( grayscale < 0.33 )
+        return 1.0;
+    else if ( grayscale <= 1.0 )
+        return interpolate( grayscale, 1.0, 0.33, 0.0, 1.0 );
+    else
+        return 1.0; // unexpected grayscale value
+}
+
+static inline double red( double grayscale )
+{
+    if ( grayscale < -0.33 )
+        return 0.0;
+    else if ( grayscale < 0.33 )
+        return interpolate( grayscale, 0.0, -0.33, 1.0, 0.33 );
+    else
+        return 1.0;
+}
+
 #ifndef refra_corrNIST
 #define refra_corrNIST 0.00351262
 #endif
@@ -318,7 +357,7 @@ static inline void trim(std::string& s) {
 #endif
 
 #ifndef evv_1
-#define evv_1 "eV "
+#define evv_1 "eV"
 #endif
 
 #ifndef evv_2

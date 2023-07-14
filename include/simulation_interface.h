@@ -8,6 +8,7 @@
 
 #ifdef QT_EXISTS
 #include <QMainWindow>
+#include "../include/qcustomplot.h"
 
 namespace Ui {
 class SimulationWindow;
@@ -64,6 +65,9 @@ public:
         int s;
     };
 
+    QCustomPlot *P_hist;
+    QCustomPlot *AP_hist;
+
 signals:
     void changeStatsSignal(Stats stats);
     void changePlotsSignal(Plots plots);
@@ -90,43 +94,6 @@ private:
     std::atomic<double> simulation_pct;
 
     long int lastHistogramUpdate;
-
-    static inline double interpolate( double val, double y0, double x0, double y1, double x1 )
-    {
-      return (val-x0)*(y1-y0)/(x1-x0) + y0;
-    }
-    static inline double blue( double grayscale )
-    {
-      if ( grayscale < -0.33 )
-          return 0.0;
-      else if ( grayscale < 0.33 )
-          return interpolate( grayscale, 1.0, -0.33, 0.0, 0.33 );
-      else
-          return 0.0;
-    }
-    static inline double green( double grayscale )
-    {
-      if ( grayscale < -1.0 )
-          return 0.0; // unexpected grayscale value
-      if  ( grayscale < -0.33 )
-          return interpolate( grayscale, 0.0, -1.0, 1.0, -0.33 );
-      else if ( grayscale < 0.33 )
-          return 1.0;
-      else if ( grayscale <= 1.0 )
-          return interpolate( grayscale, 1.0, 0.33, 0.0, 1.0 );
-      else
-          return 1.0; // unexpected grayscale value
-    }
-    static inline double red( double grayscale )
-    {
-      if ( grayscale < -0.33 )
-          return 0.0;
-      else if ( grayscale < 0.33 )
-          return interpolate( grayscale, 0.0, -0.33, 1.0, 0.33 );
-      else
-          return 1.0;
-    }
-
 };
 #else
 class SimulationInterface

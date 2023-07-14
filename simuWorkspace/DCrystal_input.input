@@ -21,7 +21,7 @@ center_1crys=.false.	//center the X-ray beam on first crystal (shifts the appert
 center_2crys=.false.	//center the X-ray beam on second crystal (changes C1 tilt)							-					-					-*******************-					-					-
 mask_C1=0				//first crystal masking: 0 - no mask; 1 - mask down; 2 - mask up					-					-					-*******************-					-					-
 mask_C2=0				//second crystal masking: 0 - no mask; 1 - mask down; 2 - mask up 			z=-C/2	---------------------			z=-C/2	---------------------			z=-C/2	--*-*-*-*-*-*-*-*-*--
-print_scan=.false.		//output scan to image (unimplemented)
+print_scan=.true.		//output scan to image (unimplemented)
 center_Mask=.false.		//use centered mask for the first crystal
 make_mask_test=.false.	//test witch mask configuration (1 or 2) gives peak intensity
 
@@ -159,5 +159,5 @@ R_cur_crys_2=1.0e-10				//second crystal curvature radius
 
 ParallelSettings			//SETTINGS FOR PARALLEL EXECUTION OF THE SIMU
 
-Make_GPU=.false.					//use the GPU to execute the simulation (WIP)
+Make_GPU=.true.					//use the GPU to execute the simulation (WIP)
 OMP_threads=4						//number of OpenMP threads to use in the CPU parallelization

@@ -16,15 +16,35 @@
 #include "../include_cuda/parallel_bin.cuh"
 #endif
 
+#include "../include/gif.h"
+
+#ifndef QT_EXISTS
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "../include/stb_image_write.h"
+#endif
+
+#include "../include/gnuplot-iostream.h"
+
 using namespace std;
 
 
 
 bool Source_complex::run_Source(SimulationInterface *w){
-
+    
     #ifdef OPENMP
     omp_set_num_threads(ParallelSettingsInput.OMP_threads);
     #endif
+
+    
+    GifWriter gSource;
+    GifWriter gC1;
+    GifWriter gC2_para;
+    GifWriter gC2_anti;
+    GifWriter gDet_para;
+    GifWriter gDet_anti;
+
+    Gnuplot gp;
+    
 
     stringstream logString;
 
@@ -768,6 +788,18 @@ bool Source_complex::run_Source(SimulationInterface *w){
     }
     #endif
 
+
+    if(UserSettingsInput.print_scan)
+    {
+        GifBegin(&gSource, (string(Output_dir) + "Source_plate.gif").c_str(), 100, 100, 100);
+        GifBegin(&gC1, (string(Output_dir) + "C1_plate.gif").c_str(), 100, 100, 100);
+        GifBegin(&gC2_para, (string(Output_dir) + "C2Para_plate.gif").c_str(), 100, 100, 100);
+        GifBegin(&gC2_anti, (string(Output_dir) + "C2Anti_plate.gif").c_str(), 100, 100, 100);
+        GifBegin(&gDet_para, (string(Output_dir) + "DetPara_plate.gif").c_str(), 100, 100, 100);
+        GifBegin(&gDet_anti, (string(Output_dir) + "DetAnti_plate.gif").c_str(), 100, 100, 100);
+    }
+
+
     //wierd hack but seems to work
     while(
         #ifdef CUDA
@@ -1175,58 +1207,56 @@ bool Source_complex::run_Source(SimulationInterface *w){
         }
 
 
-        #ifdef QT_EXISTS
-            if(GraphOptionsInput.make_graph_profile){
-                #ifdef CUDA
-                if(ParallelSettingsInput.Make_GPU)
-                {
-                    Make_plot_profiles::plotProfiles(
-                        energy_sum_para[bin_CUDA->numbins - 1] / total_para,
-                        angle_para,
-                        total_para,
-                        energy_sum_anti[bin_CUDA->numbins - 1] / total_anti,
-                        angle_anti,
-                        total_anti,
-                        bin_CUDA->numbins,
-                        reduce_CUDA->counts_sour,
-                        reduce_CUDA->counts_C1,
-                        reduce_CUDA->counts_C2_para,
-                        reduce_CUDA->counts_C2_anti,
-                        reduce_CUDA->counts_detc_para,
-                        reduce_CUDA->counts_detc_anti,
-                        w);
-                }
-                else
-                {
-                #endif
+        if(GraphOptionsInput.make_graph_profile){
+            #ifdef CUDA
+            if(ParallelSettingsInput.Make_GPU)
+            {
                 Make_plot_profiles::plotProfiles(
-                    #ifndef OPENMP
-                    reduce->energy_sum_para->at(bin->numbins - 1) / total_para,
-                    #else
-                    energy_sum_para[bin->numbins - 1] / total_para,
-                    #endif
+                    energy_sum_para[bin_CUDA->numbins - 1] / total_para,
                     angle_para,
                     total_para,
-                    #ifndef OPENMP
-                    reduce->energy_sum_anti->at(bin->numbins - 1) / total_anti,
-                    #else
-                    energy_sum_anti[bin->numbins - 1] / total_anti,
-                    #endif
+                    energy_sum_anti[bin_CUDA->numbins - 1] / total_anti,
                     angle_anti,
                     total_anti,
-                    bin->numbins,
-                    reduce->counts_sour,
-                    reduce->counts_C1,
-                    reduce->counts_C2_para,
-                    reduce->counts_C2_anti,
-                    reduce->counts_detc_para,
-                    reduce->counts_detc_anti,
+                    bin_CUDA->numbins,
+                    reduce_CUDA->counts_sour,
+                    reduce_CUDA->counts_C1,
+                    reduce_CUDA->counts_C2_para,
+                    reduce_CUDA->counts_C2_anti,
+                    reduce_CUDA->counts_detc_para,
+                    reduce_CUDA->counts_detc_anti,
                     w);
-                #ifdef CUDA
-                }
-                #endif
             }
-        #endif
+            else
+            {
+            #endif
+            Make_plot_profiles::plotProfiles(
+                #ifndef OPENMP
+                reduce->energy_sum_para->at(bin->numbins - 1) / total_para,
+                #else
+                energy_sum_para[bin->numbins - 1] / total_para,
+                #endif
+                angle_para,
+                total_para,
+                #ifndef OPENMP
+                reduce->energy_sum_anti->at(bin->numbins - 1) / total_anti,
+                #else
+                energy_sum_anti[bin->numbins - 1] / total_anti,
+                #endif
+                angle_anti,
+                total_anti,
+                bin->numbins,
+                reduce->counts_sour,
+                reduce->counts_C1,
+                reduce->counts_C2_para,
+                reduce->counts_C2_anti,
+                reduce->counts_detc_para,
+                reduce->counts_detc_anti,
+                w);
+            #ifdef CUDA
+            }
+            #endif
+        }
 
 
         if(
@@ -1320,7 +1350,73 @@ bool Source_complex::run_Source(SimulationInterface *w){
         }
         #endif
 
-        
+
+        if(UserSettingsInput.print_scan)
+        {
+            //Create the image for the gif frame for each plate
+            std::vector<uint8_t> plate_img(n_his_ima * n_his_ima * 4);
+            for(int i = 0; i < n_his_ima * n_his_ima; i++){
+                plate_img[4 * i] = (int)(255 * red(2 * ((hist_image_plate_source[(i % n_his_ima) * n_his_ima + (int)(i / n_his_ima)] / max_hist[0]) - 0.5)));
+                plate_img[4 * i + 1] = (int)(255 * green(2 * ((hist_image_plate_source[(i % n_his_ima) * n_his_ima + (int)(i / n_his_ima)] / max_hist[0]) - 0.5)));
+                plate_img[4 * i + 2] = (int)(255 * blue(2 * ((hist_image_plate_source[(i % n_his_ima) * n_his_ima + (int)(i / n_his_ima)] / max_hist[0]) - 0.5)));
+                plate_img[4 * i + 3] = 255;
+            }
+
+            //write image plate gifs
+            GifWriteFrame(&gSource, plate_img.data(), n_his_ima, n_his_ima, n_his_ima / 4);
+            
+            plate_img.clear();
+            for(int i = 0; i < n_his_ima * n_his_ima; i++){
+                plate_img[4 * i] = (int)(255 * red(2 * ((hist_image_plate_crystal1[(i % n_his_ima) * n_his_ima + (int)(i / n_his_ima)] / max_hist[1]) - 0.5)));
+                plate_img[4 * i + 1] = (int)(255 * green(2 * ((hist_image_plate_crystal1[(i % n_his_ima) * n_his_ima + (int)(i / n_his_ima)] / max_hist[1]) - 0.5)));
+                plate_img[4 * i + 2] = (int)(255 * blue(2 * ((hist_image_plate_crystal1[(i % n_his_ima) * n_his_ima + (int)(i / n_his_ima)] / max_hist[1]) - 0.5)));
+                plate_img[4 * i + 3] = 255;
+            }
+
+            GifWriteFrame(&gC1, plate_img.data(), n_his_ima, n_his_ima, n_his_ima / 4);
+            
+            plate_img.clear();
+            for(int i = 0; i < n_his_ima * n_his_ima; i++){
+                plate_img[4 * i] = (int)(255 * red(2 * ((hist_image_plate_crystal2_anti[(i % n_his_ima) * n_his_ima + (int)(i / n_his_ima)] / max_hist[4]) - 0.5)));
+                plate_img[4 * i + 1] = (int)(255 * green(2 * ((hist_image_plate_crystal2_anti[(i % n_his_ima) * n_his_ima + (int)(i / n_his_ima)] / max_hist[4]) - 0.5)));
+                plate_img[4 * i + 2] = (int)(255 * blue(2 * ((hist_image_plate_crystal2_anti[(i % n_his_ima) * n_his_ima + (int)(i / n_his_ima)] / max_hist[4]) - 0.5)));
+                plate_img[4 * i + 3] = 255;
+            }
+
+            GifWriteFrame(&gC2_anti, plate_img.data(), n_his_ima, n_his_ima, n_his_ima / 4);
+            
+            plate_img.clear();
+            for(int i = 0; i < n_his_ima * n_his_ima; i++){
+                plate_img[4 * i] = (int)(255 * red(2 * ((hist_image_plate_crystal2_para[(i % n_his_ima) * n_his_ima + (int)(i / n_his_ima)] / max_hist[2]) - 0.5)));
+                plate_img[4 * i + 1] = (int)(255 * green(2 * ((hist_image_plate_crystal2_para[(i % n_his_ima) * n_his_ima + (int)(i / n_his_ima)] / max_hist[2]) - 0.5)));
+                plate_img[4 * i + 2] = (int)(255 * blue(2 * ((hist_image_plate_crystal2_para[(i % n_his_ima) * n_his_ima + (int)(i / n_his_ima)] / max_hist[2]) - 0.5)));
+                plate_img[4 * i + 3] = 255;
+            }
+
+            GifWriteFrame(&gC2_para, plate_img.data(), n_his_ima, n_his_ima, n_his_ima / 4);
+            
+            plate_img.clear();
+            for(int i = 0; i < n_his_ima * n_his_ima; i++){
+                plate_img[4 * i] = (int)(255 * red(2 * ((hist_image_plate_detc_anti[(i % n_his_ima) * n_his_ima + (int)(i / n_his_ima)] / max_hist[5]) - 0.5)));
+                plate_img[4 * i + 1] = (int)(255 * green(2 * ((hist_image_plate_detc_anti[(i % n_his_ima) * n_his_ima + (int)(i / n_his_ima)] / max_hist[5]) - 0.5)));
+                plate_img[4 * i + 2] = (int)(255 * blue(2 * ((hist_image_plate_detc_anti[(i % n_his_ima) * n_his_ima + (int)(i / n_his_ima)] / max_hist[5]) - 0.5)));
+                plate_img[4 * i + 3] = 255;
+            }
+
+            GifWriteFrame(&gDet_anti, plate_img.data(), n_his_ima, n_his_ima, n_his_ima / 4);
+            
+            plate_img.clear();
+            for(int i = 0; i < n_his_ima * n_his_ima; i++){
+                plate_img[4 * i] = (int)(255 * red(2 * ((hist_image_plate_detc_para[(i % n_his_ima) * n_his_ima + (int)(i / n_his_ima)] / max_hist[3]) - 0.5)));
+                plate_img[4 * i + 1] = (int)(255 * green(2 * ((hist_image_plate_detc_para[(i % n_his_ima) * n_his_ima + (int)(i / n_his_ima)] / max_hist[3]) - 0.5)));
+                plate_img[4 * i + 2] = (int)(255 * blue(2 * ((hist_image_plate_detc_para[(i % n_his_ima) * n_his_ima + (int)(i / n_his_ima)] / max_hist[3]) - 0.5)));
+                plate_img[4 * i + 3] = 255;
+            }
+
+            GifWriteFrame(&gDet_para, plate_img.data(), n_his_ima, n_his_ima, n_his_ima / 4);
+        }
+
+
         #ifdef CUDA
         if(ParallelSettingsInput.Make_GPU)
         {
@@ -1390,6 +1486,78 @@ bool Source_complex::run_Source(SimulationInterface *w){
         gener_out << legen_counts_4 << "\t" << counts_detc_para_t << endl;
         gener_out << legen_counts_5 << "\t" << counts_C2_anti_t << endl;
         gener_out << legen_counts_6 << "\t" << counts_detc_anti_t << endl;
+    }
+
+    if(UserSettingsInput.print_scan)
+    {
+        //write histograms to pdf
+        #ifdef QT_EXISTS
+        emit w->P_hist->savePdf(QString((string(Output_dir) + "Parallel_Histogram.pdf").c_str()), w->P_hist->width(), w->P_hist->height(),
+                            QCP::epAllowCosmetic, QString("DCS Simulation"), QString("Parallel Histogram"));
+        emit w->AP_hist->savePdf(QString((string(Output_dir) + "AntiParallel_Histogram.pdf").c_str()), w->AP_hist->width(), w->AP_hist->height(),
+                            QCP::epAllowCosmetic, QString("DCS Simulation"), QString("AntiParallel Histogram"));
+        #else
+        //write histograms to image files (without QT)
+        double xmax = plot_anti[0].x;
+        double xmin = plot_anti[0].x;
+        size_t ymax = plot_anti[0].y;
+        size_t ymin = plot_anti[0].y;
+        std::vector<std::pair<double, size_t> > AP_plot;
+        for(int i = 0; i < plot_anti.size(); i++) {
+            AP_plot.push_back(std::make_pair(plot_anti[i].x, plot_anti[i].y));
+            if(xmax < plot_anti[i].x)
+                xmax = plot_anti[i].x;
+            else if(xmin > plot_anti[i].x)
+                xmin = plot_anti[i].x;
+            
+            if(ymax < plot_anti[i].y)
+                ymax = plot_anti[i].y;
+            else if(ymin > plot_anti[i].y)
+                ymin = plot_anti[i].y;
+        }
+
+        gp << "reset\n";
+
+        gp << "set terminal pdf\nset output '" << Output_dir << "AntiParallel_Histogram.pdf'\n";
+        gp << "set xrange [" << xmin << ":" << xmax << "]\nset yrange [" << ymin << ":" << ymax << "]\n";
+        gp << "set boxwidth " << 2 * PlotParametersInput.delta_angl / PlotParametersInput.nubins << "\nset style fill solid\n";
+        gp << "plot" << gp.file1d(AP_plot) << "with boxes title 'AntiParallel Histogram'" << std::endl;
+        
+        xmax = plot_para[0].x;
+        xmin = plot_para[0].x;
+        ymax = plot_para[0].y;
+        ymin = plot_para[0].y;
+        std::vector<std::pair<double, size_t> > P_plot;
+        for(int i = 0; i < plot_para.size(); i++) {
+            P_plot.push_back(std::make_pair(plot_para[i].x, plot_para[i].y));
+            if(xmax < plot_para[i].x)
+                xmax = plot_para[i].x;
+            else if(xmin > plot_para[i].x)
+                xmin = plot_para[i].x;
+            
+            if(ymax < plot_para[i].y)
+                ymax = plot_para[i].y;
+            else if(ymin > plot_para[i].y)
+                ymin = plot_para[i].y;
+        }
+
+        gp << "reset\n";
+
+        gp << "set terminal pdf\nset output '" << Output_dir << "Parallel_Histogram.pdf'\n";
+        gp << "set xrange [" << xmin << ":" << xmax << "]\nset yrange [" << ymin << ":" << ymax << "]\n";
+        gp << "set boxwidth " << 2 * PlotParametersInput.delta_angl / PlotParametersInput.nubins << "\nset style fill solid\n";
+        gp << "plot" << gp.file1d(P_plot) << "with boxes title 'Parallel Histogram'" << std::endl;
+        
+
+        #endif
+
+        //Close the gif writer
+        GifEnd(&gSource);
+        GifEnd(&gC1);
+        GifEnd(&gC2_para);
+        GifEnd(&gC2_anti);
+        GifEnd(&gDet_para);
+        GifEnd(&gDet_anti);
     }
 
     simuClock->simuTime(true, 1.0f, w);
@@ -1703,6 +1871,7 @@ void Source_complex::makeBin(SimulationInterface *w, SetupParameters *setup, Bin
                 
                 tetabra1 = asin(lamda / bin->tw_d1_para);
 
+                
                 //logString.clear();
                 //logString << angle << "\t" << tetabra1 << endl;
                 //emit w->LogLine(logString.str());

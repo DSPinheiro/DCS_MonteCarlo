@@ -1327,7 +1327,8 @@ bool Util::getReflection(double angle, double tetabra, double lamda, bool type_c
 
     double energy = Convert_Ag_minusone_eV / lamda;
 
-    int energy_resp_index;
+    //tmp fix
+    int energy_resp_index = 100;
 
     int index = 0;
     for (double energ : available_energies)
@@ -1515,7 +1516,7 @@ double Util::getEnergy(double a_lamds_uni, double db_lamds_uni, double tw_d) {
 
 
     if (FullEnergySpectrumInput.make_more_lines == 0)
-        I_picks = 2;
+        I_picks = 1;
     else if (FullEnergySpectrumInput.make_more_lines == 1) {
         if (FullEnergySpectrumInput.Do_background) {
             pm1 = 0.1875;
@@ -1577,7 +1578,8 @@ double Util::getEnergy(double a_lamds_uni, double db_lamds_uni, double tw_d) {
             }
         }
 
-        hit = Util::GaussianBox(PhysicalParametersInput.gauss_Doop, hit);
+        hit = Util::GaussianBox(PhysicalParametersInput.gauss_Doop, hit, true);
+
         return hit;
 
     }

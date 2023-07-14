@@ -63,6 +63,10 @@ if(OpenMP_CXX_FOUND)
     add_compile_options($<$<COMPILE_LANG_AND_ID:CXX,GNU>:-openmp:experimental>)
 endif()
 
+set(Boost_USE_STATIC_LIBS ON)
+FIND_PACKAGE( Boost 1.40 COMPONENTS iostreams system filesystem REQUIRED )
+INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR} )
+
 
 # SETUP THE CUDA LANGUAGE FOR GPU ACCELERATION
 
@@ -145,6 +149,7 @@ set(SOURCE_CLI
     source_complex.cpp
     source_simple.cpp
     Util.cpp
+    make_plot_profiles.cpp
     
     sserializer.inl
     configure.inl
@@ -155,7 +160,6 @@ set(SOURCE_CLI
 if(INSTALL_GUI)
     set(SOURCE_GUI ${SOURCE_CLI})
     list(APPEND SOURCE_GUI
-        make_plot_profiles.cpp
         qcustomplot.cpp
         qdcs3dvis.cpp
 
@@ -176,10 +180,14 @@ file(GLOB SOURCES_CLI
         "include/simuGlobals.hh"
         "include/simuConsts.h"
         "include/simulation_interface.h"
+        "include/make_plot_profiles.hh"
         "include/source_complex.hh"
         "include/source_simple.hh"
         "include/Util.h"
         "include/input_settings.h"
+        "include/gif.h"
+        "include/stb_image_write.h"
+        "include/gnuplot-iostream.h"
         ${SOURCE_CLI}
 )
 
@@ -298,6 +306,7 @@ if(INSTALL_GUI)
             Qt${QT_VERSION_MAJOR}::PrintSupport
             "${OPENGL_LIBRARIES}"
             OpenMP::OpenMP_CXX
+            ${Boost_LIBRARIES}
         )
     else()
         target_link_libraries(DCSsimuWrapper PRIVATE
@@ -307,6 +316,7 @@ if(INSTALL_GUI)
             Qt${QT_VERSION_MAJOR}::OpenGL
             Qt${QT_VERSION_MAJOR}::PrintSupport
             "${OPENGL_LIBRARIES}"
+            ${Boost_LIBRARIES}
         )
     endif()
 
@@ -382,6 +392,7 @@ if(INSTALL_GUI)
             Qt${QT_VERSION_MAJOR}::PrintSupport
             "${OPENGL_LIBRARIES}"
             OpenMP::OpenMP_CXX
+            ${Boost_LIBRARIES}
         )
     else()
         target_link_libraries(DCSsimu PRIVATE
@@ -391,6 +402,7 @@ if(INSTALL_GUI)
             Qt${QT_VERSION_MAJOR}::OpenGL
             Qt${QT_VERSION_MAJOR}::PrintSupport
             "${OPENGL_LIBRARIES}"
+            ${Boost_LIBRARIES}
         )
     endif()
 endif()
@@ -425,5 +437,6 @@ endif()
 if(OpenMP_CXX_FOUND)
     target_link_libraries(DCSsimu_cli PRIVATE
         OpenMP::OpenMP_CXX
+        ${Boost_LIBRARIES}
     )
 endif()
