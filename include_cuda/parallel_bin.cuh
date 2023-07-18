@@ -82,7 +82,7 @@ public:
         double n2x_anti;
         double n2y_anti;
         bool sec_crystal_Antiparallel_reach;
-        int total_current_bins;
+        size_t total_current_bins;
         int numbins;
         double tw_d1_para;
         double tw_d2_para;

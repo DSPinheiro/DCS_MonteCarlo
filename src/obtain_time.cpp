@@ -24,6 +24,10 @@ Obtain_time::Obtain_time(SimulationInterface *w)
 
     SimulationInterface::Times times = { 0, Hour, Min, Sec };
 
+    #ifdef QT_EXISTS
+        emit w->changeTimesSignal(times);
+    #endif
+
     std::stringstream logString;
     
     logString.clear();
