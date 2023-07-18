@@ -220,6 +220,9 @@ void Simu_Starter::Make_Simu(SimulationInterface* w){
     gener_out << " *Only works on simple simulation" << GeoParametersInput.tilt_C1 << "deg" << endl;
     gener_out << endl;
 
+    gener_out << "Using Interpolating Crystal Reflection Profiles from files in: " << GeoParametersInput.reflection_profiles_dir << endl;
+    gener_out << endl;
+
     Make_Angle_brode = false;
 
     gener_out << endl;
@@ -249,7 +252,7 @@ void Simu_Starter::Make_Simu(SimulationInterface* w){
         gener_out << "Gaussian width FWHM (energy) = " << PhysicalParametersInput.gauss_Doop * termFW * line_ener / linelamda << " eV" << endl;
     }else{
         gener_out << "Make more energies from file" << endl;
-        gener_out << "Using energy spectrum from file Energy_spectrum_600.txt" << endl;
+        gener_out << "Using energy spectrum from file: " << FullEnergySpectrumInput.energy_spectrum_file << endl;
     }
 
     gener_out << "With a constant background: " << (FullEnergySpectrumInput.Do_background ? "True" : "False") << endl;
@@ -273,7 +276,7 @@ void Simu_Starter::Make_Simu(SimulationInterface* w){
     Util::test_In();
 
     Util::Set_angs();
-    Util::Read_CurveResponce();
+    Util::Read_CurveResponce(GeoParametersInput.reflection_profiles_dir);
 
     logString.clear();
     logString << "Monte Carlo simulation of the double Crystal spectrometer" << endl;

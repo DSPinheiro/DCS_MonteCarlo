@@ -37,7 +37,20 @@ static std::vector<uint8_t> serialize_inputs()
 
     serialize_data(buffer, GeolengthelementsInput);
 
-    serialize_data(buffer, GeoParametersInput);
+    // serialize_data(buffer, GeoParametersInput);
+    serialize_data(buffer, GeoParametersInput.Exp_crys1);
+    serialize_data(buffer, GeoParametersInput.teta_table);
+    serialize_data(buffer, GeoParametersInput.OffsetRotCry1);
+    serialize_data(buffer, GeoParametersInput.teta_detec_para);
+    serialize_data(buffer, GeoParametersInput.teta_detec_anti);
+    serialize_data(buffer, GeoParametersInput.tilt_C1);
+    serialize_data(buffer, GeoParametersInput.tilt_C2);
+    serialize_data(buffer, GeoParametersInput.xsi);
+    serialize_data(buffer, GeoParametersInput.center_1cry_at);
+    serialize_data(buffer, GeoParametersInput.center_2cry_at);
+    serialize_data(buffer, GeoParametersInput.make_table_noise);
+    serialize_data(buffer, GeoParametersInput.table_resolution);
+    serialize_data(buffer, GeoParametersInput.reflection_profiles_dir);
 
     serialize_data(buffer, CurveVerticalTiltInput);
 
@@ -94,7 +107,20 @@ static void deserialize_inputs(std::vector<uint8_t>& buffer)
 
     consume_buffer(buffer, GeolengthelementsInput);
 
-    consume_buffer(buffer, GeoParametersInput);
+    // consume_buffer(buffer, GeoParametersInput);
+    consume_buffer(buffer, GeoParametersInput.Exp_crys1);
+    consume_buffer(buffer, GeoParametersInput.teta_table);
+    consume_buffer(buffer, GeoParametersInput.OffsetRotCry1);
+    consume_buffer(buffer, GeoParametersInput.teta_detec_para);
+    consume_buffer(buffer, GeoParametersInput.teta_detec_anti);
+    consume_buffer(buffer, GeoParametersInput.tilt_C1);
+    consume_buffer(buffer, GeoParametersInput.tilt_C2);
+    consume_buffer(buffer, GeoParametersInput.xsi);
+    consume_buffer(buffer, GeoParametersInput.center_1cry_at);
+    consume_buffer(buffer, GeoParametersInput.center_2cry_at);
+    consume_buffer(buffer, GeoParametersInput.make_table_noise);
+    consume_buffer(buffer, GeoParametersInput.table_resolution);
+    consume_buffer(buffer, GeoParametersInput.reflection_profiles_dir);
 
     consume_buffer(buffer, CurveVerticalTiltInput);
 
@@ -278,6 +304,22 @@ GUISettingsWindow::GUISettingsWindow(QWidget *parent) :
     connect(ui->make_img_plates_6, &QCheckBox::stateChanged, this, [this](int s) { CurvedCrystalInput.Curve_crystall = (bool)s; });
     connect(ui->src_aprt_53, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { CurvedCrystalInput.R_cur_crys_1 = v; });
     connect(ui->src_aprt_54, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { CurvedCrystalInput.R_cur_crys_2 = v; });
+
+    connect(ui->pushButton_2, &QPushButton::clicked, this, [this]() {
+        QString dirname = QFileDialog::getExistingDirectory(this,
+            tr("Select Reflection Profiles Folder"),
+            QString(),
+            QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks
+        );
+
+        if(dirname.isEmpty())
+        {
+            return;
+        }
+
+        GeoParametersInput.reflection_profiles_dir = dirname.toStdString();
+        ui->lineEdit_2->setText(QString::fromStdString(GeoParametersInput.reflection_profiles_dir));
+    });
 
     // ================================================================================================
     // Plot Settings
@@ -469,15 +511,23 @@ GUISettingsWindow::GUISettingsWindow(QWidget *parent) :
 #ifdef LIB_DEF
     connect(ui->startSim_button, &QPushButton::clicked, wsimu, [this]() {
         struct stat buffer;
-        bool exist_file = (stat(FullEnergySpectrumInput.energy_spectrum_file.c_str(), &buffer) == 0);
+        bool exist_file_spectrum = (stat(FullEnergySpectrumInput.energy_spectrum_file.c_str(), &buffer) == 0);
+        bool exist_folder_profiles = (stat(GeoParametersInput.reflection_profiles_dir.c_str(), &buffer) == 0);
 
-        if (!exist_file) {
+        if (!exist_file_spectrum) {
             energyFileMissingDialog();
             wsimu->setPctDone(1.0);
         }
         else
         {
-            wsimu->startSimulationThread();
+            if (!exist_folder_profiles) {
+                profilesFolderMissingDialog();
+                wsimu->setPctDone(1.0);
+            }
+            else
+            {
+                wsimu->startSimulationThread();
+            }
         }
     });
     ui->startSim_button->setEnabled(false);
@@ -489,15 +539,23 @@ GUISettingsWindow::GUISettingsWindow(QWidget *parent) :
 #else
     connect(ui->startSim_button, &QPushButton::clicked, wsimu, [this]() {
         struct stat buffer;
-        bool exist_file = (stat(FullEnergySpectrumInput.energy_spectrum_file.c_str(), &buffer) == 0);
+        bool exist_file_spectrum = (stat(FullEnergySpectrumInput.energy_spectrum_file.c_str(), &buffer) == 0);
+        bool exist_folder_profiles = (stat(GeoParametersInput.reflection_profiles_dir.c_str(), &buffer) == 0);
 
-        if (!exist_file) {
+        if (!exist_file_spectrum) {
             energyFileMissingDialog();
             wsimu->setPctDone(1.0);
         }
         else
         {
-            wsimu->show();
+            if (!exist_folder_profiles) {
+                profilesFolderMissingDialog();
+                wsimu->setPctDone(1.0);
+            }
+            else
+            {
+                wsimu->show();
+            }
         }
     });
     ui->startSim_button->setEnabled(true);
@@ -531,7 +589,7 @@ GUISettingsWindow::GUISettingsWindow(QWidget *parent) :
     });
 #ifdef LIB_DEF
     // Where do we output to when using the lib?
-    strcat(Output_dir, "DCSsimu_output");
+    strcat(Output_dir, "\\DCSsimu_output");
     if(!std::filesystem::is_directory(Output_dir) || !std::filesystem::exists(Output_dir))
     {
         std::filesystem::create_directories(Output_dir);
@@ -574,10 +632,27 @@ void GUISettingsWindow::energyFileMissingDialog()
     int ret = msgBox.exec();
 }
 
+void GUISettingsWindow::profilesFolderMissingDialog()
+{
+    QString message = "Could not open the folder with reflection profiles: ";
+    message.append(QString::fromUtf8(GeoParametersInput.reflection_profiles_dir.c_str()));
+
+    QMessageBox msgBox;
+    msgBox.setText(message);
+    msgBox.setInformativeText("Please check if the folder still exists or has been corrupted.");
+    msgBox.setStandardButtons(QMessageBox::Close);
+    msgBox.setDefaultButton(QMessageBox::Close);
+    int ret = msgBox.exec();
+}
+
+
 void GUISettingsWindow::setup()
 {
     ui->lineEdit->setPlaceholderText(QString(File_simu) + "Energy_spectrum.txt");
     FullEnergySpectrumInput.energy_spectrum_file = ui->lineEdit->placeholderText().toStdString();
+
+    ui->lineEdit_2->setPlaceholderText(QString(File_simu) + "Crystal_Profiles");
+    GeoParametersInput.reflection_profiles_dir = ui->lineEdit_2->placeholderText().toStdString();
 
     #ifndef OPENMP
         ui->src_aprt_63->setEnabled(false);
@@ -651,6 +726,7 @@ void GUISettingsWindow::updateElements()
     ui->src_aprt_8->setValue(GeolengthelementsInput.ydetc);
     ui->src_aprt_9->setValue(GeolengthelementsInput.zdetc);
     ui->src_aprt_10->setValue(GeolengthelementsInput.shift_det_ver);
+    ui->lineEdit_2->setText(QString::fromStdString(GeoParametersInput.reflection_profiles_dir));
 
     // ================================================================================================
     // Crystal Settings

@@ -24,6 +24,7 @@ public:
     void setup();
     void updateElements();
     void energyFileMissingDialog();
+    void profilesFolderMissingDialog();
 
 private:
     SimulationInterface* wsimu;

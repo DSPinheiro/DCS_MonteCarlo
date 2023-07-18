@@ -50,7 +50,7 @@ namespace Util {
     void initPlates();
     void Make(int crystal, double y, double z, int &counts_sour, int &counts_C1, int &counts_C2_para, int &counts_detc_para, int &counts_C2_anti, int &counts_detc_anti);
     void fit(bool Parallel);
-    void Read_CurveResponce();
+    void Read_CurveResponce(const std::string& filename);
     std::vector<double> horCorr(double y_pro_C1, double y_max_C1, double z_pro_C1, double z_max_C1, bool type_c);
     void FitData(int numbins, double angle_para, int toint_para, double angle_anti, int toint_anti);
     void Read_EnergySpectrum(const std::string& filename);

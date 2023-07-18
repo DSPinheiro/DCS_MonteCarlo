@@ -90,6 +90,7 @@ int ENTRYPOINT(int argc, char *argv[]){
     }
 
     FullEnergySpectrumInput.energy_spectrum_file = input_params.input_dir_path + "/Energy_spectrum.txt";
+    GeoParametersInput.reflection_profiles_dir = input_params.input_dir_path + "/Crystal_Profiles";
 
     SimulationInterface::headlessSimu();
 #else

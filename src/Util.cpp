@@ -2022,7 +2022,7 @@ void Util::fit(bool Parallel) {
 /// <summary>
 /// Function to read the crystal curve responces.
 /// </summary>
-void Util::Read_CurveResponce() {
+void Util::Read_CurveResponce(const std::string& filename) {
 
     std::stringstream logString;
 
@@ -2036,17 +2036,17 @@ void Util::Read_CurveResponce() {
 
     if (GeometryInput.mode_bragg_geo) {
 
-        char inEnergies[1024] = "";
-        strcat(inEnergies, File_simu);
-        strcat(inEnergies, "\\Crystal_Profiles");
+        char inEnergies[2048] = "";
+        strcat(inEnergies, filename.c_str());
         strcat(inEnergies, "\\sorted_ens.txt");
 
         struct stat buffer;
         exist_file = (stat(inEnergies, &buffer) == 0);
 
         if (exist_file)
+        {
             pathEnergies.open(inEnergies);
-        else {
+        } else {
             logString << "File \"sorted_ens.txt\" does not exist" << std::endl;
 
             throw std::runtime_error("A file with the available crystal profile energies is required.");
@@ -2095,9 +2095,8 @@ void Util::Read_CurveResponce() {
     for (std::string ener : _available_energies) {
         std::ifstream pathFile_p;
 
-        char inFile_p[1024] = "";
-        strcat(inFile_p, File_simu);
-        strcat(inFile_p, "\\Crystal_Profiles");
+        char inFile_p[2048] = "";
+        strcat(inFile_p, filename.c_str());
         strcat(inFile_p, (std::string("\\") + ener + std::string("keV_p")).c_str());
 
         struct stat buffer1;
@@ -2139,9 +2138,8 @@ void Util::Read_CurveResponce() {
 
         std::ifstream pathFile_s;
 
-        char inFile_s[1024] = "";
-        strcat(inFile_s, File_simu);
-        strcat(inFile_s, "\\Crystal_Profiles");
+        char inFile_s[2048] = "";
+        strcat(inFile_s, filename.c_str());
         strcat(inFile_s, (std::string("\\") + ener + std::string("keV_s")).c_str());
 
         struct stat buffer2;

@@ -136,6 +136,7 @@ struct GeoParameters {
     double center_2cry_at;
     bool make_table_noise;
     double table_resolution;
+    std::string reflection_profiles_dir;
 };
 
 struct CurveVerticalTilt {

@@ -633,7 +633,7 @@ InputSettingsPrompt::InputSettingsPrompt(GUISettingsWindow* simWindow, QWidget *
             return;
         }
 
-        ui->lineEdit_3->setText(dirname);
+        ui->lineEdit_3->setText(dirname + "/");
     });
 }
 
