@@ -18,12 +18,12 @@
 
 #include "../include/gif.h"
 
-#ifndef QT_EXISTS
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "../include/stb_image_write.h"
-#endif
-
+#ifdef QT_EXISTS
+#else
+// #define STB_IMAGE_WRITE_IMPLEMENTATION
+// #include "../include/stb_image_write.h"
 #include "../include/gnuplot-iostream.h"
+#endif
 
 using namespace std;
 
@@ -43,7 +43,9 @@ bool Source_complex::run_Source(SimulationInterface *w){
     GifWriter gDet_para;
     GifWriter gDet_anti;
 
+    #ifndef QT_EXISTS
     Gnuplot gp;
+    #endif
     
 
     stringstream logString;
@@ -1492,9 +1494,9 @@ bool Source_complex::run_Source(SimulationInterface *w){
     {
         //write histograms to pdf
         #ifdef QT_EXISTS
-        emit w->P_hist->savePdf(QString((string(Output_dir) + "Parallel_Histogram.pdf").c_str()), w->P_hist->width(), w->P_hist->height(),
+        emit w->P_hist->savePdf(QString((string(Output_dir) + "Parallel_Histogram.pdf").c_str()), hist_pdf_height, hist_pdf_width,
                             QCP::epAllowCosmetic, QString("DCS Simulation"), QString("Parallel Histogram"));
-        emit w->AP_hist->savePdf(QString((string(Output_dir) + "AntiParallel_Histogram.pdf").c_str()), w->AP_hist->width(), w->AP_hist->height(),
+        emit w->AP_hist->savePdf(QString((string(Output_dir) + "AntiParallel_Histogram.pdf").c_str()), hist_pdf_height, hist_pdf_width,
                             QCP::epAllowCosmetic, QString("DCS Simulation"), QString("AntiParallel Histogram"));
         #else
         //write histograms to image files (without QT)

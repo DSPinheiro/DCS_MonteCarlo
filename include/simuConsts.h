@@ -392,6 +392,17 @@ static inline double red( double grayscale )
 #define n_his_ima 100
 #endif
 
+
+#ifndef hist_pdf_width
+#define hist_pdf_width 1920
+#endif
+
+
+#ifndef hist_pdf_height
+#define hist_pdf_height 1080
+#endif
+
+
 #ifndef n_his_g
 #define n_his_g 100
 #endif
