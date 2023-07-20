@@ -19,6 +19,10 @@ cmake --build . --config Release --target install
 
 ## Changelog
 
+**20/07/2023**\
+Fixed some issues with the crystal reflection profiles.\
+Now we can use the results to compare more directly with experiment and across simulations.\
+
 **11/07/2023**\
 GPU Accelerated Simulation has been implemented.\
 Each bin can now be executed in the GPU (Nvidia) using CUDA libraries.\
