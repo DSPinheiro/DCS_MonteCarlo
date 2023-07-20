@@ -1138,20 +1138,20 @@ bool Source_complex::run_Source(SimulationInterface *w){
                 SimulationInterface::Stats
                 {
                     #ifdef CUDA
-                    (ParallelSettingsInput.Make_GPU) ? reduce_CUDA->counts_sour : reduce->counts_sour ,
-                    (ParallelSettingsInput.Make_GPU) ? reduce_CUDA->counts_C1 : reduce->counts_C1 ,
-                    (ParallelSettingsInput.Make_GPU) ? reduce_CUDA->counts_C2_para : reduce->counts_C2_para ,
-                    (ParallelSettingsInput.Make_GPU) ? reduce_CUDA->counts_C2_anti : reduce->counts_C2_anti ,
-                    (ParallelSettingsInput.Make_GPU) ? reduce_CUDA->counts_detc_para : reduce->counts_detc_para ,
-                    (ParallelSettingsInput.Make_GPU) ? reduce_CUDA->counts_detc_anti : reduce->counts_detc_anti ,
+                    (ParallelSettingsInput.Make_GPU) ? reduce_CUDA->counts_sour : reduce->counts_sour,
+                    (ParallelSettingsInput.Make_GPU) ? reduce_CUDA->counts_C1 : reduce->counts_C1,
+                    (ParallelSettingsInput.Make_GPU) ? (int)((double)reduce_CUDA->counts_C2_para * reflection_norm) : (int)((double)reduce->counts_C2_para * reflection_norm),
+                    (ParallelSettingsInput.Make_GPU) ? (int)((double)reduce_CUDA->counts_C2_anti * reflection_norm) : (int)((double)reduce->counts_C2_anti * reflection_norm),
+                    (ParallelSettingsInput.Make_GPU) ? (int)((double)reduce_CUDA->counts_detc_para * reflection_norm * reflection_norm) : (int)((double)reduce->counts_detc_para * reflection_norm * reflection_norm),
+                    (ParallelSettingsInput.Make_GPU) ? (int)((double)reduce_CUDA->counts_detc_anti * reflection_norm * reflection_norm) : (int)((double)reduce->counts_detc_anti * reflection_norm * reflection_norm),
                     (ParallelSettingsInput.Make_GPU) ? bin_CUDA->delrot : bin->delrot,
                     #else
                     reduce->counts_sour,
                     reduce->counts_C1,
-                    reduce->counts_C2_para,
-                    reduce->counts_C2_anti,
-                    reduce->counts_detc_para,
-                    reduce->counts_detc_anti,
+                    reduce->counts_C2_para * reflection_norm,
+                    reduce->counts_C2_anti * reflection_norm,
+                    reduce->counts_detc_para * reflection_norm * reflection_norm,
+                    reduce->counts_detc_anti * reflection_norm * reflection_norm,
                     bin->delrot,
                     #endif
                     eventsToTrace_para,
@@ -1164,10 +1164,10 @@ bool Source_complex::run_Source(SimulationInterface *w){
         #ifdef CUDA
         if(ParallelSettingsInput.Make_GPU)
         {
-            toint_para_total[bin_CUDA->numbins - 1] += reduce_CUDA->toint_para;
+            toint_para_total[bin_CUDA->numbins - 1] += reduce_CUDA->toint_para * reflection_norm * reflection_norm;
             total_para = toint_para_total[bin_CUDA->numbins - 1];
 
-            toint_anti_total[bin_CUDA->numbins - 1] += reduce_CUDA->toint_anti;
+            toint_anti_total[bin_CUDA->numbins - 1] += reduce_CUDA->toint_anti * reflection_norm * reflection_norm;
             total_anti = toint_anti_total[bin_CUDA->numbins - 1];
 
 
@@ -1177,10 +1177,10 @@ bool Source_complex::run_Source(SimulationInterface *w){
         else
         {
         #endif
-        toint_para_total[bin->numbins - 1] += reduce->toint_para;
+        toint_para_total[bin->numbins - 1] += reduce->toint_para * reflection_norm * reflection_norm;
         total_para = toint_para_total[bin->numbins - 1];
 
-        toint_anti_total[bin->numbins - 1] += reduce->toint_anti;
+        toint_anti_total[bin->numbins - 1] += reduce->toint_anti * reflection_norm * reflection_norm;
         total_anti = toint_anti_total[bin->numbins - 1];
 
 
@@ -1195,14 +1195,14 @@ bool Source_complex::run_Source(SimulationInterface *w){
             #ifdef CUDA
             if(ParallelSettingsInput.Make_GPU)
             {
-                hist_para << - angle_para << "\t" << reduce_CUDA->toint_para << "\t" << sqrt((double)reduce_CUDA->toint_para) << endl;
-                hist_anti << - angle_anti << "\t" << reduce_CUDA->toint_anti << "\t" << sqrt((double)reduce_CUDA->toint_anti) << endl;
+                hist_para << - angle_para << "\t" << reduce_CUDA->toint_para * reflection_norm * reflection_norm << "\t" << sqrt((double)(reduce_CUDA->toint_para * reflection_norm * reflection_norm)) << endl;
+                hist_anti << - angle_anti << "\t" << reduce_CUDA->toint_anti * reflection_norm * reflection_norm << "\t" << sqrt((double)(reduce_CUDA->toint_anti * reflection_norm * reflection_norm)) << endl;
             }
             else
             {
             #endif
-                hist_para << - angle_para << "\t" << reduce->toint_para << "\t" << sqrt((double)reduce->toint_para) << endl;
-                hist_anti << - angle_anti << "\t" << reduce->toint_anti << "\t" << sqrt((double)reduce->toint_anti) << endl;
+                hist_para << - angle_para << "\t" << reduce->toint_para * reflection_norm * reflection_norm << "\t" << sqrt((double)(reduce->toint_para * reflection_norm * reflection_norm)) << endl;
+                hist_anti << - angle_anti << "\t" << reduce->toint_anti * reflection_norm * reflection_norm << "\t" << sqrt((double)(reduce->toint_anti * reflection_norm * reflection_norm)) << endl;
             #ifdef CUDA
             }
             #endif
@@ -1214,10 +1214,10 @@ bool Source_complex::run_Source(SimulationInterface *w){
             if(ParallelSettingsInput.Make_GPU)
             {
                 Make_plot_profiles::plotProfiles(
-                    energy_sum_para[bin_CUDA->numbins - 1] / total_para,
+                    energy_sum_para[bin_CUDA->numbins - 1] / reduce_CUDA->toint_para,
                     angle_para,
                     total_para,
-                    energy_sum_anti[bin_CUDA->numbins - 1] / total_anti,
+                    energy_sum_anti[bin_CUDA->numbins - 1] / reduce_CUDA->toint_anti,
                     angle_anti,
                     total_anti,
                     bin_CUDA->numbins,
@@ -1234,16 +1234,16 @@ bool Source_complex::run_Source(SimulationInterface *w){
             #endif
             Make_plot_profiles::plotProfiles(
                 #ifndef OPENMP
-                reduce->energy_sum_para->at(bin->numbins - 1) / total_para,
+                reduce->energy_sum_para->at(bin->numbins - 1) / reduce->toint_para,
                 #else
-                energy_sum_para[bin->numbins - 1] / total_para,
+                energy_sum_para[bin->numbins - 1] / reduce->toint_para,
                 #endif
                 angle_para,
                 total_para,
                 #ifndef OPENMP
-                reduce->energy_sum_anti->at(bin->numbins - 1) / total_anti,
+                reduce->energy_sum_anti->at(bin->numbins - 1) / reduce->toint_anti,
                 #else
-                energy_sum_anti[bin->numbins - 1] / total_anti,
+                energy_sum_anti[bin->numbins - 1] / reduce->toint_anti,
                 #endif
                 angle_anti,
                 total_anti,
@@ -1577,7 +1577,7 @@ void Source_complex::makeBin(SimulationInterface *w, SetupParameters *setup, Bin
     #ifdef OPENMP
     double energy_sum_para_thread = reduce->energy_sum_para_thread; double energy_sum_anti_thread = reduce->energy_sum_anti_thread;
     #endif
-    int toint_para = reduce->toint_para; int toint_anti = reduce->toint_anti; int counts_sour = reduce->counts_sour; int counts_C1 = reduce->counts_C1;
+    int toint_para = reduce->toint_para; int toint_anti = reduce->toint_anti; size_t counts_sour = reduce->counts_sour; size_t counts_C1 = reduce->counts_C1;
     int counts_C2_para = reduce->counts_C2_para; int counts_C2_anti = reduce->counts_C2_anti; int counts_detc_para = reduce->counts_detc_para;
     int counts_detc_anti = reduce->counts_detc_anti;
 

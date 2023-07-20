@@ -183,8 +183,8 @@ public:
         #endif
         int toint_para;
         int toint_anti;
-        int counts_sour;
-        int counts_C1;
+        size_t counts_sour;
+        size_t counts_C1;
         int counts_C2_para;
         int counts_C2_anti;
         int counts_detc_para;

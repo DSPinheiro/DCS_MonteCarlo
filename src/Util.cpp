@@ -1734,8 +1734,8 @@ void Util::initPlates() {
 /// z value of the projected event position.
 /// </param>
 void Util::Make(int crystal, double y, double z,
-                int &counts_sour,
-                int &counts_C1,
+                size_t &counts_sour,
+                size_t &counts_C1,
                 int &counts_C2_para,
                 int &counts_detc_para,
                 int &counts_C2_anti,
@@ -2092,6 +2092,88 @@ void Util::Read_CurveResponce(const std::string& filename) {
 
     int energyIndex = 0;
 
+
+    //Setup the normalization factors
+    for (std::string ener : _available_energies) {
+        std::ifstream pathFile_p;
+
+        char inFile_p[2048] = "";
+        strcat(inFile_p, filename.c_str());
+        strcat(inFile_p, (std::string("\\") + ener + std::string("keV_p")).c_str());
+
+        struct stat buffer1;
+        exist_file = (stat(inFile_p, &buffer1) == 0);
+
+        if (exist_file) {
+            pathFile_p.open(inFile_p);
+            //cout << "Reading file: " << ener << "keV_p" << endl;
+        }
+        else {
+            logString.clear();
+            logString << "File " << inFile_p << " does not exist" << std::endl;
+            #ifdef QT_EXISTS
+            if(logBox != NULL)
+                logBox->appendPlainText(logString.str().c_str());
+            #else
+            std::cout << logString.str();
+            #endif
+
+            throw std::runtime_error("Expected a crystall responce from XOP in bragg geometry for energy" + ener);
+        }
+
+        std::vector<plotresponc> responce;
+        if (pathFile_p.is_open()) {
+            while (pathFile_p >> cel_re1 >> cel_re2) {
+                plotresponc tmp;
+                tmp.reflecti_total_p = cel_re2;
+                responce.push_back(tmp);
+            }
+
+            pathFile_p.close();
+        }
+
+        std::ifstream pathFile_s;
+
+        char inFile_s[2048] = "";
+        strcat(inFile_s, filename.c_str());
+        strcat(inFile_s, (std::string("\\") + ener + std::string("keV_s")).c_str());
+
+        struct stat buffer2;
+        exist_file = (stat(inFile_s, &buffer2) == 0);
+
+        if (exist_file) {
+            pathFile_s.open(inFile_s);
+            //cout << "Reading file: " << ener << "keV_p" << endl;
+        }
+        else {
+            logString.clear();
+            logString << "File " << inFile_s << " does not exist" << std::endl;
+            #ifdef QT_EXISTS
+            if(logBox != NULL)
+                logBox->appendPlainText(logString.str().c_str());
+            #else
+            std::cout << logString.str();
+            #endif
+
+            throw std::runtime_error("Expected a crystall responce from XOP in bragg geometry for energy" + ener);
+        }
+
+        int index = 0;
+        if (pathFile_s.is_open()) {
+            while (pathFile_s >> cel_re1 >> cel_re2) {
+                if(reflection_norm < responce[index].reflecti_total_p + cel_re2)
+                {
+                    reflection_norm = responce[index].reflecti_total_p + cel_re2;
+                }
+
+                index++;
+            }
+
+            pathFile_s.close();
+        }
+    }
+
+
     for (std::string ener : _available_energies) {
         std::ifstream pathFile_p;
 
@@ -2128,7 +2210,7 @@ void Util::Read_CurveResponce(const std::string& filename) {
                 tmp.reflecti_two_deriv = 0;
                 tmp.reflecti_total_s = 0;
                 tmp.reflecti_two_deriv_s = 0;
-                tmp.reflecti_total_p = cel_re2;
+                tmp.reflecti_total_p = cel_re2 / reflection_norm;
                 tmp.reflecti_two_deriv_p = 0;
                 responce.push_back(tmp);
             }
@@ -2165,8 +2247,8 @@ void Util::Read_CurveResponce(const std::string& filename) {
         int index = 0;
         if (pathFile_s.is_open()) {
             while (pathFile_s >> cel_re1 >> cel_re2) {
-                responce[index].reflecti_total = responce[index].reflecti_total_p + cel_re2;
-                responce[index].reflecti_total_s = cel_re2;
+                responce[index].reflecti_total = (responce[index].reflecti_total_p + cel_re2) / reflection_norm;
+                responce[index].reflecti_total_s = cel_re2 / reflection_norm;
 
                 index++;
             }

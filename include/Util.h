@@ -48,7 +48,7 @@ namespace Util {
     double getEnergy(double a_lamds_uni, double db_lamds_uni, double tw_d);
     std::vector<double> getLims(double tetaref, double delrot_min, double delrot_max, double fi_max, double teta_max, double teta_min);
     void initPlates();
-    void Make(int crystal, double y, double z, int &counts_sour, int &counts_C1, int &counts_C2_para, int &counts_detc_para, int &counts_C2_anti, int &counts_detc_anti);
+    void Make(int crystal, double y, double z, size_t &counts_sour, size_t &counts_C1, int &counts_C2_para, int &counts_detc_para, int &counts_C2_anti, int &counts_detc_anti);
     void fit(bool Parallel);
     void Read_CurveResponce(const std::string& filename);
     std::vector<double> horCorr(double y_pro_C1, double y_max_C1, double z_pro_C1, double z_max_C1, bool type_c);

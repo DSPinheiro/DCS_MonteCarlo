@@ -93,6 +93,9 @@ extern std::vector<double> available_energies;
 extern std::vector<std::vector<plotresponc>> plotresponce_mide;
 extern std::vector<plotresponc_vecs> Crystal_Responces;
 
+extern double reflection_norm;
+
+
 extern std::vector<double> min_angle_resp, max_angle_resp;
 
 

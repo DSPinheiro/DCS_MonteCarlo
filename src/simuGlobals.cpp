@@ -79,6 +79,9 @@ std::vector<double> available_energies;
 std::vector<std::vector<plotresponc>> plotresponce_mide;
 std::vector<plotresponc_vecs> Crystal_Responces;
 
+double reflection_norm;
+
+
 std::vector<double> min_angle_resp, max_angle_resp;
 
 

@@ -232,8 +232,8 @@ public:
         double energy_sum_anti_thread;
         int toint_para;
         int toint_anti;
-        int counts_sour;
-        int counts_C1;
+        size_t counts_sour;
+        size_t counts_C1;
         int counts_C2_para;
         int counts_C2_anti;
         int counts_detc_para;
@@ -292,7 +292,7 @@ public:
 
         __host__ __device__ ReductionVars(
             double energy_sum_para_thread, double energy_sum_anti_thread,
-            int toint_para, int toint_anti, int counts_sour, int counts_C1, int counts_C2_para, int counts_C2_anti, int counts_detc_para,
+            int toint_para, int toint_anti, size_t counts_sour, size_t counts_C1, int counts_C2_para, int counts_C2_anti, int counts_detc_para,
             int counts_detc_anti, float hist_image_plate_source[n_his_ima * n_his_ima],
             float hist_image_plate_crystal1[n_his_ima * n_his_ima], float hist_image_plate_crystal2_para[n_his_ima * n_his_ima],
             float hist_image_plate_crystal2_anti[n_his_ima * n_his_ima], float hist_image_plate_detc_para[n_his_ima * n_his_ima],

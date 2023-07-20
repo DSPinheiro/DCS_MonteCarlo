@@ -220,9 +220,6 @@ void Simu_Starter::Make_Simu(SimulationInterface* w){
     gener_out << " *Only works on simple simulation" << GeoParametersInput.tilt_C1 << "deg" << endl;
     gener_out << endl;
 
-    gener_out << "Using Interpolating Crystal Reflection Profiles from files in: " << GeoParametersInput.reflection_profiles_dir << endl;
-    gener_out << endl;
-
     Make_Angle_brode = false;
 
     gener_out << endl;
@@ -277,6 +274,16 @@ void Simu_Starter::Make_Simu(SimulationInterface* w){
 
     Util::Set_angs();
     Util::Read_CurveResponce(GeoParametersInput.reflection_profiles_dir);
+
+
+    gener_out << "Using Interpolating Crystal Reflection Profiles from files in: " << GeoParametersInput.reflection_profiles_dir << endl;
+    gener_out << endl;
+    gener_out << "Normalizing factor for reflections: " << reflection_norm << endl;
+    gener_out << endl;
+
+    gener_out << "-------------------------------------------------------" << endl;
+    gener_out << endl;
+
 
     logString.clear();
     logString << "Monte Carlo simulation of the double Crystal spectrometer" << endl;
