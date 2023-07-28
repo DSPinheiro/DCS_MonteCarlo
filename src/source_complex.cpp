@@ -1148,10 +1148,10 @@ bool Source_complex::run_Source(SimulationInterface *w){
                     #else
                     reduce->counts_sour,
                     reduce->counts_C1,
-                    reduce->counts_C2_para * reflection_norm,
-                    reduce->counts_C2_anti * reflection_norm,
-                    reduce->counts_detc_para * reflection_norm * reflection_norm,
-                    reduce->counts_detc_anti * reflection_norm * reflection_norm,
+                    (int)((double)reduce->counts_C2_para * reflection_norm),
+                    (int)((double)reduce->counts_C2_anti * reflection_norm),
+                    (int)((double)reduce->counts_detc_para * reflection_norm * reflection_norm),
+                    (int)((double)reduce->counts_detc_anti * reflection_norm * reflection_norm),
                     bin->delrot,
                     #endif
                     eventsToTrace_para,

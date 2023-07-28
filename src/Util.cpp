@@ -1133,22 +1133,19 @@ void Util::analyse() {
 /// </summary>
 void Util::geo_corre() {
 
-    double Dis_total, teta_ref, tan_e, con_deg, con_rad;
-
-    con_deg = 180 / M_PI;
-    con_rad = M_PI / 180;
+    double Dis_total, teta_ref, tan_e;
 
     Dis_total = GeoParapathlengthsInput.LT_aper + GeoParapathlengthsInput.dist_T_Cr1 + GeoParapathlengthsInput.dist_Cr1_Cr2 + GeoParapathlengthsInput.dist_Cr2_Det;
-    teta_ref = M_PI / 2 - teta_crys1 * con_rad;
+    teta_ref = M_PI / 2 - teta_crys1 * convrad;
     tan_e = tan(teta_ref);
 
     if (UserSettingsInput.Make_Vertical) {
         if (GeoParapathlengthsInput.type_source == "UC")
-            vert_div_corr = tan_e * (pow(GeolengthelementsInput.S_aper, 2) + pow(GeolengthelementsInput.zdetc, 2) / (24 * pow(Dis_total, 2)));
+            vert_div_corr = tan_e * (pow(GeolengthelementsInput.S_aper, 2) + pow(GeolengthelementsInput.zdetc, 2)) / (24 * pow(Dis_total, 2));
         else if (UserSettingsInput.Make_Vertical)
-            vert_div_corr = tan_e * (pow(GeolengthelementsInput.z_aper, 2) + pow(GeolengthelementsInput.zdetc, 2) / (24 * pow(Dis_total, 2)));
+            vert_div_corr = tan_e * (pow(GeolengthelementsInput.z_aper, 2) + pow(GeolengthelementsInput.zdetc, 2)) / (24 * pow(Dis_total, 2));
 
-        vert_div_corr *= con_deg;
+        vert_div_corr *= convdeg;
 
     }
     else
@@ -1578,7 +1575,7 @@ double Util::getEnergy(double a_lamds_uni, double db_lamds_uni, double tw_d) {
             }
         }
 
-        hit = Util::GaussianBox(PhysicalParametersInput.gauss_Doop, hit, true);
+        hit = Util::GaussianBox(PhysicalParametersInput.gauss_Doop, hit, false);
 
         return hit;
 
@@ -2668,7 +2665,6 @@ void Util::test_In() {
     tan_e2 = tan(tetaref) / 2;
     cos_e2 = 2 * cos(2 * tetaref);
     cos_e = cos(tetaref);
-
 
     esti_para = convdeg * tan_e2 * (pow(C2_para, 2) + 4 * C2_para * c1 + 3 * pow(c1, 2)) - convdeg * xsi_rad * (C2_para + c1) / cos_e;
     esti_anti = convdeg * tan_e2 * (pow(C2_anti, 2) + 4 * C2_anti * c1 + pow(c1, 2) * (1 - 2 * cos_e2)) + convdeg * tan_e2 * (2 * pow(xsi_rad, 2)) - convdeg * xsi_rad * (C2_anti + c1 * (1 - cos_e2)) / cos_e;

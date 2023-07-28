@@ -33,8 +33,8 @@ public:
     
     struct Stats
     {
-        int c_sour;
-        int c_cr1;
+        size_t c_sour;
+        size_t c_cr1;
         int c_cr2_para;
         int c_cr2_anti;
         int c_detc_para;
