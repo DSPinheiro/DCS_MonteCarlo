@@ -1368,6 +1368,7 @@ bool Source_complex::run_Source(SimulationInterface *w){
             GifWriteFrame(&gSource, plate_img.data(), n_his_ima, n_his_ima, n_his_ima / 4);
             
             plate_img.clear();
+            plate_img.resize(n_his_ima * n_his_ima * 4);
             for(int i = 0; i < n_his_ima * n_his_ima; i++){
                 plate_img[4 * i] = (int)(255 * red(2 * ((hist_image_plate_crystal1[(i % n_his_ima) * n_his_ima + (int)(i / n_his_ima)] / max_hist[1]) - 0.5)));
                 plate_img[4 * i + 1] = (int)(255 * green(2 * ((hist_image_plate_crystal1[(i % n_his_ima) * n_his_ima + (int)(i / n_his_ima)] / max_hist[1]) - 0.5)));
@@ -1378,6 +1379,7 @@ bool Source_complex::run_Source(SimulationInterface *w){
             GifWriteFrame(&gC1, plate_img.data(), n_his_ima, n_his_ima, n_his_ima / 4);
             
             plate_img.clear();
+            plate_img.resize(n_his_ima* n_his_ima * 4);
             for(int i = 0; i < n_his_ima * n_his_ima; i++){
                 plate_img[4 * i] = (int)(255 * red(2 * ((hist_image_plate_crystal2_anti[(i % n_his_ima) * n_his_ima + (int)(i / n_his_ima)] / max_hist[4]) - 0.5)));
                 plate_img[4 * i + 1] = (int)(255 * green(2 * ((hist_image_plate_crystal2_anti[(i % n_his_ima) * n_his_ima + (int)(i / n_his_ima)] / max_hist[4]) - 0.5)));
@@ -1388,6 +1390,7 @@ bool Source_complex::run_Source(SimulationInterface *w){
             GifWriteFrame(&gC2_anti, plate_img.data(), n_his_ima, n_his_ima, n_his_ima / 4);
             
             plate_img.clear();
+            plate_img.resize(n_his_ima* n_his_ima * 4);
             for(int i = 0; i < n_his_ima * n_his_ima; i++){
                 plate_img[4 * i] = (int)(255 * red(2 * ((hist_image_plate_crystal2_para[(i % n_his_ima) * n_his_ima + (int)(i / n_his_ima)] / max_hist[2]) - 0.5)));
                 plate_img[4 * i + 1] = (int)(255 * green(2 * ((hist_image_plate_crystal2_para[(i % n_his_ima) * n_his_ima + (int)(i / n_his_ima)] / max_hist[2]) - 0.5)));
@@ -1398,6 +1401,7 @@ bool Source_complex::run_Source(SimulationInterface *w){
             GifWriteFrame(&gC2_para, plate_img.data(), n_his_ima, n_his_ima, n_his_ima / 4);
             
             plate_img.clear();
+            plate_img.resize(n_his_ima * n_his_ima * 4);
             for(int i = 0; i < n_his_ima * n_his_ima; i++){
                 plate_img[4 * i] = (int)(255 * red(2 * ((hist_image_plate_detc_anti[(i % n_his_ima) * n_his_ima + (int)(i / n_his_ima)] / max_hist[5]) - 0.5)));
                 plate_img[4 * i + 1] = (int)(255 * green(2 * ((hist_image_plate_detc_anti[(i % n_his_ima) * n_his_ima + (int)(i / n_his_ima)] / max_hist[5]) - 0.5)));
@@ -1408,6 +1412,7 @@ bool Source_complex::run_Source(SimulationInterface *w){
             GifWriteFrame(&gDet_anti, plate_img.data(), n_his_ima, n_his_ima, n_his_ima / 4);
             
             plate_img.clear();
+            plate_img.resize(n_his_ima* n_his_ima * 4);
             for(int i = 0; i < n_his_ima * n_his_ima; i++){
                 plate_img[4 * i] = (int)(255 * red(2 * ((hist_image_plate_detc_para[(i % n_his_ima) * n_his_ima + (int)(i / n_his_ima)] / max_hist[3]) - 0.5)));
                 plate_img[4 * i + 1] = (int)(255 * green(2 * ((hist_image_plate_detc_para[(i % n_his_ima) * n_his_ima + (int)(i / n_his_ima)] / max_hist[3]) - 0.5)));

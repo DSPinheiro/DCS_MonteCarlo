@@ -181,14 +181,14 @@ void SimulationInterface::guiSimu(){
     if(UserSettingsInput.mask_C1 < 0 || UserSettingsInput.mask_C1 > 2){
         
         logString << "bad input for first crystal mask: " << UserSettingsInput.mask_C1 << endl;
-        LogLine(logString.str());
+        emit LogLineSignal(logString.str());
         throw runtime_error("value of 0 for no mask, 1 for mask on the bottom and 2 for mask on the top");
     }
 
     if(UserSettingsInput.mask_C2 < 0 || UserSettingsInput.mask_C2 > 2){
         logString.clear();
         logString << "bad input for second crystal mask: " << UserSettingsInput.mask_C2 << endl;
-        LogLine(logString.str());
+        emit LogLineSignal(logString.str());
         throw runtime_error("value of 0 for no mask, 1 for mask on the bottom and 2 for mask on the top");
     }
 
@@ -223,13 +223,13 @@ void SimulationInterface::guiSimu(){
     }else{
         logString.clear();
         logString << "Reading input energy spectrum..." << endl;
-        LogLine(logString.str());
+        emit LogLineSignal(logString.str());
         
         Util::Read_EnergySpectrum(FullEnergySpectrumInput.energy_spectrum_file);
         
         logString.clear();
         logString << "Input energy spectrum read." << endl;
-        LogLine(logString.str());
+        emit LogLineSignal(logString.str());
 
         //Setup the values for other parts of the code, even if unused in this mode, which might result in wrong values for the analysis
         reques_energ[0] = PhysicalParametersInput.linelamda;
@@ -336,7 +336,7 @@ void SimulationInterface::guiSimu(){
     }else{
         logString.clear();
         logString << "unimplemented transmission mode" << endl;
-        LogLine(logString.str());
+        emit LogLineSignal(logString.str());
 
     }
 }

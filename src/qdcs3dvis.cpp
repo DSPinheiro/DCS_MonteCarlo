@@ -1358,8 +1358,8 @@ void QDCS3Dvis::drawParallelEvents(QMatrix4x4& m) {
             drawObject(baseCylinderVertices, baseCylinderModelVertexBuffer, baseCylinderModelUVBuffer);
 
             m.scale(1 / eventLineSize, 2 / source_posy, 1 / eventLineSize);
-            m.rotate(-sc1_anglex, 1.0, 0.0, 0.0);
             m.rotate(-sc1_anglez, 0.0, 0.0, 1.0);
+            m.rotate(-sc1_anglex, 1.0, 0.0, 0.0);
             m.translate(-source_posx - sc1_HWDx, -source_posy / 2 + event.at(0), -source_posz - sc1_HWDz);
 
 
@@ -1382,8 +1382,8 @@ void QDCS3Dvis::drawParallelEvents(QMatrix4x4& m) {
                 drawObject(baseCylinderVertices, baseCylinderModelVertexBuffer, baseCylinderModelUVBuffer);
 
                 m.scale(1 / eventLineSize, 2 / c2_posx, 1 / eventLineSize);
-                m.rotate(-90 - c1c2_anglez, 0.0, 0.0, 1.0);
                 m.rotate(-c1c2_angley, 0.0, 1.0, 0.0);
+                m.rotate(-90 - c1c2_anglez, 0.0, 0.0, 1.0);
                 m.translate(-c2_posx / 2, -c2_posy - c1c2_HWDy, -c2_posz - c1c2_HWDz);
                 m.rotate(-table_angle, 0.0, 0.0, 1.0);
             }
@@ -1409,8 +1409,8 @@ void QDCS3Dvis::drawParallelEvents(QMatrix4x4& m) {
                 drawObject(baseCylinderVertices, baseCylinderModelVertexBuffer, baseCylinderModelUVBuffer);
 
                 m.scale(1 / eventLineSize, 2 / detec_posx, 1 / eventLineSize);
-                m.rotate(-90 - c2det_anglez, 0.0, 0.0, 1.0);
                 m.rotate(-c2det_angley, 0.0, 1.0, 0.0);
+                m.rotate(-90 - c2det_anglez, 0.0, 0.0, 1.0);
                 m.translate(-detec_posx / 2, -detec_posy - c2det_HWDy, -detec_posz - c2det_HWDz);
                 m.rotate(-detec_angle_para, 0.0, 0.0, 1.0);
                 m.translate(-c2_posx, -c2_posy, -c2_posz);
@@ -1453,8 +1453,8 @@ void QDCS3Dvis::drawAntiparallelEvents(QMatrix4x4& m) {
             drawObject(baseCylinderVertices, baseCylinderModelVertexBuffer, baseCylinderModelUVBuffer);
 
             m.scale(1 / eventLineSize, 2 / source_posy, 1 / eventLineSize);
-            m.rotate(-sc1_anglex, 1.0, 0.0, 0.0);
             m.rotate(-sc1_anglez, 0.0, 0.0, 1.0);
+            m.rotate(-sc1_anglex, 1.0, 0.0, 0.0);
             m.translate(-source_posx - sc1_HWDx, -source_posy / 2 - event.at(0), -source_posz - sc1_HWDz);
 
 
@@ -1477,8 +1477,8 @@ void QDCS3Dvis::drawAntiparallelEvents(QMatrix4x4& m) {
                 drawObject(baseCylinderVertices, baseCylinderModelVertexBuffer, baseCylinderModelUVBuffer);
 
                 m.scale(1 / eventLineSize, 2 / c2_posx, 1 / eventLineSize);
-                m.rotate(-90 - c1c2_anglez, 0.0, 0.0, 1.0);
                 m.rotate(-c1c2_angley, 0.0, 1.0, 0.0);
+                m.rotate(-90 - c1c2_anglez, 0.0, 0.0, 1.0);
                 m.translate(-c2_posx / 2, -c2_posy - c1c2_HWDy, -c2_posz - c1c2_HWDz);
                 m.rotate(-table_angle, 0.0, 0.0, 1.0);
             }
@@ -1504,8 +1504,8 @@ void QDCS3Dvis::drawAntiparallelEvents(QMatrix4x4& m) {
                 drawObject(baseCylinderVertices, baseCylinderModelVertexBuffer, baseCylinderModelUVBuffer);
 
                 m.scale(1 / eventLineSize, 2 / detec_posx, 1 / eventLineSize);
-                m.rotate(-90 - c2det_anglez, 0.0, 0.0, 1.0);
                 m.rotate(-c2det_angley, 0.0, 1.0, 0.0);
+                m.rotate(-90 - c2det_anglez, 0.0, 0.0, 1.0);
                 m.translate(-detec_posx / 2, -detec_posy - c2det_HWDy, -detec_posz - c2det_HWDz);
                 m.rotate(-detec_angle_anti, 0.0, 0.0, 1.0);
                 m.translate(-c2_posx, -c2_posy, -c2_posz);
