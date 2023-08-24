@@ -54,15 +54,10 @@ int ENTRYPOINT(int argc, char *argv[]){
     if(!input_params.output_dir_path.empty())
     {
         
-        if(std::filesystem::path(input_params.output_dir_path).is_relative())
-        {
-            strcat(Output_dir, File_simu);
+        strcat(Output_dir, input_params.output_dir_path.c_str());
+        
+        if(input_params.output_dir_path.back() != '/'){
             strcat(Output_dir, "/");
-            strcat(Output_dir, input_params.output_dir_path.c_str());
-        }
-        else // Just use a path relative to the executable's location
-        {
-            strcat(Output_dir, input_params.output_dir_path.c_str());
         }
     }
     else
