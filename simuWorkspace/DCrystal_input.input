@@ -61,18 +61,19 @@ shift_det_ver=-0.0d0	//detector's initial vertical displacement
 
 GeoParameters				//DETAILED PARAMETERS FOR THE ANGLES
 
-Exp_crys1=-104.2272d0			//starting angle of the first crystal with respect to the table (has to be >0 for simple simulation and <0 for non simple)
-teta_table=28.4440d0			//angle of the table axis with respect to simulation x axis
-OffsetRotCry1 =-0.0052d0		//angle offset of first crystal
-teta_detec_para=-28.4440d0		//angle of the detector with respect to the table in parallel config
-teta_detec_anti=28.4440d0		//angle of the detector with respect to the table in anti-parallel config
-tilt_C1=0.0d0					//initial angle of the first crystal with respect to the table
-tilt_C2=-0.0d0					//initial angle of the second crystal with respect to the table
-xsi=0.0d0						//effective missalignment between crystals (only works or simple simu)
-center_1cry_at= 0.0d0			//vertical center coordinate for the first crystal (when center_1crys = .true.)
-center_2cry_at= -0.60d0			//vertical center coordinate for the second crystal (when center_2crys = .true.)
-make_table_angleNoise=.false.	//Add a gaussian noise to the table angle
-table_resolution=0.001d0		//Resolution of the table angle encoder (this is set to be 6*sigma of the gaussian noise - it should accually be a triangular dist)
+Exp_crys1=-104.2272d0					//starting angle of the first crystal with respect to the table (has to be >0 for simple simulation and <0 for non simple)
+teta_table=28.4440d0					//angle of the table axis with respect to simulation x axis
+OffsetRotCry1 =-0.0052d0				//angle offset of first crystal
+teta_detec_para=-28.4440d0				//angle of the detector with respect to the table in parallel config
+teta_detec_anti=28.4440d0				//angle of the detector with respect to the table in anti-parallel config
+tilt_C1=0.0d0							//initial angle of the first crystal with respect to the table
+tilt_C2=-0.0d0							//initial angle of the second crystal with respect to the table
+xsi=0.0d0								//effective missalignment between crystals (only works or simple simu)
+center_1cry_at= 0.0d0					//vertical center coordinate for the first crystal (when center_1crys = .true.)
+center_2cry_at= -0.60d0					//vertical center coordinate for the second crystal (when center_2crys = .true.)
+make_table_angleNoise=.false.			//Add a gaussian noise to the table angle
+table_resolution=0.001d0				//Resolution of the table angle encoder (this is set to be 6*sigma of the gaussian noise - it should accually be a triangular dist)
+crystal_profile_dir=Crystal_Profiles	//Directory with the crystal profiles, inside the simu workspace folder
 
 
 CurveVerticalTilt			//SETTINGS FOR USING A CRYSTAL THAT IS VERTICALLY CURVED AND TILTED
@@ -135,19 +136,20 @@ TT_tempera=3						//width constant for temperature calculations
 
 fullenergyspectrum			//ENERGY SPECTRUM PARAMETERS FOR MORE LINES
 
-make_more_lines=2					//type of input spectrum to compute (0 - single line given in the physical_parameters; 1 - multiple lines given here; 2 - continuous energy spectrum given in the Energy_spectrum.txt file by default)
-linelamda1=6000.00d0				//energy of the first x-ray line
-naturalwidth1=0.00d0				//natural width of the first x-ray line
-p1_ener=0.2500d0					//intensity proportion of the first x-ray line
-linelamda2=6000.78d0				//energy of the second x-ray line
-naturalwidth2=0.00d0				//natural width of the second x-ray line
-p2_ener=0.25d0 						//intensity proportion of the second x-ray line
-linelamda3=4000.148d0				//energy of the third x-ray line
-naturalwidth3=0.00d0				//natural width of the third x-ray line
-p3_ener=0.25d0						//intensity proportion of the third x-ray line
-linelamda4=4000.10d0				//energy of the fourth x-ray line
-naturalwidth4=0.00d0				//natural width of the fourth x-ray line (no need for the proportion of this line as it will fill the remaining to total 1)
-Do_background=.false.				//use the 4 lines to simulate the background (will just change the proportions to a set of fixed values and use the energies)
+make_more_lines=2						//type of input spectrum to compute (0 - single line given in the physical_parameters; 1 - multiple lines given here; 2 - continuous energy spectrum given in the Energy_spectrum.txt file by default)
+linelamda1=6000.00d0					//energy of the first x-ray line
+naturalwidth1=0.00d0					//natural width of the first x-ray line
+p1_ener=0.2500d0						//intensity proportion of the first x-ray line
+linelamda2=6000.78d0					//energy of the second x-ray line
+naturalwidth2=0.00d0					//natural width of the second x-ray line
+p2_ener=0.25d0 							//intensity proportion of the second x-ray line
+linelamda3=4000.148d0					//energy of the third x-ray line
+naturalwidth3=0.00d0					//natural width of the third x-ray line
+p3_ener=0.25d0							//intensity proportion of the third x-ray line
+linelamda4=4000.10d0					//energy of the fourth x-ray line
+naturalwidth4=0.00d0					//natural width of the fourth x-ray line (no need for the proportion of this line as it will fill the remaining to total 1)
+Do_background=.false.					//use the 4 lines to simulate the background (will just change the proportions to a set of fixed values and use the energies)
+spectrum_filename=Energy_spectrum.txt	//Energy spectrum filename, inside the simu workspace folder
 
 
 Curved_Crystal				//PARAMETERS FOR CURVED CRYSTALS

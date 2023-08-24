@@ -89,8 +89,8 @@ int ENTRYPOINT(int argc, char *argv[]){
         refra_corr = refra_corrPARIS;
     }
 
-    FullEnergySpectrumInput.energy_spectrum_file = input_params.input_dir_path + "/Energy_spectrum.txt";
-    GeoParametersInput.reflection_profiles_dir = input_params.input_dir_path + "/Crystal_Profiles";
+    FullEnergySpectrumInput.energy_spectrum_file = input_params.input_dir_path + "/" + FullEnergySpectrumInput.energy_spectrum_file;
+    GeoParametersInput.reflection_profiles_dir = input_params.input_dir_path + "/" + GeoParametersInput.reflection_profiles_dir;
 
     SimulationInterface::headlessSimu();
 #else

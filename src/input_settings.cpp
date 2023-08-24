@@ -284,6 +284,9 @@ int InputSettingsPrompt::configure(const std::string& inFile)
                     }else if(items[0] == "table_resolution"){
                         trim(items[1]);
                         GeoParametersInput.table_resolution = std::stod(split(items[1], "d0")[0]);
+                    }else if(items[0] == "crystal_profile_dir"){
+                        trim(items[1]);
+                        GeoParametersInput.reflection_profiles_dir = items[1];
                     }
 
                 }else if(currStruct == "CurveVerticalTilt"){
@@ -485,6 +488,9 @@ int InputSettingsPrompt::configure(const std::string& inFile)
                     }else if(items[0] == "Do_background"){
                         trim(items[1]);
                         FullEnergySpectrumInput.Do_background = (items[1] == ".true.");
+                    }else if(items[0] == "spectrum_filename"){
+                        trim(items[1]);
+                        FullEnergySpectrumInput.energy_spectrum_file = items[1];
                     }
 
                 }else if(currStruct == "Curved_Crystal"){
