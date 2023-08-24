@@ -2439,7 +2439,7 @@ void Util::Read_EnergySpectrum(const std::string& filename) {
         pathFile.open(inFile);
     }
     else {
-        throw std::runtime_error("input energy spectrum file \"" + filename + "\" not found");
+        throw std::runtime_error("Input energy spectrum file \"" + filename + "\" not found");
     }
 
     if (Unit_energy == "keV")

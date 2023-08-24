@@ -62,7 +62,13 @@ void SimulationInterface::headlessSimu(){
     }else{
         cout << "Reading input energy spectrum..." << endl;
         
-        Util::Read_EnergySpectrum(FullEnergySpectrumInput.energy_spectrum_file);
+        try {
+            Util::Read_EnergySpectrum(FullEnergySpectrumInput.energy_spectrum_file);
+        } catch (const runtime_error& e) {
+            cout << e.what() << "\n";
+            gener_out << e.what() << "\n";
+            exit(1);
+        }
         
         cout << "Input energy spectrum read." << endl;
 

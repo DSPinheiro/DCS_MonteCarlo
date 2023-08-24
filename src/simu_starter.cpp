@@ -273,7 +273,16 @@ void Simu_Starter::Make_Simu(SimulationInterface* w){
     Util::test_In();
 
     Util::Set_angs();
-    Util::Read_CurveResponce(GeoParametersInput.reflection_profiles_dir);
+    try {
+        Util::Read_CurveResponce(GeoParametersInput.reflection_profiles_dir);
+    } catch (const runtime_error& e) {
+        cout << e.what() << "\n";
+        gener_out << e.what() << "\n";
+        #ifdef QT_EXISTS
+        QCoreApplication::exit(1);
+        #endif
+        exit(1);
+    }
 
 
     gener_out << "Using Interpolating Crystal Reflection Profiles from files in: " << GeoParametersInput.reflection_profiles_dir << endl;
