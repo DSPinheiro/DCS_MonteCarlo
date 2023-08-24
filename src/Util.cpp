@@ -2780,6 +2780,8 @@ void Util::test_In() {
         #ifdef QT_EXISTS
         if(logBox != NULL)
             logBox->appendPlainText(logString.str().c_str());
+        #else
+            std::cout << logString;
         #endif
     }
     else
@@ -2794,6 +2796,7 @@ void Util::test_In() {
 
 
     var_temp = Maxi_angl - Mini_angl;
+
 
     if (var_temp < 0)
         throw std::runtime_error("*** Error in test_input: min_angle grater than max_angle");
