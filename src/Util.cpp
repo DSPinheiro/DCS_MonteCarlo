@@ -2781,7 +2781,7 @@ void Util::test_In() {
         if(logBox != NULL)
             logBox->appendPlainText(logString.str().c_str());
         #else
-            std::cout << logString;
+            std::cout << logString.str();
         #endif
     }
     else

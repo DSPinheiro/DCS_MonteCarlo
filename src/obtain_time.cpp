@@ -81,6 +81,10 @@ void Obtain_time::simuTime(bool finished, double pctDone, SimulationInterface *w
         #else
             std::cout << logString.str();
         #endif
+
+        gener_out << std::endl;
+        gener_out << "Remainder time estimate: " << Hour << " h " << Min << " m " << Sec << " s" << std::endl;
+        gener_out << std::endl;
     }
     else
     {
