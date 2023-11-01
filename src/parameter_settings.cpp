@@ -700,12 +700,30 @@ void GUISettingsWindow::updateElements()
     ui->spinBox_6->setValue(GeometryInput.imk);
     ui->spinBox_7->setValue(GeometryInput.iml);
     // Geometry mode (reserved)
-    if(GeometryInput.crystal_Si)      ui->src_geometry_6->setCurrentIndex(0);
-    else if(!GeometryInput.crystal_Si) ui->src_geometry_6->setCurrentIndex(1);
-    if(GeoParapathlengthsInput.type_source == "UC")      ui->src_geometry->setCurrentIndex(0);
-    else if(GeoParapathlengthsInput.type_source == "UR") ui->src_geometry->setCurrentIndex(1);
-    else if(GeoParapathlengthsInput.type_source ==  "P") ui->src_geometry->setCurrentIndex(2);
-    else if(GeoParapathlengthsInput.type_source ==  "G") ui->src_geometry->setCurrentIndex(3);
+    if (GeometryInput.crystal_Si)
+    {
+        ui->src_geometry_6->setCurrentIndex(0); ui->src_geometry_6->currentIndexChanged(0);
+    }
+    else if (!GeometryInput.crystal_Si)
+    {
+        ui->src_geometry_6->setCurrentIndex(1); ui->src_geometry_6->currentIndexChanged(1);
+    }
+    if (GeoParapathlengthsInput.type_source == "UC")
+    {
+        ui->src_geometry->setCurrentIndex(0);   ui->src_geometry->currentIndexChanged(0);
+    }
+    else if (GeoParapathlengthsInput.type_source == "UR")
+    {
+        ui->src_geometry->setCurrentIndex(1);   ui->src_geometry->currentIndexChanged(1);
+    }
+    else if (GeoParapathlengthsInput.type_source == "P")
+    {
+        ui->src_geometry->setCurrentIndex(2);   ui->src_geometry->currentIndexChanged(2);
+    }
+    else if (GeoParapathlengthsInput.type_source == "G")
+    {
+        ui->src_geometry->setCurrentIndex(3);   ui->src_geometry->currentIndexChanged(3);
+    }
     ui->src_aprt_11->setValue(GeolengthelementsInput.S_sour);
     ui->src_aprt_12->setValue(GeolengthelementsInput.S_aper);
     ui->src_aprt_18->setValue(GeolengthelementsInput.y_sour);
@@ -770,17 +788,26 @@ void GUISettingsWindow::updateElements()
     ui->spinBox_2->setValue(NumberRaysInput.nbeams);
     ui->spinBox_3->setValue(NumberRaysInput.number_rotati);
     ui->spinBox_4->setValue(NumberRaysInput.number_events);
-    if(PhysicalParametersInput.Unit_energy ==  "eV")      ui->src_geometry_3->setCurrentIndex(0);
-    else if(PhysicalParametersInput.Unit_energy == "keV") ui->src_geometry_3->setCurrentIndex(1);
-    else if(PhysicalParametersInput.Unit_energy ==   "A") ui->src_geometry_3->setCurrentIndex(2);
+    if (PhysicalParametersInput.Unit_energy == "eV")
+    {
+        ui->src_geometry_3->setCurrentIndex(0); ui->src_geometry_3->currentIndexChanged(0);
+    }
+    else if (PhysicalParametersInput.Unit_energy == "keV")
+    {
+        ui->src_geometry_3->setCurrentIndex(1); ui->src_geometry_3->currentIndexChanged(1);
+    }
+    else if (PhysicalParametersInput.Unit_energy == "A")
+    {
+        ui->src_geometry_3->setCurrentIndex(2); ui->src_geometry_3->currentIndexChanged(2);
+    }
     ui->src_aprt_42->setValue(PhysicalParametersInput.linelamda);
     ui->src_aprt_43->setValue(PhysicalParametersInput.naturalwidth);
     ui->src_aprt_45->setValue(PhysicalParametersInput.gauss_Doop);
     switch(FullEnergySpectrumInput.make_more_lines)
     {
         case 2: ui->src_geometry_4->setCurrentIndex(0); emit ui->src_geometry_4->currentIndexChanged(0); break;
-        case 1: ui->src_geometry_4->setCurrentIndex(1); emit ui->src_geometry_4->currentIndexChanged(0); break;
-        case 0: ui->src_geometry_4->setCurrentIndex(2); emit ui->src_geometry_4->currentIndexChanged(0); break;
+        case 1: ui->src_geometry_4->setCurrentIndex(1); emit ui->src_geometry_4->currentIndexChanged(1); break;
+        case 0: ui->src_geometry_4->setCurrentIndex(2); emit ui->src_geometry_4->currentIndexChanged(2); break;
         default: break;
     }
     ui->lineEdit->setText(QString::fromStdString(FullEnergySpectrumInput.energy_spectrum_file));

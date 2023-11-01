@@ -74,12 +74,12 @@ void Obtain_time::simuTime(bool finished, double pctDone, SimulationInterface *w
 
         logString.clear();
         logString << "Remainder time estimate: " << Hour << " h " << Min << " m " << Sec << " s" << std::endl;
-        logString << std::endl;
 
         #ifdef QT_EXISTS
+            logString << std::endl;
             emit w->LogLineSignal(logString.str());
         #else
-            std::cout << logString.str();
+            std::cout << "\r" << logString.str() << std::flush;
         #endif
 
         gener_out << std::endl;
