@@ -262,10 +262,10 @@ if(INSTALL_GUI)
     set(INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH "Installation directory for CMake files")
 
     set(INSTALL_HEADERS
-        simulation_interface.h
-        simuGlobals.hh
-        parameter_settings.h
-        simuConsts.h
+        include/simulation_interface.h
+        include/simuGlobals.hh
+        include/parameter_settings.h
+        include/simuConsts.h
     )
 
     file(REAL_PATH "${CMAKE_INSTALL_PREFIX}/${INSTALL_INCLUDE_DIR}" ABS_INCLUDE_DIR)

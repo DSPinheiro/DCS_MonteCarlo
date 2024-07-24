@@ -270,6 +270,10 @@ void Simu_Starter::Make_Simu(SimulationInterface* w){
 
     Util::geo_corre();
 
+    if (GeoParametersInput.find_angles) {
+        Util::Find_Angles(linelamda);
+    }
+
     try {
         Util::test_In();
     } catch (const runtime_error& e) {

@@ -287,6 +287,9 @@ int InputSettingsPrompt::configure(const std::string& inFile)
                     }else if(items[0] == "crystal_profile_dir"){
                         trim(items[1]);
                         GeoParametersInput.reflection_profiles_dir = items[1];
+                    }else if(items[0] == "find_angles"){
+                        trim(items[1]);
+                        GeoParametersInput.find_angles = (items[1] == ".true.");
                     }
 
                 }else if(currStruct == "CurveVerticalTilt"){

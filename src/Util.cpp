@@ -1305,7 +1305,7 @@ bool Util::CheckSpectrum(std::string unit) {
 /// Crystal angle.
 /// </param>
 /// <param name="lamda">
-/// Radiation energy
+/// Radiation wavelength
 /// </param>
 /// <param name="type_crystal">
 /// Curved or flat crystal (true, false).
@@ -1490,7 +1490,7 @@ double Util::getNewTemp(int bin_tem, int& bin_fas, double& pha_tem) {
 /// <returns>
 /// Wavelength of the generated event.
 /// </returns>
-double Util::getEnergy(double a_lamds_uni, double db_lamds_uni, double tw_d) {
+double Util::getWavelength(double a_lamds_uni, double db_lamds_uni, double tw_d) {
 
     double p1, p2, natur_li, pm1, pm2, pm3, pm4, hit, rnd_inten, energy_t;
     int I_picks;
@@ -2622,6 +2622,145 @@ void Util::Set_angs() {
 
         never_set_angle = false;
     }
+}
+
+
+std::vector<double> Util::Find_Angles(double lambda, bool wave) {
+    double theta_b, line_ener, wavelength, angle_dif, energy_exact, peak_dif; // peak_dif = (ang_anti_pre - ang_para_pre)
+    
+    if (wave) {
+        wavelength = lambda;
+        line_ener = Convert_Ag_minusone_eV / lambda;
+    } else {
+        wavelength = Convert_Ag_minusone_eV / lambda;
+        line_ener = lambda;
+    }
+
+    
+    if(GeometryInput.crystal_Si){
+        d_lat = a_si_para / sqrt(pow(GeometryInput.imh, 2) + pow(GeometryInput.imk, 2) + pow(GeometryInput.iml, 2));
+    }else{
+        d_lat = a_Ge_para / sqrt(pow(GeometryInput.imh, 2) + pow(GeometryInput.imk, 2) + pow(GeometryInput.iml, 2));
+    }
+
+    if(wavelength < 2 * d_lat){
+        theta_b = asin(wavelength / (2 * d_lat)) * 180.0 / M_PI;
+    }else{
+        //std::cout << "linelamda greater than 2 * d_lat, i.e. there is no diffraction: linelamda = " << std::to_string(wavelength) << "; d_lat = " << std::to_string(d_lat) << std::endl;
+        throw std::runtime_error("linelamda greater than 2 * d_lat, i.e. there is no diffraction: linelamda = " + std::to_string(wavelength) + "; d_lat = " + std::to_string(d_lat));
+    }
+    
+    theta_chk = 90 - theta_b;
+
+    // Calculate the angles from the argument energy and wavelengths
+    std::stringstream logString;
+
+    double b_anti_pick;
+
+    // Update the C1 angle taking into account the table (not initially set for the interface mode)
+    teta_crys1 = -GeoParametersInput.teta_table - GeoParametersInput.Exp_crys1 + GeoParametersInput.OffsetRotCry1;
+
+    b_anti_pick = -2 * (-teta_crys1 + theta_chk);
+
+    double tetaref, teta_table_rad, xsi_rad, c1, C2_para, C2_anti, tan_e2, cos_e2, cos_e, esti_para, esti_anti;
+    double low_bound_angl_para, high_bound_angl_para, low_bound_angl_anti, high_bound_angl_anti, Maxi_angl_para, Mini_angl_para, Maxi_angl_anti, Mini_angl_anti;
+
+    tetaref = 90 - teta_crys1;
+    tetaref *= convrad;
+    teta_table_rad = GeoParametersInput.teta_table * convrad;
+    xsi_rad = GeoParametersInput.xsi * convrad;
+
+    xsi_rad = -atan((GeolengthelementsInput.S_shi_ver_A - GeolengthelementsInput.S_shi_ver_B) / GeoParapathlengthsInput.LT_aper);
+    GeoParametersInput.xsi = xsi_rad * convdeg;
+    
+    if (CurveVerticalTiltInput.make_CurveTilt) {
+        c1 = Util::ObtainVert(1, 0);
+
+        C2_para = Util::ObtainVert(2, teta_crys1);
+        C2_anti = Util::ObtainVert(2, -teta_crys1);
+    }
+    else {
+        c1 = GeoParametersInput.tilt_C1 * convrad;
+        C2_para = GeoParametersInput.tilt_C2 * convrad;
+        C2_anti = GeoParametersInput.tilt_C2 * convrad;
+    }
+
+
+    tan_e2 = tan(tetaref) / 2;
+    cos_e2 = 2 * cos(2 * tetaref);
+    cos_e = cos(tetaref);
+
+    esti_para = convdeg * tan_e2 * (pow(C2_para, 2) + 4 * C2_para * c1 + 3 * pow(c1, 2)) - convdeg * xsi_rad * (C2_para + c1) / cos_e;
+    esti_anti = convdeg * tan_e2 * (pow(C2_anti, 2) + 4 * C2_anti * c1 + pow(c1, 2) * (1 - 2 * cos_e2)) + convdeg * tan_e2 * (2 * pow(xsi_rad, 2)) - convdeg * xsi_rad * (C2_anti + c1 * (1 - cos_e2)) / cos_e;
+
+    esti_para -= convdeg * (2 * tetaref - teta_table_rad);
+    esti_anti += convdeg * (2 * tetaref - teta_table_rad);
+    
+    esti_anti += b_anti_pick + 2 * refra_corr + 2 * vert_div_corr;
+
+    ang_para_pre = teta_crys1 - esti_para;
+    ang_anti_pre = esti_anti - teta_crys1;
+    
+    low_bound_angl_para = ang_para_pre - PlotParametersInput.delta_angl;
+    high_bound_angl_para = ang_para_pre + PlotParametersInput.delta_angl;
+    low_bound_angl_anti = ang_anti_pre - PlotParametersInput.delta_angl;
+    high_bound_angl_anti = ang_anti_pre + PlotParametersInput.delta_angl;
+
+    Maxi_angl_anti = high_bound_angl_anti - teta_crys1;
+    Mini_angl_anti = low_bound_angl_anti - teta_crys1;
+
+    Maxi_angl_para = high_bound_angl_para - teta_crys1;
+    Mini_angl_para = low_bound_angl_para - teta_crys1;
+
+    Maxi_angl = Maxi_angl_para + PlotParametersInput.shift_disp_window;
+    Mini_angl = Mini_angl_para + PlotParametersInput.shift_disp_window;
+
+    low_bound_angl_para = teta_crys1 + Mini_angl;
+    high_bound_angl_para = teta_crys1 + Maxi_angl;
+    low_bound_angl_anti = -teta_crys1 - Mini_angl;
+    high_bound_angl_anti = -teta_crys1 - Maxi_angl;
+
+    // std::cout << "Old Angles:" << std::endl;
+    // std::cout << "Exp_crys1: " << GeoParametersInput.Exp_crys1 << std::endl;
+    // std::cout << "teta_table: " << GeoParametersInput.teta_table << std::endl;
+    // std::cout << "teta_detec_anti: " << GeoParametersInput.teta_detec_anti << std::endl;
+    // std::cout << "teta_detec_para: " << GeoParametersInput.teta_detec_para << std::endl;
+
+    // std::cout << std::endl;
+    // std::cout << "C1 Para Align: " << (Maxi_angl - PlotParametersInput.delta_angl) / 2 << std::endl;
+    // std::cout << "teta_crys1: " << teta_crys1 << std::endl;
+    // std::cout << "Maxi: " << Maxi_angl << std::endl;
+    // std::cout << "Disp Delta: " << PlotParametersInput.delta_angl << std::endl;
+
+    GeoParametersInput.Exp_crys1 += (Maxi_angl - PlotParametersInput.delta_angl) / 2;
+
+    // std::cout << "table anti Align: " << - (high_bound_angl_anti + PlotParametersInput.delta_angl - ang_anti_pre) << std::endl;
+    // std::cout << "C1 anti Align: " << (high_bound_angl_anti + PlotParametersInput.delta_angl - ang_anti_pre) / 2 << std::endl;
+    // std::cout << "High bound: " << high_bound_angl_anti << std::endl;
+    // std::cout << "Anti pre: " << ang_anti_pre << std::endl;
+
+    GeoParametersInput.teta_table -= (high_bound_angl_anti + PlotParametersInput.delta_angl - ang_anti_pre);
+    GeoParametersInput.Exp_crys1 += (high_bound_angl_anti + PlotParametersInput.delta_angl - ang_anti_pre) / 2;
+    GeoParametersInput.teta_detec_anti = GeoParametersInput.teta_table;
+    GeoParametersInput.teta_detec_para = -GeoParametersInput.teta_table;
+
+    // Update the C1 angle taking into account the table
+    teta_crys1 = -GeoParametersInput.teta_table - GeoParametersInput.Exp_crys1 + GeoParametersInput.OffsetRotCry1;
+
+
+    // std::cout << "New Angles:" << std::endl;
+    // std::cout << "Exp_crys1: " << GeoParametersInput.Exp_crys1 << std::endl;
+    // std::cout << "teta_table: " << GeoParametersInput.teta_table << std::endl;
+    // std::cout << "teta_detec_anti: " << GeoParametersInput.teta_detec_anti << std::endl;
+    // std::cout << "teta_detec_para: " << GeoParametersInput.teta_detec_para << std::endl;
+
+    std::vector<double> res;
+    res.push_back(GeoParametersInput.Exp_crys1);
+    res.push_back(GeoParametersInput.teta_table);
+    res.push_back(GeoParametersInput.teta_detec_anti);
+    res.push_back(GeoParametersInput.teta_detec_para);
+
+    return res;
 }
 
 

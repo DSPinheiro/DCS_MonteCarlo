@@ -45,7 +45,7 @@ namespace Util {
     double ObtainVert(int crystal, double angle);
     bool getReflection(double angle, double tetabra, double lamda, bool type_crystal, bool poli_p = false);
     double getNewTemp(int bin_tem, int& bin_fas, double& pha_tem);
-    double getEnergy(double a_lamds_uni, double db_lamds_uni, double tw_d);
+    double getWavelength(double a_lamds_uni, double db_lamds_uni, double tw_d);
     std::vector<double> getLims(double tetaref, double delrot_min, double delrot_max, double fi_max, double teta_max, double teta_min);
     void initPlates();
     void Make(int crystal, double y, double z, size_t &counts_sour, size_t &counts_C1, int &counts_C2_para, int &counts_detc_para, int &counts_C2_anti, int &counts_detc_anti);
@@ -56,6 +56,7 @@ namespace Util {
     void Read_EnergySpectrum(const std::string& filename);
     std::vector<double> misalign(double Dis_total);
     void Set_angs();
+    std::vector<double> Find_Angles(double lambda, bool wave = true);
     void test_In();
 }
 

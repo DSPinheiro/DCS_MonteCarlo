@@ -4,6 +4,8 @@
 
 #include "../include/simuGlobals.hh"
 #include "../include/simulation_interface.h"
+#include "../include/Util.h"
+
 #include "sserializer.inl"
 #include <filesystem>
 #include <fstream>
@@ -350,6 +352,24 @@ GUISettingsWindow::GUISettingsWindow(QWidget *parent) :
     connect(ui->src_aprt_42, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { PhysicalParametersInput.linelamda = v; });
     connect(ui->src_aprt_43, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { PhysicalParametersInput.naturalwidth = v; });
     connect(ui->src_aprt_45, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double v) { PhysicalParametersInput.gauss_Doop = v; });
+    connect(ui->checkBox, &QCheckBox::stateChanged, this, [this](int s) {
+            GeoParametersInput.find_angles = (bool)s;
+            
+            ui->src_aprt_22->setEnabled(!GeoParametersInput.find_angles);
+            ui->src_aprt_23->setEnabled(!GeoParametersInput.find_angles);
+            ui->src_aprt_25->setEnabled(!GeoParametersInput.find_angles);
+            ui->src_aprt_26->setEnabled(!GeoParametersInput.find_angles);
+
+            if (GeoParametersInput.find_angles) {
+                std::vector<double> res = Util::Find_Angles(PhysicalParametersInput.linelamda, false);
+                
+                ui->src_aprt_22->setValue(res[0]);
+                ui->src_aprt_23->setValue(res[1]);
+                ui->src_aprt_25->setValue(res[2]);
+                ui->src_aprt_26->setValue(res[3]);
+            }
+        });
+    
     connect(ui->src_geometry_4, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int v) { 
         switch(v)
         {

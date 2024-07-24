@@ -1874,7 +1874,7 @@ void Source_complex::makeBin(SimulationInterface *w, SetupParameters *setup, Bin
                 r2y = angleRes[2];
                 r2z = angleRes[3];
 
-                lamda = Util::getEnergy(setup->a_lamds_uni, setup->b_lamds_uni, bin->tw_d1_para);
+                lamda = Util::getWavelength(setup->a_lamds_uni, setup->b_lamds_uni, bin->tw_d1_para);
                 
                 tetabra1 = asin(lamda / bin->tw_d1_para);
 

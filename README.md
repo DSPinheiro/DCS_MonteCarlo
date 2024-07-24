@@ -19,6 +19,10 @@ cmake --build . --config Release --target install
 
 ## Changelog
 
+**24/07/2024**\
+Added a function to automatically determine the spectrometer angles from the input energies. This can be toggled in the input file.\
+Changed the name of getEnergy to getWavelength in Util files to represent it's actual functionality.\
+
 **20/07/2023**\
 Fixed some issues with the crystal reflection profiles.\
 Now we can use the results to compare more directly with experiment and across simulations.\

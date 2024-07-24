@@ -214,7 +214,7 @@ void Source_simple::run_Source(){
 
                 if (FullEnergySpectrumInput.make_more_lines < 2)
                 {
-                    lamda = Util::getEnergy(
+                    lamda = Util::getWavelength(
                         a_lamds_uni,
                         b_lamds_uni,
                         tw_d1);
